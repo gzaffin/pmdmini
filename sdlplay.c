@@ -1,5 +1,10 @@
 #include <stdio.h>
+#ifdef _MSC_VER
+#define SDL_MAIN_HANDLED
+#include <SDL2/SDL.h>
+#else
 #include <SDL.h>
+#endif
 
 #include "pmdmini.h"
 #include "pmdwinimport.h"

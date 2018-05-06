@@ -33,9 +33,10 @@
 #define LOGNAME "fmgen"
 #include "diag.h"
 
-#if _MSC_VER >= 1200
-	#define FM_USE_X86_CODE
-#endif
+// FM_USE_X86_CODE not linked with _MSC_VER. Enable FM_USE_X86_CODE in makefile cmake project files instead.
+//#if _MSC_VER >= 1200
+//	#define FM_USE_X86_CODE
+//#endif
 
 // ---------------------------------------------------------------------------
 //	X86 版コードを使用する場合，
