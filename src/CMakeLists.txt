@@ -1,9 +1,17 @@
-cmake_minimum_required(VERSION 3.10)
+if(MSVC)
+	cmake_minimum_required(VERSION 3.10)
+endif()
+
+if(UNIX)
+	cmake_minimum_required(VERSION 3.0)
+endif()
+
 
 if(MSVC)
-  set(CMAKE_C_FLAGS "/std::c++latest /Ox /W3 /wd4996")
-else()
-  set(CMAKE_C_FLAGS "-O3 -Wall")
+	set(CMAKE_CXX_FLAGS "/std::c++latest /Ox /W3 /wd4996")
+endif()
+if(UNIX)
+	set(CMAKE_CXX_FLAGS "-std=c++11 -O3 -Wall")
 endif()
 
 include_directories(./.. fmgen pmdwin)
