@@ -8,7 +8,7 @@ endif()
 
 
 if(MSVC)
-	set(CMAKE_CXX_FLAGS "/std::c++latest /Ox /W3 /wd4996")
+	set(CMAKE_CXX_FLAGS "/std:c++latest /Ox /W3 /wd4996")
 endif()
 if(UNIX)
 	set(CMAKE_CXX_FLAGS "-std=c++11 -O3 -Wall")
