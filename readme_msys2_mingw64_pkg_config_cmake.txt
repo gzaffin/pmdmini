@@ -6,9 +6,9 @@ $ pacman -S mingw-w64-x86_64-pkg-config mingw-w64-x86_64-SDL2 mingw-w64-x86_64-c
 
     clone and compile
 
-$ git clone https://github.com/gzaffin/mdxmini.git
-$ cd mdxmini
+$ git clone https://github.com/gzaffin/pmdmini.git
+$ cd pmdmini
 $ mkdir build
 $ cd build
 $ cmake -G "MSYS Makefiles" ..
-$ make -j 4 mdxplay
+$ make -j 4 pmdplay
