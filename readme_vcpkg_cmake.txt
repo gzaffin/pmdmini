@@ -1,5 +1,11 @@
 for vcpkg and cmake and microsoft visual studio 2017
 
+links to reference information pages concerinng how install and use Vcpkg
+1.
+https://blogs.msdn.microsoft.com/vcblog/2016/09/19/vcpkg-a-tool-to-acquire-and-build-c-open-source-libraries-on-windows/
+2.
+https://blogs.msdn.microsoft.com/vcblog/2018/04/24/announcing-a-single-c-library-manager-for-linux-macos-and-windows-vcpkg/
+
 cmake-gui ..
 Configure
 fill Optional toolset to use (argument to -T) with
