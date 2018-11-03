@@ -39,7 +39,8 @@ $ cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
 $ make -j 4 pmdplay
 ```
 
-If MSYS_Makefiles generator set with `cmake -G "MSYS Makefiles"` cannot set make properly add `-DCMAKE_MAKE_PROGRAM=` make-utility (see [1])
+If MSYS Makefiles generator set with `-G "MSYS Makefiles"` cannot properly set make-utility,
+then add `-DCMAKE_MAKE_PROGRAM=` PATH make-utility (see [1])
 
 ```
 $ git clone https://github.com/gzaffin/eupmini.git
@@ -97,7 +98,7 @@ Push `Open Project` button
 On Microsoft Visual Studio Community build solution
 
 [1]
-it is make name e.g. `mingw32-make`
+it is make-utility name e.g. `mingw32-make` with specified PATH if make is not in configured search PATH as it should be
 
 [2]
 it is absolute or relative path to vcpkg's vcpkg.cmake e.g. C:/tempGZ/vcpkg/scripts/buildsystems/vcpkg.cmake
