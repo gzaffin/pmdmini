@@ -39,7 +39,7 @@ $ cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
 $ make -j 4 pmdplay
 ```
 
-If MSYS_Makefiles generator set with `cmake -G "MSYS Makefiles"` cannot set make properly add `-DCMAKE_MAKE_PROGRAM=`<make-utility> (see [1])
+If MSYS_Makefiles generator set with `cmake -G "MSYS Makefiles"` cannot set make properly add `-DCMAKE_MAKE_PROGRAM=` make-utility (see [1])
 
 ```
 $ git clone https://github.com/gzaffin/eupmini.git
@@ -65,20 +65,35 @@ cmake-gui ..
 ```
 
 On CMake GUI
+
 Push `Configure` button
+
 fill Optional toolset to use (argument to -T) with `host=x64`
+
 Push `OK` button
+
 Push `Add entry` button
+
 Add Cache Entry
+
 Name: `CMAKE_TOOLCHAIN_FILE`
+
 Type: `STRING`
-Value: <PATH>vcpkg/scripts/buildsystems/vcpkg.cmake (see [2])
+
+Value: PATH vcpkg/scripts/buildsystems/vcpkg.cmake (see [2])
+
 Description: `cmake entry point for vcpkg`
+
 Push `OK` button
+
 Double check that `SDL2_DIR STRING` variable is a path to find SDL2Config.cmake (see [3]), if not the case, fix it
+
 Push `Configure` button
+
 Push `Generate` button
+
 Push `Open Project` button
+
 On Microsoft Visual Studio Community build solution
 
 [1]
