@@ -20,8 +20,8 @@ $ make
 The following steps build `pmdplay` on Ubuntu/Debian/GNU/LINUX o.s. box with SDL2 and cmake.
 
 ```
-$ git clone https://github.com/gzaffin/eupmini.git
-$ cd eupmini
+$ git clone https://github.com/gzaffin/pmdmini.git
+$ cd pmdmini
 $ mkdir build
 $ cd build
 $ cmake -DCMAKE_BUILD_TYPE=Release ..
@@ -31,8 +31,8 @@ $ make -j 4 pmdplay
 The following steps build `pmdplay.exe` on a MSYS2/MinGW-w64 Windows o.s. box with SDL2 and cmake.
 
 ```
-$ git clone https://github.com/gzaffin/eupmini.git
-$ cd eupmini
+$ git clone https://github.com/gzaffin/pmdmini.git
+$ cd pmdmini
 $ mkdir build
 $ cd build
 $ cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
@@ -43,8 +43,8 @@ If MSYS Makefiles generator set with `-G "MSYS Makefiles"` cannot properly set m
 then add `-DCMAKE_MAKE_PROGRAM=` PATH make-utility (see [1])
 
 ```
-$ git clone https://github.com/gzaffin/eupmini.git
-$ cd eupmini
+$ git clone https://github.com/gzaffin/pmdmini.git
+$ cd pmdmini
 $ mkdir build
 $ cd build
 $ cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_MAKE_PROGRAM=mingw32-make ..
@@ -52,12 +52,6 @@ $ cmake --build . --target pmdplay
 ```
 
 The following steps build `pmdplay.exe` on a Windows o.s. box with vcpkg, SDL2 and cmake.
-
-links to reference information pages concerning with how install and use Vcpkg
-1.
-https://blogs.msdn.microsoft.com/vcblog/2016/09/19/vcpkg-a-tool-to-acquire-and-build-c-open-source-libraries-on-windows/
-2.
-https://blogs.msdn.microsoft.com/vcblog/2018/04/24/announcing-a-single-c-library-manager-for-linux-macos-and-windows-vcpkg/
 
 ```
 mkdir build
@@ -106,3 +100,12 @@ it is absolute or relative path to vcpkg's vcpkg.cmake e.g. C:/tempGZ/vcpkg/scri
 [3]
 it is absolute or relative path to vcpkg's SDL2Config.cmake e.g. C:/tempGZ/vcpkg/installed/x64-windows/share/sdl2
 
+links to reference information pages about install and use Vcpkg
+1.
+```
+https://blogs.msdn.microsoft.com/vcblog/2016/09/19/vcpkg-a-tool-to-acquire-and-build-c-open-source-libraries-on-windows/
+```
+2.
+```
+https://blogs.msdn.microsoft.com/vcblog/2018/04/24/announcing-a-single-c-library-manager-for-linux-macos-and-windows-vcpkg/
+```
