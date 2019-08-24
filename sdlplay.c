@@ -1,7 +1,7 @@
 #include <stdio.h>
 #ifdef _MSC_VER
 #define SDL_MAIN_HANDLED
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #else
 #include <SDL.h>
 #endif
@@ -163,6 +163,10 @@ static void player_loop( int len )
             if ( sec != old_sec )
             {
                 old_sec = sec;
+                if ( sec > len )
+                {
+                    fadeout(10);
+                }
             }
 
             player_screen();
@@ -175,7 +179,7 @@ static void player_loop( int len )
             SDL_Delay(1);
         }
 
-    } while(sec < len);
+    } while(sec < (len + 5));
 
 }
 

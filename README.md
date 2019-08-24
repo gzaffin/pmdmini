@@ -1,7 +1,7 @@
 # pmdmini
 Professional Music Driver (PMD) format player using Simple DirectMedia Layer (SDL) version 2.0.x
 
-This is actually a BouKiCHi project (https://github.com/BouKiCHi) and (http://clogging.blog57.fc2.com/), but since I cannot find its repostory anymore,  I would like to share here.
+This is actually a BouKiCHi project (https://github.com/BouKiCHi), but since I cannot find its repostory anymore, I would like to share here.
 
 Professional Music Driver (PMD) is a music driver developed by M.Kajihara which utilizes MML (Music Macro Language) to create music files for most japanese computers of the 80's and early 90's.
 PMD can be used to make music for the PC-98, PC-88, X68000, and FM Towns.
@@ -51,54 +51,75 @@ $ cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_MAKE_PROGRAM=ming
 $ cmake --build . --target pmdplay
 ```
 
-The following steps build `pmdplay.exe` on a Windows o.s. box with vcpkg, SDL2 and cmake.
+The following steps build `pmdplay.exe` on a Windows o.s. box with MSVC, vcpkg, SDL2 installed with vcpkg.
+
+If Your MSVC is Microsoft Visual Studio 2019 Community edition, installed in default localtion, Windows SDK is 10.0.18362.0 because it is a Windows 10 box (see what is in 'C:\Program Files (x86)\Microsoft SDKs\Windows Kits\10\ExtensionSDKs\Microsoft.UniversalCRT.Debug' folder)
 
 ```
-mkdir build
-cd build
-cmake-gui ..
+C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\cmd\git" clone https://github.com/gzaffin/pmdmini.git
+C:\>cd pmdmini
+C:\pmdmini>mkdir build
+C:\pmdmini>cd build
+C:\pmdmini\build>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64 10.0.18362.0
+C:\pmdmini\build>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake -DSDL2_DIR=C:/Users/gzaff/Devs/vcpkg/installed/x64-windows/share/sdl2 ..
+C:\pmdmini\build>ninja
 ```
 
-On CMake GUI
+for the case that Visual Studio can be used
 
-Push `Configure` button
+```
+C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\cmd\git" clone https://github.com/gzaffin/pmdmini.git
+C:\>cd pmdmini
+C:\pmdmini>mkdir build
+C:\pmdmini>cd build
+C:\pmdmini\build>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64 10.0.18362.0
+C:\pmdmini\build>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake" -G "Visual Studio 16 2019" -Ax64 -Thost=x64-DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake -DSDL2_DIR=C:/Users/gzaff/Devs/vcpkg/installed/x64-windows/share/sdl2 ..
 
-fill Optional toolset to use (argument to -T) with `host=x64`
+If builder can be launched
 
-Push `OK` button
+```
+C:\pmdmini\build>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake" --build . --target pmdplay
+```
 
-Push `Add entry` button
+otherwise start Microsoft Visual Studio and debug pmdmini solution.
 
-Add Cache Entry
+If Your MSVC is Microsoft Visual Studio 2017 Community edition, installed in default localtion, Windows SDK is 10.0.17763.0 because it is a Windows 7 box (see what is in 'C:\Program Files (x86)\Microsoft SDKs\Windows Kits\10\ExtensionSDKs\Microsoft.UniversalCRT.Debug' folder)
 
-Name: `CMAKE_TOOLCHAIN_FILE`
+```
+C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\cmd\git" clone https://github.com/gzaffin/pmdmini.git
+C:\>cd pmdmini
+C:\pmdmini>mkdir build
+C:\pmdmini>cd build
+C:\pmdmini\build>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64 10.0.17763.0
+C:\pmdmini\build>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake -DSDL2_DIR=C:/Users/gzaff/Devs/vcpkg/installed/x64-windows/share/sdl2 ..
+C:\pmdmini\build>ninja
+```
+for the case that Visual Studio can be used
 
-Type: `STRING`
+```
+C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\cmd\git" clone https://github.com/gzaffin/pmdmini.git
+C:\>cd pmdmini
+C:\pmdmini>mkdir build
+C:\pmdmini>cd build
+C:\pmdmini\build>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64 10.0.17763.0
+C:\pmdmini\build>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake" -G "Visual Studio 15 2017 Win64" -Thost=x64-DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake -DSDL2_DIR=C:/Users/gzaff/Devs/vcpkg/installed/x64-windows/share/sdl2 ..
 
-Value: PATH vcpkg/scripts/buildsystems/vcpkg.cmake (see [2])
+If builder can be launched
 
-Description: `cmake entry point for vcpkg`
+```
+C:\pmdmini\build>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake" --build . --target pmdplay
+```
 
-Push `OK` button
+otherwise start Microsoft Visual Studio and debug pmdmini solution.
 
-Double check that `SDL2_DIR STRING` variable is a path to find SDL2Config.cmake (see [3]), if not the case, fix it
+`CMAKE_TOOLCHAIN_FILE`: full PATH of vcpkg.cmake
 
-Push `Configure` button
 
-Push `Generate` button
-
-Push `Open Project` button
-
-On Microsoft Visual Studio Community build solution
+`SDL2_DIR STRING`: PATH to find SDL2Config.cmake
 
 [1]
 it is make-utility name e.g. `mingw32-make` with specified PATH if make is not in configured search PATH as it should be
 
-[2]
-it is absolute or relative path to vcpkg's vcpkg.cmake e.g. C:/tempGZ/vcpkg/scripts/buildsystems/vcpkg.cmake
-
-[3]
-it is absolute or relative path to vcpkg's SDL2Config.cmake e.g. C:/tempGZ/vcpkg/installed/x64-windows/share/sdl2
 
 links to reference information pages about install and use Vcpkg
 1.
