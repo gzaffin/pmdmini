@@ -74,6 +74,7 @@ C:\pmdmini>mkdir build
 C:\pmdmini>cd build
 C:\pmdmini\build>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64 10.0.18362.0
 C:\pmdmini\build>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake" -G "Visual Studio 16 2019" -Ax64 -Thost=x64-DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake -DSDL2_DIR=C:/Users/gzaff/Devs/vcpkg/installed/x64-windows/share/sdl2 ..
+```
 
 If builder can be launched
 
@@ -94,6 +95,7 @@ C:\pmdmini\build>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\
 C:\pmdmini\build>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake -DSDL2_DIR=C:/Users/gzaff/Devs/vcpkg/installed/x64-windows/share/sdl2 ..
 C:\pmdmini\build>ninja
 ```
+
 for the case that Visual Studio can be used
 
 ```
@@ -103,6 +105,7 @@ C:\pmdmini>mkdir build
 C:\pmdmini>cd build
 C:\pmdmini\build>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64 10.0.17763.0
 C:\pmdmini\build>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake" -G "Visual Studio 15 2017 Win64" -Thost=x64-DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake -DSDL2_DIR=C:/Users/gzaff/Devs/vcpkg/installed/x64-windows/share/sdl2 ..
+```
 
 If builder can be launched
 
