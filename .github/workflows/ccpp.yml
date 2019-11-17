@@ -17,4 +17,4 @@ jobs:
     - name: make build
       run: cd build && cmake --build . --config Release --target pmdplay
     - name: make check
-      run: cd build && pmdplay
+      run: cd build && ./pmdplay
