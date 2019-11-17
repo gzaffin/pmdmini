@@ -1,0 +1,19 @@
+name: C/C++ CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: install_dependencies
+      run: sudo apt-get install cmake pkg-config libsdl2-dev
+    - name: configure
+      run: mkdir build && cd build && cmake ..
+    - name: make build
+      run: cmake --build . --configure Release --target pmdplay
+    - name: make check
+      run: cd build && pmdplay
