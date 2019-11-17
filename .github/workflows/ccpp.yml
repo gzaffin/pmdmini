@@ -14,6 +14,6 @@ jobs:
     - name: configure
       run: mkdir build && cd build && cmake ..
     - name: make build
-      run: cmake --build . --configure Release --target pmdplay
+      run: cmake --build . --clean-first --config Release --target pmdplay
     - name: make check
       run: cd build && pmdplay
