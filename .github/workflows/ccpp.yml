@@ -8,9 +8,12 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v1
+    - name: CheckOut
+      uses: actions/checkout@v1
+    - name: Cache
+      uses: actions/cache@v1.0.1
     - name: install_dependencies
-      run: sudo apt-get install cmake pkg-config libsdl2-dev
+      run: sudo apt-get install cmake ninja-build libsdl2-dev
     - name: configure
       run: mkdir build && cd build && cmake ..
     - name: make build
