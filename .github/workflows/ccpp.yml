@@ -10,8 +10,6 @@ jobs:
     steps:
     - name: CheckOut
       uses: actions/checkout@v1
-    - name: Cache
-      uses: actions/cache@v1.0.1
     - name: install_dependencies
       run: sudo apt-get install cmake ninja-build libsdl2-dev
     - name: configure
