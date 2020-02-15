@@ -1,0 +1,20 @@
+name: C/C++ CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: CheckOut
+      uses: actions/checkout@v1
+    - name: install_dependencies
+      run: sudo apt-get install cmake ninja-build libsdl2-dev
+    - name: configure
+      run: mkdir build && cd build && cmake ..
+    - name: make build
+      run: cd build && cmake --build . --config Release --target pmdplay
+    - name: make check
+      run: cd build && ./pmdplay ../PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav
