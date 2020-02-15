@@ -11,7 +11,7 @@ PMD can be used to make music for the PC-98, PC-88, X68000, and FM Towns.
 
 The following steps build `pmdplay.exe` on a MSYS2/MinGW-w64 box, or `pmdplay` on a GNU/Linux box with provided Makefile, using SDL2 and make.
 
-```shell
+```shell/bash shell
 $ git clone https://github.com/gzaffin/pmdmini.git
 $ cd pmdmini
 $ make
@@ -19,13 +19,13 @@ $ make
 
 The following steps build `pmdplay` on Ubuntu/Debian/GNU/LINUX o.s. box with SDL2 and cmake.
 
-```linux bash
+```GNU/linux bash
 $ git clone https://github.com/gzaffin/pmdmini.git
 $ cd pmdmini
 $ mkdir build
 $ cd build
 $ cmake -DCMAKE_BUILD_TYPE=Release ..
-$ make -j 4 pmdplay
+$ make pmdplay
 ```
 
 The following steps build `pmdplay.exe` on a MSYS2/MinGW-w64 Windows o.s. box with SDL2 and cmake.
@@ -36,98 +36,110 @@ $ cd pmdmini
 $ mkdir build
 $ cd build
 $ cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
-$ make -j 4 pmdplay
+$ make pmdplay
 ```
 
 If MSYS Makefiles generator set with `-G "MSYS Makefiles"` cannot properly set make-utility,
-then add `-DCMAKE_MAKE_PROGRAM=` PATH make-utility (see [1])
+then add `-DCMAKE_MAKE_PROGRAM=<[PATH]/make-utility>` PATH of make-utility (see [1])
 
-```windows command-line
+```windows command-line interface
 $ git clone https://github.com/gzaffin/pmdmini.git
 $ cd pmdmini
 $ mkdir build
 $ cd build
-$ cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_MAKE_PROGRAM=mingw32-make ..
-$ cmake --build . --target pmdplay
+$ cmake -G "MSYS Makefiles" -DCMAKE_MAKE_PROGRAM=mingw32-make ..
+$ cmake --build . --config Release --target pmdplay
 ```
 
 The following steps build `pmdplay.exe` on a Windows o.s. box with MSVC, vcpkg, SDL2 installed with vcpkg.
 
-If Your MSVC is Microsoft Visual Studio 2019 Community edition, installed in default localtion, Windows SDK is 10.0.18362.0 because it is a Windows 10 box (see what is in 'C:\Program Files (x86)\Microsoft SDKs\Windows Kits\10\ExtensionSDKs\Microsoft.UniversalCRT.Debug' folder)
+You can have Your build environment set, on a Windows 10 box, if Your MSVC is Microsoft Visual Studio 2019 Community edition, using Windows 10 taskbar search box writing `x64_x86 Cross Tools Command Prompt for VS 2019` and starting matching App.
+Otherwise, if MSVC is installed in default localtion, if Windows SDK is 10.0.18362.0 (please see what is in 'C:\Program Files (x86)\Microsoft SDKs\Windows Kits\10\ExtensionSDKs\Microsoft.UniversalCRT.Debug' folder) [2] issuing
 
-```windows command-line [2]
+```windows command-line interface
+C:\Users\gzaff>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64 10.0.18362.0
+```
+
+Then
+
+```windows command-line interface
 C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\cmd\git" clone https://github.com/gzaffin/pmdmini.git
 C:\>cd pmdmini
 C:\pmdmini>mkdir build
 C:\pmdmini>cd build
-C:\pmdmini\build>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64 10.0.18362.0
 C:\pmdmini\build>cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake -DSDL2_DIR=C:/Users/gzaff/Devs/vcpkg/installed/x64-windows/share/sdl2 ..
 C:\pmdmini\build>ninja
 ```
 
-for the case that Visual Studio can be used
+For the case that Visual Studio can be used
 
-```windows command-line [2]
+```windows command-line interface
 C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\cmd\git" clone https://github.com/gzaffin/pmdmini.git
 C:\>cd pmdmini
 C:\pmdmini>mkdir build
 C:\pmdmini>cd build
-C:\pmdmini\build>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64 10.0.18362.0
-C:\pmdmini\build>cmake -G "Visual Studio 16 2019" -Ax64 -Thost=x64-DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake -DSDL2_DIR=C:/Users/gzaff/Devs/vcpkg/installed/x64-windows/share/sdl2 ..
+C:\pmdmini\build>cmake -G "Visual Studio 16 2019" -Ax64 -Thost=x64 -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake -DSDL2_DIR=C:/Users/gzaff/Devs/vcpkg/installed/x64-windows/share/sdl2 ..
 ```
 
-If builder can be launched
+For building from command line
 
-```windows command-line [2]
-C:\pmdmini\build>cmake --build . --target pmdplay
+```windows command-line interface
+C:\pmdmini\build>cmake --build . --config Release --target pmdplay
 ```
 
-otherwise start Microsoft Visual Studio and debug pmdmini solution.
+Otherwise start Microsoft Visual Studio and debug pmdmini solution.
 
-If Your MSVC is Microsoft Visual Studio 2017 Community edition, installed in default localtion, Windows SDK is 10.0.17763.0 because it is a Windows 7 box (see what is in 'C:\Program Files (x86)\Microsoft SDKs\Windows Kits\10\ExtensionSDKs\Microsoft.UniversalCRT.Debug' folder)
+You can have Your build environment set, on a Windows 7 box, if Your MSVC is Microsoft Visual Studio 2017 Community edition, using Windows 7 taskbar search box writing `x64_x86 Cross Tools Command Prompt for VS 2017` and starting matching App.
+Otherwise, if MSVC is installed in default localtion, if Windows SDK is 10.0.17763.0 (please see what is in 'C:\Program Files (x86)\Microsoft SDKs\Windows Kits\10\ExtensionSDKs\Microsoft.UniversalCRT.Debug' folder) [2] issuing
 
-```windows command-line [2]
+```windows command-line interface
+C:\Users\gzaff>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64 10.0.17763.0
+```
+
+Then
+
+```windows command-line interface
 C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\cmd\git" clone https://github.com/gzaffin/pmdmini.git
 C:\>cd pmdmini
 C:\pmdmini>mkdir build
 C:\pmdmini>cd build
-C:\pmdmini\build>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64 10.0.17763.0
 C:\pmdmini\build>cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake -DSDL2_DIR=C:/Users/gzaff/Devs/vcpkg/installed/x64-windows/share/sdl2 ..
 C:\pmdmini\build>ninja
 ```
 
-for the case that Visual Studio can be used
+For the case that Visual Studio can be used
 
-```windows command-line [2]
+```windows command-line interface
 C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\cmd\git" clone https://github.com/gzaffin/pmdmini.git
 C:\>cd pmdmini
 C:\pmdmini>mkdir build
 C:\pmdmini>cd build
-C:\pmdmini\build>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64 10.0.17763.0
-C:\pmdmini\build>cmake -G "Visual Studio 15 2017 Win64" -Thost=x64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake -DSDL2_DIR=C:/Users/gzaff/Devs/vcpkg/installed/x64-windows/share/sdl2 ..
+C:\pmdmini\build>cmake -G "Visual Studio 15 2017 Win64" -Thost=x64 -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake -DSDL2_DIR=C:/Users/gzaff/Devs/vcpkg/installed/x64-windows/share/sdl2 ..
 ```
 
-If builder can be launched
+For building from command line
 
-```windows command-line [2]
-C:\pmdmini\build>cmake --build . --target pmdplay
+```windows command-line interface
+C:\pmdmini\build>cmake --build . --config Release --target pmdplay
 ```
 
-otherwise start Microsoft Visual Studio and debug pmdmini solution.
+Otherwise start Microsoft Visual Studio and debug pmdmini solution.
+
+Recap of required MACRO definitions:
 
 `CMAKE_TOOLCHAIN_FILE`: full PATH of vcpkg.cmake
-
-
 `SDL2_DIR`: PATH to find SDL2Config.cmake
 
 [1]
-it is make-utility name e.g. `mingw32-make` with specified PATH if make is not in configured search PATH as it should be
+it is make-utility name e.g. `mingw32-make` with specified PATH if make is not within search PATH as it should be
 
 [2]
 calling vcvarsall.bat update PATH variable, so "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake" and "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja\ninja" can be called as cmake and ninja respectively
 
-links to reference information pages about install and use Vcpkg
+#links to reference information pages about how to install and how to use Vcpkg
+
 [GitHub Microsoft vcpkg](https://github.com/Microsoft/vcpkg)
 [vcpkg: A C++ package manager for Windows, Linux and MacOS](https://docs.microsoft.com/en-us/cpp/build/vcpkg?view=vs-2019)
 [Eric Mittelette's blog](https://devblogs.microsoft.com/cppblog/vcpkg-a-tool-to-acquire-and-build-c-open-source-libraries-on-windows/)
+
 
