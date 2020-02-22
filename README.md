@@ -53,7 +53,7 @@ $ cmake --build . --config Release --target pmdplay
 
 The following steps build `pmdplay.exe` on a Windows o.s. box with MSVC, vcpkg, SDL2 installed with vcpkg.
 
-You can have Your build environment set, on a Windows 10 box, if Your MSVC is Microsoft Visual Studio 2019 Community edition, using Windows 10 taskbar search box writing `x64_x86 Cross Tools Command Prompt for VS 2019` and starting matching App.
+You can have Your build environment set, on a Windows 10 box, if Your MSVC is Microsoft Visual Studio 2019 Community edition, using Windows 10 taskbar search box writing `x64 Native Tools Command Prompt for VS 2019` and starting matching App.
 Otherwise, if MSVC is installed in default localtion, if Windows SDK is 10.0.18362.0 (please see what is in 'C:\Program Files (x86)\Microsoft SDKs\Windows Kits\10\ExtensionSDKs\Microsoft.UniversalCRT.Debug' folder) (see [2]) issuing
 
 ```windows command-line interface
@@ -89,7 +89,7 @@ C:\pmdmini\build>cmake --build . --config Release --target pmdplay
 
 Otherwise start Microsoft Visual Studio and debug pmdmini solution.
 
-You can have Your build environment set, on a Windows 7 box, if Your MSVC is Microsoft Visual Studio 2017 Community edition, using Windows 7 taskbar search box writing `x64_x86 Cross Tools Command Prompt for VS 2017` and starting matching App.
+You can have Your build environment set, on a Windows 7 box, if Your MSVC is Microsoft Visual Studio 2017 Community edition, using Windows 7 taskbar search box writing `x64 Native Tools Command Prompt for VS 2017` and starting matching App.
 Otherwise, if MSVC is installed in default localtion, if Windows SDK is 10.0.17763.0 (please see what is in 'C:\Program Files (x86)\Microsoft SDKs\Windows Kits\10\ExtensionSDKs\Microsoft.UniversalCRT.Debug' folder) (see [2]) issuing
 
 ```windows command-line interface
