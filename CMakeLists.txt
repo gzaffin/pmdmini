@@ -7,7 +7,7 @@ if(UNIX)
 endif()
 
 if(MSVC)
-	find_package(SDL2 REQUIRED)
+	find_package(SDL2 CONFIG REQUIRED)
 endif()
 if(UNIX OR MINGW)
 	find_package(PkgConfig REQUIRED)
@@ -24,7 +24,7 @@ include_directories(src src/fmgen src/pmdwin)
 add_executable(pmdplay EXCLUDE_FROM_ALL ${SOURCES})
 
 if(MSVC)
-	target_link_libraries(pmdplay PRIVATE pmdmini SDL2::SDL2)
+	target_link_libraries(pmdplay PRIVATE pmdmini SDL2::SDL2 SDL2::SDL2main)
 endif()
 
 if(UNIX OR MINGW)

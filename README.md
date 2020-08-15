@@ -67,7 +67,7 @@ C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\C
 C:\>cd pmdmini
 C:\pmdmini>mkdir build
 C:\pmdmini>cd build
-C:\pmdmini\build>cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake -DSDL2_DIR=C:/Users/gzaff/Devs/vcpkg/installed/x64-windows/share/sdl2 ..
+C:\pmdmini\build>cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake ..
 C:\pmdmini\build>ninja
 ```
 
@@ -78,7 +78,7 @@ C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\C
 C:\>cd pmdmini
 C:\pmdmini>mkdir build
 C:\pmdmini>cd build
-C:\pmdmini\build>cmake -G "Visual Studio 16 2019" -Ax64 -Thost=x64 -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake -DSDL2_DIR=C:/Users/gzaff/Devs/vcpkg/installed/x64-windows/share/sdl2 ..
+C:\pmdmini\build>cmake -G "Visual Studio 16 2019" -A x64 -T host=x64 -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake ..
 ```
 
 For building from command line
@@ -103,7 +103,7 @@ C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\C
 C:\>cd pmdmini
 C:\pmdmini>mkdir build
 C:\pmdmini>cd build
-C:\pmdmini\build>cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake -DSDL2_DIR=C:/Users/gzaff/Devs/vcpkg/installed/x64-windows/share/sdl2 ..
+C:\pmdmini\build>cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake ..
 C:\pmdmini\build>ninja
 ```
 
@@ -114,7 +114,7 @@ C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\C
 C:\>cd pmdmini
 C:\pmdmini>mkdir build
 C:\pmdmini>cd build
-C:\pmdmini\build>cmake -G "Visual Studio 15 2017 Win64" -Thost=x64 -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake -DSDL2_DIR=C:/Users/gzaff/Devs/vcpkg/installed/x64-windows/share/sdl2 ..
+C:\pmdmini\build>cmake -G "Visual Studio 15 2017 Win64" -T host=x64 -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake ..
 ```
 
 For building from command line
