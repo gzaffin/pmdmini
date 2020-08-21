@@ -1,5 +1,5 @@
 //=============================================================================
-//		SSG PCM Driver ¡ÖPPSDRV¡× Unit
+//		SSG PCM Driver ã€ŒPPSDRVã€ Unit
 //			Original Programmed	by NaoNeko.
 //			Modified		by Kaja.
 //			Windows Converted by C60
@@ -8,20 +8,19 @@
 #ifndef PPSDRV_H
 #define PPSDRV_H
 
-#ifdef _WIN32
+#if defined _WIN32
 #include <windows.h>
-#else
+#endif
+#include "file.h"
 //#include "types.h"
 //#include "psg.h"
-# include "compat.h"
-#endif
 
-//	DLL ¤Î Ìá¤êÃÍ
-#define	_PPSDRV_OK					  0		// Àµ¾ï½ªÎ»
-#define	_ERR_OPEN_PPS_FILE			  1		// PPS ¤ò³«¤±¤Ê¤«¤Ã¤¿
-#define	_ERR_WRONG_PPS_FILE		 	  2		// PPS ¤Î·Á¼°¤¬°Û¤Ê¤Ã¤Æ¤¤¤ë
-#define	_WARNING_PPS_ALREADY_LOAD	  3		// PPS ¤Ï¤¹¤Ç¤ËÆÉ¤ß¹ş¤Ş¤ì¤Æ¤¤¤ë
-#define	_ERR_OUT_OF_MEMORY			 99		// ¥á¥â¥ê¤ò³ÎÊİ¤Ç¤­¤Ê¤«¤Ã¤¿
+//	DLL ã® æˆ»ã‚Šå€¤
+#define	_PPSDRV_OK					  0		// æ­£å¸¸çµ‚äº†
+#define	_ERR_OPEN_PPS_FILE			  1		// PPS ã‚’é–‹ã‘ãªã‹ã£ãŸ
+#define	_ERR_WRONG_PPS_FILE		 	  2		// PPS ã®å½¢å¼ãŒç•°ãªã£ã¦ã„ã‚‹
+#define	_WARNING_PPS_ALREADY_LOAD	  3		// PPS ã¯ã™ã§ã«èª­ã¿è¾¼ã¾ã‚Œã¦ã„ã‚‹
+#define	_ERR_OUT_OF_MEMORY			 99		// ãƒ¡ãƒ¢ãƒªã‚’ç¢ºä¿ã§ããªã‹ã£ãŸ
 
 #define	SOUND_44K		 44100
 #define	SOUND_22K		 22050
@@ -38,24 +37,23 @@ typedef	unsigned char	uchar;
 typedef	unsigned int	uint;
 
 
-#ifdef _WIN32
+#if defined _WIN32
 #pragma pack( push, enter_include1 )
 #pragma pack(1)
-#define __PACKED__
 #endif
 
 typedef struct ppsheadertag
 {
 	struct {
-		WORD	address;				// ÀèÆ¬¥¢¥É¥ì¥¹
-		WORD	leng;					// ¥Ç¡¼¥¿ÎÌ
-		BYTE	toneofs;				// ²»³¬
-		BYTE	volumeofs;				// ²»ÎÌ
-	} __PACKED__ pcmnum[MAX_PPS];
-} __PACKED__ PPSHEADER;
+		WORD	address;				// å…ˆé ­ã‚¢ãƒ‰ãƒ¬ã‚¹
+		WORD	leng;					// ãƒ‡ãƒ¼ã‚¿é‡
+		BYTE	toneofs;				// éŸ³éš
+		BYTE	volumeofs;				// éŸ³é‡
+	} pcmnum[MAX_PPS];
+} PPSHEADER;
 
 
-#ifdef _WIN32
+#if defined _WIN32
 #pragma pack( pop, enter_include1 )
 #endif
 
@@ -66,33 +64,35 @@ public:
 	PPSDRV();
 	~PPSDRV();
 	
-	bool Init(uint r, bool ip);						//     ½é´ü²½
-	bool Stop(void);								// 00H PDR Ää»ß
-	bool Play(int num, int shift, int volshift);	// 01H PDR ºÆÀ¸
-	bool Check(void);								// 02H ºÆÀ¸Ãæ¤«¤É¤¦¤«check
-	bool SetParam(int paramno, bool data);			// 05H PDR¥Ñ¥é¥á¡¼¥¿¤ÎÀßÄê
-	bool GetParam(int paramno);						// 06H PDR¥Ñ¥é¥á¡¼¥¿¤Î¼èÆÀ
+	bool	Init(uint r, bool ip);					//     åˆæœŸåŒ–
+	bool	Stop(void);								// 00H PDR åœæ­¢
+	bool	Play(int num, int shift, int volshift);	// 01H PDR å†ç”Ÿ
+	bool	Check(void);							// 02H å†ç”Ÿä¸­ã‹ã©ã†ã‹check
+	bool	SetParam(int paramno, bool data);		// 05H PDRãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®è¨­å®š
+	bool	GetParam(int paramno);					// 06H PDRãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®å–å¾—
 	
-	int Load(char *filename);						// PPS ÆÉ¤ß¹ş¤ß
-	bool SetRate(uint r, bool ip);					// ¥ì¡¼¥ÈÀßÄê
-	void SetVolume(int vol);						// ²»ÎÌÀßÄê
-	void Mix(Sample* dest, int nsamples);			// ¹çÀ®
-
-	PPSHEADER ppsheader;							// PCM¤Î²»¿§¥Ø¥Ã¥À¡¼
-	char	pps_file[_MAX_PATH];					// ¥Õ¥¡¥¤¥ëÌ¾
-
+	int		Load(TCHAR *filename);					// PPS èª­ã¿è¾¼ã¿
+	bool	SetRate(uint r, bool ip);				// ãƒ¬ãƒ¼ãƒˆè¨­å®š
+	void	SetVolume(int vol);						// éŸ³é‡è¨­å®š
+	void	Mix(Sample* dest, int nsamples);		// åˆæˆ
+	
+	PPSHEADER	ppsheader;							// PCMã®éŸ³è‰²ãƒ˜ãƒƒãƒ€ãƒ¼
+	TCHAR	pps_file[_MAX_PATH];					// ãƒ•ã‚¡ã‚¤ãƒ«å
+	
 private:
-	bool	interpolation;							// Êä´°¤¹¤ë¤«¡©
+	FilePath	filepath;							// ãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹é–¢é€£ã®ã‚¯ãƒ©ã‚¹ãƒ©ã‚¤ãƒ–ãƒ©ãƒª
+	
+	bool	interpolation;							// è£œå®Œã™ã‚‹ã‹ï¼Ÿ
 	int		rate;
-	Sample	*dataarea1;								// PPS ÊİÂ¸ÍÑ¥á¥â¥ê¥İ¥¤¥ó¥¿
-	bool	single_flag;							// Ã±²»¥â¡¼¥É¤«¡©
-	bool	low_cpu_check_flag;						// ¼şÇÈ¿ôÈ¾Ê¬¤ÇºÆÀ¸¤«¡©
-	bool	keyon_flag;								// Keyon Ãæ¤«¡©
+	Sample	*dataarea1;								// PPS ä¿å­˜ç”¨ãƒ¡ãƒ¢ãƒªãƒã‚¤ãƒ³ã‚¿
+	bool	single_flag;							// å˜éŸ³ãƒ¢ãƒ¼ãƒ‰ã‹ï¼Ÿ
+	bool	low_cpu_check_flag;						// å‘¨æ³¢æ•°åŠåˆ†ã§å†ç”Ÿã‹ï¼Ÿ
+	bool	keyon_flag;								// Keyon ä¸­ã‹ï¼Ÿ
 	Sample	EmitTable[16];
 	Sample	*data_offset1;
 	Sample	*data_offset2;
-	int		data_xor1;								// ¸½ºß¤Î°ÌÃÖ(¾®¿ôÉô)
-	int		data_xor2;								// ¸½ºß¤Î°ÌÃÖ(¾®¿ôÉô)
+	int		data_xor1;								// ç¾åœ¨ã®ä½ç½®(å°æ•°éƒ¨)
+	int		data_xor2;								// ç¾åœ¨ã®ä½ç½®(å°æ•°éƒ¨)
 	int		tick1;
 	int		tick2;
 	int		tick_xor1;
@@ -102,8 +102,9 @@ private:
 	int		volume1;
 	int		volume2;
 	Sample	keyoff_vol;
-//	PSG		psg;									// @»ÃÄê
-
+//	PSG		psg;									// @æš«å®š
+	
+	void	_Init(void);
 };
 
 #endif	// PPSDRV_H

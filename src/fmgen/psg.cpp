@@ -2,17 +2,35 @@
 //	PSG Sound Implementation
 //	Copyright (C) cisc 1997, 1999.
 // ---------------------------------------------------------------------------
-//	$Id: psg.cpp,v 1.1 2001/04/23 22:25:35 kaoru-k Exp $
+//	$Id: psg.cpp,v 1.10 2002/05/15 21:38:01 cisc Exp $
 
 #include "headers.h"
 #include "misc.h"
 #include "psg.h"
 
 // ---------------------------------------------------------------------------
-//	•≥•Û•π•»•È•Ø•ø°¶•«•π•»•È•Ø•ø
+//	„Ç≥„É≥„Çπ„Éà„É©„ÇØ„Çø„Éª„Éá„Çπ„Éà„É©„ÇØ„Çø
 //
 PSG::PSG()
 {
+	/*
+	EmitTable[0x20] = { -1, };
+	enveloptable[16][64] = { 0, };
+	*/
+	
+	memset(reg, 0, sizeof(reg));
+	envelop = NULL;
+	olevel[0] = olevel[1] = olevel[2] = 0;
+	scount[0] = scount[1] = scount[2] = 0;
+	speriod[0] = speriod[1] = speriod[2] = 0;
+	ecount = eperiod = 0;
+	ncount = nperiod = 0;
+	tperiodbase = 0;
+	eperiodbase = 0;
+	nperiodbase = 0;
+	volume = 0;
+	mask = 0;
+	
 	SetVolume(0);
 	MakeNoiseTable();
 	Reset();
@@ -25,7 +43,7 @@ PSG::~PSG()
 }
 
 // ---------------------------------------------------------------------------
-//	PSG §ÚΩÈ¥¸≤Ω§π§Î(RESET) 
+//	PSG „ÇíÂàùÊúüÂåñ„Åô„Çã(RESET)
 //
 void PSG::Reset()
 {
@@ -37,7 +55,7 @@ void PSG::Reset()
 }
 
 // ---------------------------------------------------------------------------
-//	•Ø•Ì•√•Øº˛«»øÙ§Œ¿ﬂƒÍ
+//	„ÇØ„É≠„ÉÉ„ÇØÂë®Ê≥¢Êï∞„ÅÆË®≠ÂÆö
 //
 void PSG::SetClock(int clock, int rate)
 {
@@ -45,7 +63,7 @@ void PSG::SetClock(int clock, int rate)
 	eperiodbase = int((1 << envshift  ) / 4.0 * clock / rate);
 	nperiodbase = int((1 << noiseshift) / 4.0 * clock / rate);
 	
-	// ≥∆•«°º•ø§Œππø∑
+	// ÂêÑ„Éá„Éº„Çø„ÅÆÊõ¥Êñ∞
 	int tmp;
 	tmp = ((reg[0] + reg[1] * 256) & 0xfff);
 	speriod[0] = tmp ? tperiodbase / tmp : tperiodbase;
@@ -60,7 +78,7 @@ void PSG::SetClock(int clock, int rate)
 }
 
 // ---------------------------------------------------------------------------
-//	•Œ•§•∫•∆°º•÷•Î§Ú∫Ó¿Æ§π§Î
+//	„Éé„Ç§„Ç∫„ÉÜ„Éº„Éñ„É´„Çí‰ΩúÊàê„Åô„Çã
 //
 void PSG::MakeNoiseTable()
 {
@@ -81,8 +99,8 @@ void PSG::MakeNoiseTable()
 }
 
 // ---------------------------------------------------------------------------
-//	Ω–Œœ•∆°º•÷•Î§Ú∫Ó¿Æ
-//	¡«ƒæ§À•∆°º•÷•Î§«ª˝§√§ø§€§¶§¨æ •π•⁄°º•π°£
+//	Âá∫Âäõ„ÉÜ„Éº„Éñ„É´„Çí‰ΩúÊàê
+//	Á¥†Áõ¥„Å´„ÉÜ„Éº„Éñ„É´„ÅßÊåÅ„Å£„Åü„Åª„ÅÜ„ÅåÁúÅ„Çπ„Éö„Éº„Çπ„ÄÇ
 //
 void PSG::SetVolume(int volume)
 {
@@ -95,19 +113,19 @@ void PSG::SetVolume(int volume)
 	EmitTable[1] = 0;
 	EmitTable[0] = 0;
 	MakeEnvelopTable();
-
+	
 	SetChannelMask(~mask);
 }
 
 void PSG::SetChannelMask(int c)
-{ 
+{
 	mask = ~c;
 	for (int i=0; i<3; i++)
 		olevel[i] = mask & (1 << i) ? EmitTable[(reg[8+i] & 15) * 2 + 1] : 0;
 }
 
 // ---------------------------------------------------------------------------
-//	•®•Û•Ÿ•Ì°º•◊«»∑¡•∆°º•÷•Î
+//	„Ç®„É≥„Éô„É≠„Éº„ÉóÊ≥¢ÂΩ¢„ÉÜ„Éº„Éñ„É´
 //
 void PSG::MakeEnvelopTable()
 {
@@ -118,29 +136,26 @@ void PSG::MakeEnvelopTable()
 		2,2, 2,0, 2,1, 2,3, 1,1, 1,3, 1,2, 1,0,
 	};
 	static uint8 table2[4] = {  0,  0, 31, 31 };
-	static uint8 table3[4] = {  0,  1, 255/*-1*/,  0 };
-
-	if (!enveloptable[0][0])
+	static uint8 table3[4] = {  0,  1, (uint8)-1,  0 };
+	
+	uint* ptr = enveloptable[0];
+	
+	for (int i=0; i<16*2; i++)
 	{
-		uint* ptr = enveloptable[0];
-
-		for (int i=0; i<16*2; i++)
+		uint8 v = table2[table1[i]];
+		
+		for (int j=0; j<32; j++)
 		{
-			uint8 v = table2[table1[i]];
-			
-			for (int j=0; j<32; j++)
-			{
-				*ptr++ = EmitTable[v];
-				v += table3[table1[i]];
-			}
+			*ptr++ = EmitTable[v & 0x1f];
+			v += table3[table1[i]];
 		}
 	}
 }
 
 // ---------------------------------------------------------------------------
-//	PSG §Œ•Ï•∏•π•ø§À√Õ§Ú•ª•√•»§π§Î
-//	regnum		•Ï•∏•π•ø§Œ»÷πÊ (0 - 15)
-//	data		•ª•√•»§π§Î√Õ
+//	PSG „ÅÆ„É¨„Ç∏„Çπ„Çø„Å´ÂÄ§„Çí„Çª„ÉÉ„Éà„Åô„Çã
+//	regnum		„É¨„Ç∏„Çπ„Çø„ÅÆÁï™Âè∑ (0 - 15)
+//	data		„Çª„ÉÉ„Éà„Åô„ÇãÂÄ§
 //
 void PSG::SetReg(uint regnum, uint8 data)
 {
@@ -150,7 +165,7 @@ void PSG::SetReg(uint regnum, uint8 data)
 		switch (regnum)
 		{
 			int tmp;
-
+		
 		case 0:		// ChA Fine Tune
 		case 1:		// ChA Coarse Tune
 			tmp = ((reg[0] + reg[1] * 256) & 0xfff);
@@ -160,24 +175,24 @@ void PSG::SetReg(uint regnum, uint8 data)
 		case 2:		// ChB Fine Tune
 		case 3:		// ChB Coarse Tune
 			tmp = ((reg[2] + reg[3] * 256) & 0xfff);
-			speriod[1] = tmp ? tperiodbase / tmp : tperiodbase;	  
+			speriod[1] = tmp ? tperiodbase / tmp : tperiodbase;
 			break;
 		
 		case 4:		// ChC Fine Tune
 		case 5:		// ChC Coarse Tune
 			tmp = ((reg[4] + reg[5] * 256) & 0xfff);
-			speriod[2] = tmp ? tperiodbase / tmp : tperiodbase;	  
+			speriod[2] = tmp ? tperiodbase / tmp : tperiodbase;
 			break;
-
+		
 		case 6:		// Noise generator control
 			data &= 0x1f;
 			nperiod = data ? nperiodbase / data : nperiodbase;
 			break;
-
+		
 		case 8:
 			olevel[0] = mask & 1 ? EmitTable[(data & 15) * 2 + 1] : 0;
 			break;
-
+		
 		case 9:
 			olevel[1] = mask & 2 ? EmitTable[(data & 15) * 2 + 1] : 0;
 			break;
@@ -185,13 +200,13 @@ void PSG::SetReg(uint regnum, uint8 data)
 		case 10:
 			olevel[2] = mask & 4 ? EmitTable[(data & 15) * 2 + 1] : 0;
 			break;
-
+		
 		case 11:	// Envelop period
 		case 12:
 			tmp = ((reg[11] + reg[12] * 256) & 0xffff);
 			eperiod = tmp ? eperiodbase / tmp : eperiodbase * 2;
 			break;
-
+		
 		case 13:	// Envelop shape
 			ecount = 0;
 			envelop = enveloptable[data & 15];
@@ -212,15 +227,15 @@ inline void PSG::StoreSample(Sample& dest, int32 data)
 }
 
 // ---------------------------------------------------------------------------
-//	PCM •«°º•ø§Ú≈«§≠Ω–§π(2ch)
-//	dest		PCM •«°º•ø§Ú≈∏≥´§π§Î•›•§•Û•ø
-//	nsamples	≈∏≥´§π§Î PCM §Œ•µ•Û•◊•ÎøÙ
+//	PCM „Éá„Éº„Çø„ÇíÂêê„ÅçÂá∫„Åô(2ch)
+//	dest		PCM „Éá„Éº„Çø„ÇíÂ±ïÈñã„Åô„Çã„Éù„Ç§„É≥„Çø
+//	nsamples	Â±ïÈñã„Åô„Çã PCM „ÅÆ„Çµ„É≥„Éó„É´Êï∞
 //
 void PSG::Mix(Sample* dest, int nsamples)
 {
 	uint8 chenable[3], nenable[3];
 	uint8 r7 = ~reg[7];
-
+	
 	if ((r7 & 0x3f) | ((reg[8] | reg[9] | reg[10]) & 0x1f))
 	{
 		chenable[0] = (r7 & 0x01) && (speriod[0] <= (1 << toneshift));
@@ -240,10 +255,10 @@ void PSG::Mix(Sample* dest, int nsamples)
 		
 		if (p1 != &env && p2 != &env && p3 != &env)
 		{
-			// •®•Û•Ÿ•Ì°º•◊Ãµ§∑
+			// „Ç®„É≥„Éô„É≠„Éº„ÉóÁÑ°„Åó
 			if ((r7 & 0x38) == 0)
 			{
-				// •Œ•§•∫Ãµ§∑
+				// „Éé„Ç§„Ç∫ÁÑ°„Åó
 				for (int i=0; i<nsamples; i++)
 				{
 					sample = 0;
@@ -268,7 +283,7 @@ void PSG::Mix(Sample* dest, int nsamples)
 			}
 			else
 			{
-				// •Œ•§•∫Õ≠§Í
+				// „Éé„Ç§„Ç∫Êúâ„Çä
 				for (int i=0; i<nsamples; i++)
 				{
 					sample = 0;
@@ -282,7 +297,7 @@ void PSG::Mix(Sample* dest, int nsamples)
 							>> (ncount >> (noiseshift+oversampling+1) & 31);
 #endif
 						ncount += nperiod;
-
+						
 						int x, y, z;
 						x = ((SCOUNT(0) & chenable[0]) | (nenable[0] & noise)) - 1;		// 0 or -1
 						sample += (olevel[0] + x) ^ x;
@@ -300,8 +315,8 @@ void PSG::Mix(Sample* dest, int nsamples)
 					dest += 2;
 				}
 			}
-
-			// •®•Û•Ÿ•Ì°º•◊§Œ∑◊ªª§Ú§µ§‹§√§øƒ¢ø¨§¢§Ô§ª
+			
+			// „Ç®„É≥„Éô„É≠„Éº„Éó„ÅÆË®àÁÆó„Çí„Åï„Åº„Å£„ÅüÂ∏≥Â∞ª„ÅÇ„Çè„Åõ
 			ecount = (ecount >> 8) + (eperiod >> (8-oversampling)) * nsamples;
 			if (ecount >= (1 << (envshift+6+oversampling-8)))
 			{
@@ -313,7 +328,7 @@ void PSG::Mix(Sample* dest, int nsamples)
 		}
 		else
 		{
-			// •®•Û•Ÿ•Ì°º•◊§¢§Í
+			// „Ç®„É≥„Éô„É≠„Éº„Éó„ÅÇ„Çä
 			for (int i=0; i<nsamples; i++)
 			{
 				sample = 0;
@@ -335,7 +350,7 @@ void PSG::Mix(Sample* dest, int nsamples)
 						>> (ncount >> (noiseshift+oversampling+1) & 31);
 #endif
 					ncount += nperiod;
-
+					
 					int x, y, z;
 					x = ((SCOUNT(0) & chenable[0]) | (nenable[0] & noise)) - 1;		// 0 or -1
 					sample += (*p1 + x) ^ x;
@@ -357,8 +372,6 @@ void PSG::Mix(Sample* dest, int nsamples)
 }
 
 // ---------------------------------------------------------------------------
-//	•∆°º•÷•Î
+//	„ÉÜ„Éº„Éñ„É´
 //
 uint	PSG::noisetable[noisetablesize] = { 0, };
-int		PSG::EmitTable[0x20] = { -1, };
-uint	PSG::enveloptable[16][64] = { 0, };

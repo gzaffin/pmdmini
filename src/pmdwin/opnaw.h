@@ -1,59 +1,74 @@
 //=============================================================================
 //		opnaw : OPNA unit with wait
-//			ver 0.01
+//			ver 0.03
 //=============================================================================
 
 #ifndef OPNAW_H
 #define OPNAW_H
 
-#include "opna.h"
+#include	"opna.h"
 
-// wait ¤Ç·×»»¤·¤¿Ê¬¤òÂåÆş¤¹¤ë buffer size(samples)
+
+// ä¸€æ¬¡è£œé–“æœ‰åŠ¹æ™‚ã®åˆæˆå‘¨æ³¢æ•°
+#define	SOUND_55K			  55555
+#define	SOUND_55K_2			  55466
+
+// wait ã§è¨ˆç®—ã—ãŸåˆ†ã‚’ä»£å…¥ã™ã‚‹ buffer size(samples)
 #define		WAIT_PCM_BUFFER_SIZE  65536
 
+// ç·šå½¢è£œé–“æ™‚ã«è¨ˆç®—ã—ãŸåˆ†ã‚’ä»£å…¥ã™ã‚‹ buffer size(samples)
+#define		IP_PCM_BUFFER_SIZE  2048
 
 namespace FM {
-
+	
 	class OPNAW : public OPNA
 	{
 	public:
 		OPNAW();
 		~OPNAW();
-	
+		
+		bool	Init(uint c, uint r, bool ipflag, const TCHAR* path);
 		bool	SetRate(uint c, uint r, bool ipflag = false);
-
+		
 		void	SetFMWait(int nsec);				// FM wait(nsec)
 		void	SetSSGWait(int nsec);				// SSG wait(nsec)
 		void	SetRhythmWait(int nsec);			// Rhythm wait(nsec)
 		void	SetADPCMWait(int nsec);				// ADPCM wait(nsec)
-
+		
 		int		GetFMWait(void);					// FM wait(nsec)
 		int		GetSSGWait(void);					// SSG wait(nsec)
 		int		GetRhythmWait(void);				// Rhythm wait(nsec)
 		int		GetADPCMWait(void);					// ADPCM wait(nsec)
-
-		void	SetReg(uint addr, uint data);		// ¥ì¥¸¥¹¥¿ÀßÄê
-		void	Mix(Sample* buffer, int nsamples);	// ¹çÀ®
-		void	ClearBuffer(void);					// ÆâÉô¥Ğ¥Ã¥Õ¥¡¥¯¥ê¥¢
-	
+		
+		void	SetReg(uint addr, uint data);		// ãƒ¬ã‚¸ã‚¹ã‚¿è¨­å®š
+		void	Mix(Sample* buffer, int nsamples);	// åˆæˆ
+		void	ClearBuffer(void);					// å†…éƒ¨ãƒãƒƒãƒ•ã‚¡ã‚¯ãƒªã‚¢
+		
 	private:
 		Sample	pre_buffer[WAIT_PCM_BUFFER_SIZE * 2];
-												// wait »ş¤Î¹çÀ®²»¤ÎÂàÈò
+													// wait æ™‚ã®åˆæˆéŸ³ã®é€€é¿
 		int		fmwait;								// FM Wait(nsec)
 		int		ssgwait;							// SSG Wait(nsec)
 		int		rhythmwait;							// Rhythm Wait(nsec)
 		int		adpcmwait;							// ADPCM Wait(nsec)
-	
+		
 		int		fmwaitcount;						// FM Wait(count*1000)
 		int		ssgwaitcount;						// SSG Wait(count*1000)
 		int		rhythmwaitcount;					// Rhythm Wait(count*1000)
 		int		adpcmwaitcount;						// ADPCM Wait(count*1000)
-	
-		int		read_pos;							// ½ñ¤­¹ş¤ß°ÌÃÖ
-		int		write_pos;							// ÆÉ¤ß½Ğ¤·°ÌÃÖ
-		int		count2;								// count ¾®¿ôÉôÊ¬(*1000)	
-	
-		void	CalcWaitPCM(int waitcount);			// SetReg() wait »ş¤Î PCM ¤ò·×»»
+		
+		int		read_pos;							// æ›¸ãè¾¼ã¿ä½ç½®
+		int		write_pos;							// èª­ã¿å‡ºã—ä½ç½®
+		int		count2;								// count å°æ•°éƒ¨åˆ†(*1000)
+		
+		Sample	ip_buffer[IP_PCM_BUFFER_SIZE * 2];	// ç·šå½¢è£œé–“æ™‚ã®ãƒ¯ãƒ¼ã‚¯
+		uint	rate2;								// å‡ºåŠ›å‘¨æ³¢æ•°
+		bool	interpolation2;						// ä¸€æ¬¡è£œé–“ãƒ•ãƒ©ã‚°
+		int		delta;								// å·®åˆ†å°æ•°éƒ¨(16384ã‚µãƒ³ãƒ—ãƒ«ã§åˆ†å‰²)
+		
+		void	_Init(void);						// åˆæœŸåŒ–(å†…éƒ¨å‡¦ç†)
+		void	CalcWaitPCM(int waitcount);			// SetReg() wait æ™‚ã® PCM ã‚’è¨ˆç®—
+		void	_Mix(Sample* buffer, int nsamples);	// åˆæˆï¼ˆä¸€æ¬¡è£œé–“ãªã—Ver.)
 	};
 }
 

@@ -1,5 +1,5 @@
 //=============================================================================
-//		86B PCM Driver ¡ÖP86DRV¡× Unit
+//		86B PCM Driver ã€ŒP86DRVã€ Unit
 //			programmed by M.Kajihara 96/01/16
 //			Windows Converted by C60
 //=============================================================================
@@ -7,19 +7,18 @@
 #ifndef P86DRV_H
 #define P86DRV_H
 
-#ifdef _WIN32
-# include <windows.h>
-#else
-//# include "types.h"
-# include "compat.h"
+#if defined _WIN32
+#include <windows.h>
 #endif
+#include "file.h"
+//#include "types.h"
 
-//	DLL ¤Î Ìá¤êÃÍ
-#define	_P86DRV_OK					  0		// Àµ¾ï½ªÎ»
-#define	_ERR_OPEN_P86_FILE			  1		// P86 ¤ò³«¤±¤Ê¤«¤Ã¤¿
-#define	_ERR_WRONG_P86_FILE		 	  2		// P86 ¤Î·Á¼°¤¬°Û¤Ê¤Ã¤Æ¤¤¤ë
-#define	_WARNING_P86_ALREADY_LOAD	  3		// P86 ¤Ï¤¹¤Ç¤ËÆÉ¤ß¹ş¤Ş¤ì¤Æ¤¤¤ë
-#define	_ERR_OUT_OF_MEMORY			 99		// ¥á¥â¥ê¤ò³ÎÊİ¤Ç¤­¤Ê¤«¤Ã¤¿
+//	DLL ã® æˆ»ã‚Šå€¤
+#define	_P86DRV_OK					  0		// æ­£å¸¸çµ‚äº†
+#define	_ERR_OPEN_P86_FILE			 81		// P86 ã‚’é–‹ã‘ãªã‹ã£ãŸ
+#define	_ERR_WRONG_P86_FILE		 	 82		// P86 ã®å½¢å¼ãŒç•°ãªã£ã¦ã„ã‚‹
+#define	_WARNING_P86_ALREADY_LOAD	 83		// P86 ã¯ã™ã§ã«èª­ã¿è¾¼ã¾ã‚Œã¦ã„ã‚‹
+#define	_ERR_OUT_OF_MEMORY			 99		// ãƒ¡ãƒ¢ãƒªã‚’ç¢ºä¿ã§ããªã‹ã£ãŸ
 
 #define	SOUND_44K				  44100
 #define	SOUND_22K				  22050
@@ -36,10 +35,9 @@ typedef	unsigned char	uchar;
 typedef	unsigned int	uint;
 
 
-#ifdef _WIN32
+#if defined _WIN32
 #pragma pack( push, enter_include1 )
 #pragma pack(1)
-#define __PACKED__
 #endif
 
 typedef struct p86headertag		// header(original)
@@ -50,10 +48,10 @@ typedef struct p86headertag		// header(original)
 	struct {
 		uchar	start[3];
 		uchar	size[3];
-	} __PACKED__ pcmnum[MAX_P86];
-} __PACKED__ P86HEADER;
+	} pcmnum[MAX_P86];
+} P86HEADER;
 
-#ifdef _WIN32
+#if defined _WIN32
 #pragma pack( pop, enter_include1 )
 #endif
 
@@ -80,54 +78,56 @@ public:
 	P86DRV();
 	~P86DRV();
 	
-	bool Init(uint r, bool ip);						// ½é´ü²½
-	bool Stop(void);								// P86 Ää»ß
-	bool Play(void);								// P86 ºÆÀ¸
+	bool Init(uint r, bool ip);						// åˆæœŸåŒ–
+	bool Stop(void);								// P86 åœæ­¢
+	bool Play(void);								// P86 å†ç”Ÿ
 	bool Keyoff(void);								// P86 keyoff
-	int Load(char *filename);						// P86 ÆÉ¤ß¹ş¤ß
-	bool SetRate(uint r, bool ip);					// ¥ì¡¼¥ÈÀßÄê
-	void SetVolume(int volume);						// Á´ÂÎ²»ÎÌÄ´ÀáÍÑ
-	bool SetVol(int _vol);							// ²»ÎÌÀßÄê
-	bool SetOntei(int rate, uint ontei);			// ²»Äø¼şÇÈ¿ô¤ÎÀßÄê
-	bool SetPan(int flag, int data);				// PAN ÀßÄê
-	bool SetNeiro(int num);							// PCM ÈÖ¹æÀßÄê
+	int Load(TCHAR *filename);						// P86 èª­ã¿è¾¼ã¿
+	bool SetRate(uint r, bool ip);					// ãƒ¬ãƒ¼ãƒˆè¨­å®š
+	void SetVolume(int volume);						// å…¨ä½“éŸ³é‡èª¿ç¯€ç”¨
+	bool SetVol(int _vol);							// éŸ³é‡è¨­å®š
+	bool SetOntei(int rate, uint ontei);			// éŸ³ç¨‹å‘¨æ³¢æ•°ã®è¨­å®š
+	bool SetPan(int flag, int data);				// PAN è¨­å®š
+	bool SetNeiro(int num);							// PCM ç•ªå·è¨­å®š
 	bool SetLoop(int loop_start, int loop_end, int release_start, bool adpcm);
-													// ¥ë¡¼¥×ÀßÄê
-	void Mix(Sample* dest, int nsamples);			// ¹çÀ®
-	char	p86_file[_MAX_PATH];					// ¥Õ¥¡¥¤¥ëÌ¾
-	P86HEADER2 p86header;							// P86 ¤Î²»¿§¥Ø¥Ã¥À¡¼
-
+													// ãƒ«ãƒ¼ãƒ—è¨­å®š
+	void Mix(Sample* dest, int nsamples);			// åˆæˆ
+	TCHAR	p86_file[_MAX_PATH];					// ãƒ•ã‚¡ã‚¤ãƒ«å
+	P86HEADER2 p86header;							// P86 ã®éŸ³è‰²ãƒ˜ãƒƒãƒ€ãƒ¼
+	
 private:
-	bool	interpolation;							// Êä´°¤¹¤ë¤«¡©
-	int		rate;									// ºÆÀ¸¼şÇÈ¿ô
-	int		srcrate;								// ¸µ¥Ç¡¼¥¿¤Î¼şÇÈ¿ô
-	uint	ontei;									// ²»Äø(fnum)
-	int		vol;									// ²»ÎÌ
-	uchar	*p86_addr;								// P86 ÊİÂ¸ÍÑ¥á¥â¥ê¥İ¥¤¥ó¥¿
-	uchar	*start_ofs;								// È¯²»ÃæPCM¥Ç¡¼¥¿ÈÖÃÏ
-	int		start_ofs_x;							// È¯²»ÃæPCM¥Ç¡¼¥¿ÈÖÃÏ¡Ê¾®¿ôÉô¡Ë
-	int		size;									// »Ä¤ê¥µ¥¤¥º
-	uchar	*_start_ofs;							// È¯²»³«»ÏPCM¥Ç¡¼¥¿ÈÖÃÏ
-	int		_size;									// PCM¥Ç¡¼¥¿¥µ¥¤¥º
-	int		addsize1;								// PCM¥¢¥É¥ì¥¹²Ã»»ÃÍ (À°¿ôÉô)
-	int		addsize2;								// PCM¥¢¥É¥ì¥¹²Ã»»ÃÍ (¾®¿ôÉô)
-	uchar	*repeat_ofs;							// ¥ê¥Ô¡¼¥È³«»Ï°ÌÃÖ
-	int		repeat_size;							// ¥ê¥Ô¡¼¥È¸å¤Î¥µ¥¤¥º
-	uchar	*release_ofs;							// ¥ê¥ê¡¼¥¹³«»Ï°ÌÃÖ
-	int		release_size;							// ¥ê¥ê¡¼¥¹¸å¤Î¥µ¥¤¥º
-	bool	repeat_flag;							// ¥ê¥Ô¡¼¥È¤¹¤ë¤«¤É¤¦¤«¤Îflag
-	bool	release_flag1;							// ¥ê¥ê¡¼¥¹¤¹¤ë¤«¤É¤¦¤«¤Îflag
-	bool	release_flag2;							// ¥ê¥ê¡¼¥¹¤·¤¿¤«¤É¤¦¤«¤Îflag
-
-	int		pcm86_pan_flag;		// ¥Ñ¥ó¥Ç¡¼¥¿£±(bit0=º¸/bit1=±¦/bit2=µÕ)
-	int		pcm86_pan_dat;		// ¥Ñ¥ó¥Ç¡¼¥¿£²(²»ÎÌ¤ò²¼¤²¤ë¥µ¥¤¥É¤Î²»ÎÌÃÍ)
-	bool	play86_flag;							// È¯²»Ãæ?flag
-
+	FilePath	filepath;							// ãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹é–¢é€£ã®ã‚¯ãƒ©ã‚¹ãƒ©ã‚¤ãƒ–ãƒ©ãƒª
+	
+	bool	interpolation;							// è£œå®Œã™ã‚‹ã‹ï¼Ÿ
+	int		rate;									// å†ç”Ÿå‘¨æ³¢æ•°
+	int		srcrate;								// å…ƒãƒ‡ãƒ¼ã‚¿ã®å‘¨æ³¢æ•°
+	uint	ontei;									// éŸ³ç¨‹(fnum)
+	int		vol;									// éŸ³é‡
+	uchar	*p86_addr;								// P86 ä¿å­˜ç”¨ãƒ¡ãƒ¢ãƒªãƒã‚¤ãƒ³ã‚¿
+	uchar	*start_ofs;								// ç™ºéŸ³ä¸­PCMãƒ‡ãƒ¼ã‚¿ç•ªåœ°
+	int		start_ofs_x;							// ç™ºéŸ³ä¸­PCMãƒ‡ãƒ¼ã‚¿ç•ªåœ°ï¼ˆå°æ•°éƒ¨ï¼‰
+	int		size;									// æ®‹ã‚Šã‚µã‚¤ã‚º
+	uchar	*_start_ofs;							// ç™ºéŸ³é–‹å§‹PCMãƒ‡ãƒ¼ã‚¿ç•ªåœ°
+	int		_size;									// PCMãƒ‡ãƒ¼ã‚¿ã‚µã‚¤ã‚º
+	int		addsize1;								// PCMã‚¢ãƒ‰ãƒ¬ã‚¹åŠ ç®—å€¤ (æ•´æ•°éƒ¨)
+	int		addsize2;								// PCMã‚¢ãƒ‰ãƒ¬ã‚¹åŠ ç®—å€¤ (å°æ•°éƒ¨)
+	uchar	*repeat_ofs;							// ãƒªãƒ”ãƒ¼ãƒˆé–‹å§‹ä½ç½®
+	int		repeat_size;							// ãƒªãƒ”ãƒ¼ãƒˆå¾Œã®ã‚µã‚¤ã‚º
+	uchar	*release_ofs;							// ãƒªãƒªãƒ¼ã‚¹é–‹å§‹ä½ç½®
+	int		release_size;							// ãƒªãƒªãƒ¼ã‚¹å¾Œã®ã‚µã‚¤ã‚º
+	bool	repeat_flag;							// ãƒªãƒ”ãƒ¼ãƒˆã™ã‚‹ã‹ã©ã†ã‹ã®flag
+	bool	release_flag1;							// ãƒªãƒªãƒ¼ã‚¹ã™ã‚‹ã‹ã©ã†ã‹ã®flag
+	bool	release_flag2;							// ãƒªãƒªãƒ¼ã‚¹ã—ãŸã‹ã©ã†ã‹ã®flag
+	
+	int		pcm86_pan_flag;		// ãƒ‘ãƒ³ãƒ‡ãƒ¼ã‚¿ï¼‘(bit0=å·¦/bit1=å³/bit2=é€†)
+	int		pcm86_pan_dat;		// ãƒ‘ãƒ³ãƒ‡ãƒ¼ã‚¿ï¼’(éŸ³é‡ã‚’ä¸‹ã’ã‚‹ã‚µã‚¤ãƒ‰ã®éŸ³é‡å€¤)
+	bool	play86_flag;							// ç™ºéŸ³ä¸­?flag
+	
 	int		AVolume;
-//	static	Sample VolumeTable[16][256];			// ²»ÎÌ¥Æ¡¼¥Ö¥ë
-	Sample VolumeTable[16][256];					// ²»ÎÌ¥Æ¡¼¥Ö¥ë
-
-	int     read_char(void *value);
+//	static	Sample VolumeTable[16][256];			// éŸ³é‡ãƒ†ãƒ¼ãƒ–ãƒ«
+	Sample VolumeTable[16][256];					// éŸ³é‡ãƒ†ãƒ¼ãƒ–ãƒ«
+	
+	void	_Init(void);							// åˆæœŸåŒ–(å†…éƒ¨å‡¦ç†)
 	void	MakeVolumeTable(int volume);
 	void	double_trans(Sample* dest, int nsamples);
 	void	double_trans_g(Sample* dest, int nsamples);

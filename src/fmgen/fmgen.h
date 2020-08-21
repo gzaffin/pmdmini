@@ -2,26 +2,25 @@
 //	FM Sound Generator
 //	Copyright (C) cisc 1998, 2001.
 // ---------------------------------------------------------------------------
-//	$Id: fmgen.h,v 1.1 2001/04/23 22:25:34 kaoru-k Exp $
+//	$Id: fmgen.h,v 1.37 2003/08/25 13:33:11 cisc Exp $
 
 #ifndef FM_GEN_H
 #define FM_GEN_H
 
 #include "types.h"
-#ifndef _WIN32
-# define __stdcall
-#endif
+#include "portability.h"
+
 
 // ---------------------------------------------------------------------------
-//	½ĞÎÏ¥µ¥ó¥×¥ë¤Î·¿
+//	å‡ºåŠ›ã‚µãƒ³ãƒ—ãƒ«ã®å‹
 //
 #define FM_SAMPLETYPE	int32				// int16 or int32
 
 // ---------------------------------------------------------------------------
-//	Äê¿ô¤½¤Î£±
-//	ÀÅÅª¥Æ¡¼¥Ö¥ë¤Î¥µ¥¤¥º
+//	å®šæ•°ãã®ï¼‘
+//	é™çš„ãƒ†ãƒ¼ãƒ–ãƒ«ã®ã‚µã‚¤ã‚º
 
-#define FM_LFOBITS		8					// ÊÑ¹¹ÉÔ²Ä
+#define FM_LFOBITS		8					// å¤‰æ›´ä¸å¯
 #define FM_TLBITS		7
 
 // ---------------------------------------------------------------------------
@@ -30,35 +29,30 @@
 #define FM_LFOENTS		(1 << FM_LFOBITS)
 #define FM_TLPOS		(FM_TLENTS/4)
 
+//	ã‚µã‚¤ãƒ³æ³¢ã®ç²¾åº¦ã¯ 2^(1/256)
+#define FM_CLENTS		(0x1000 * 2)	// sin + TL + LFO
+
 // ---------------------------------------------------------------------------
 
 namespace FM
 {	
 	//	Types ----------------------------------------------------------------
 	typedef FM_SAMPLETYPE	Sample;
-	typedef int32 			ISample;
-
+	typedef int32			ISample;
+	
 	enum OpType { typeN=0, typeM=1 };
 	
-	//	Tables (¥°¥í¡¼¥Ğ¥ë¤Ê¤â¤Î¤ä asm ¤«¤é»²¾È¤µ¤ì¤ë¤â¤ÎÅù) -----------------
-	void MakeTable();
-	void MakeTimeTable(uint ratio);
-	extern uint32 tltable[];
-	extern int32  cltable[];
-	extern uint32 dltable[];
-	extern int    pmtable[2][8][FM_LFOENTS];
-	extern uint   amtable[2][4][FM_LFOENTS];
-	extern uint   aml, pml;
-	extern int    pmv;		// LFO ÊÑ²½¥ì¥Ù¥ë
-
 	void StoreSample(ISample& dest, int data);
-
+	
+	class Chip;
+	
 	//	Operator -------------------------------------------------------------
 	class Operator
 	{
 	public:
 		Operator();
-		static void MakeTable();
+		void	SetChip(Chip* chip) { chip_ = chip; }
+		
 		static void	MakeTimeTable(uint ratio);
 		
 		ISample	Calc(ISample in);
@@ -72,7 +66,7 @@ namespace FM
 		void	Reset();
 		void	ResetFB();
 		int		IsOn();
-
+		
 		void	SetDT(uint dt);
 		void	SetDT2(uint dt2);
 		void	SetMULTI(uint multi);
@@ -91,78 +85,111 @@ namespace FM
 		void	SetMS(uint ms);
 		void	Mute(bool);
 		
-		static void SetAML(uint l);
-		static void SetPML(uint l);
+//		static void SetAML(uint l);
+//		static void SetPML(uint l);
+		
+		int		Out() { return out_; }
+		
+		int		dbgGetIn2() { return in2_; }
+		void	dbgStopPG() { pg_diff_ = 0; pg_diff_lfo_ = 0; }
 		
 	private:
 		typedef uint32 Counter;
 		
-		ISample	out, out2;
-
+		Chip*	chip_;
+		ISample	out_, out2_;
+		ISample in2_;
+		
 	//	Phase Generator ------------------------------------------------------
 		uint32	PGCalc();
 		uint32	PGCalcL();
-
-		uint	dp;			// ¦¤P
-		uint	detune;		// Detune
-		uint	detune2;	// DT2
-		uint	multiple;	// Multiple
-		uint32	pgcount;	// Phase ¸½ºßÃÍ
-		uint32	pgdcount;	// Phase º¹Ê¬ÃÍ
-		int32	pgdcountl;	// Phase º¹Ê¬ÃÍ >> x
-
-	//	Envelope Generator ---------------------------------------------------
+		
+		uint	dp_;		// Î”P
+		uint	detune_;		// Detune
+		uint	detune2_;	// DT2
+		uint	multiple_;	// Multiple
+		uint32	pg_count_;	// Phase ç¾åœ¨å€¤
+		uint32	pg_diff_;	// Phase å·®åˆ†å€¤
+		int32	pg_diff_lfo_;	// Phase å·®åˆ†å€¤ >> x
+		
+	//	Envelop Generator ---------------------------------------------------
 		enum	EGPhase { next, attack, decay, sustain, release, off };
 		
 		void	EGCalc();
+		void	EGStep();
 		void	ShiftPhase(EGPhase nextphase);
-		void	ShiftPhase2();
+		void	SSGShiftPhase(int mode);
 		void	SetEGRate(uint);
 		void	EGUpdate();
+		int		FBCalc(int fb);
+		ISample LogToLin(uint a);
 		
-		OpType	type;		// OP ¤Î¼ïÎà (M, N...)
-		uint	bn;			// Block/Note
-		int		eglevel;	// EG ¤Î½ĞÎÏÃÍ
-		int		eglvnext;	// ¼¡¤Î phase ¤Ë°Ü¤ëÃÍ
-		int32	egstep;		// EG ¤Î¼¡¤ÎÊÑ°Ü¤Ş¤Ç¤Î»ş´Ö
-		int32	egstepd;	// egstep ¤Î»ş´Öº¹Ê¬
-		int		egtransa;	// EG ÊÑ²½¤Î³ä¹ç (for attack)
-		int		egtransd;	// EG ÊÑ²½¤Î³ä¹ç (for decay)
-		int		egout;		// EG+TL ¤ò¹ç¤ï¤»¤¿½ĞÎÏÃÍ
-		int		tlout;		// TL Ê¬¤Î½ĞÎÏÃÍ
-		int		pmd;		// PM depth
-		int		amd;		// AM depth
-
-		uint	ksr;		// key scale rate
-		EGPhase	phase;
-		uint*	ams;
-		uint8	ms;
-
-		bool	keyon;		// current key state
 		
-		uint8	tl;			// Total Level	 (0-127)
-		uint8	tll;		// Total Level Latch (for CSM mode)
-		uint8	ar;			// Attack Rate   (0-63)
-		uint8	dr;			// Decay Rate    (0-63)
-		uint8	sr;			// Sustain Rate  (0-63)
-		uint8	sl;			// Sustain Level (0-127)
-		uint8	rr;			// Release Rate  (0-63)
-		uint8	ks;			// Keyscale      (0-3)
-		uint8	ssgtype;	// SSG-Type Envelop Control
-
-		bool	amon;		// enable Amplitude Modulation
-		bool	paramchanged;	// ¥Ñ¥é¥á¡¼¥¿¤¬¹¹¿·¤µ¤ì¤¿
-		bool	mute;
+		OpType	type_;		// OP ã®ç¨®é¡ (M, N...)
+		uint	bn_;		// Block/Note
+		int		eg_level_;	// EG ã®å‡ºåŠ›å€¤
+		int		eg_level_on_next_phase_;	// æ¬¡ã® eg_phase_ ã«ç§»ã‚‹å€¤
+		int		eg_count_;		// EG ã®æ¬¡ã®å¤‰ç§»ã¾ã§ã®æ™‚é–“
+		int		eg_count_diff_;	// eg_count_ ã®å·®åˆ†
+		int		eg_out_;		// EG+TL ã‚’åˆã‚ã›ãŸå‡ºåŠ›å€¤
+		int		tl_out_;		// TL åˆ†ã®å‡ºåŠ›å€¤
+//		int		pm_depth_;		// PM depth
+//		int		am_depth_;		// AM depth
+		int		eg_rate_;
+		int		eg_curve_count_;
+		int		ssg_offset_;
+		int		ssg_vector_;
+		int		ssg_phase_;
+		
+		
+		uint	key_scale_rate_;		// key scale rate
+		EGPhase	eg_phase_;
+		uint*	ams_;
+		uint	ms_;
+		
+		uint	tl_;			// Total Level	 (0-127)
+		uint	tl_latch_;		// Total Level Latch (for CSM mode)
+		uint	ar_;			// Attack Rate   (0-63)
+		uint	dr_;			// Decay Rate    (0-63)
+		uint	sr_;			// Sustain Rate  (0-63)
+		uint	sl_;			// Sustain Level (0-127)
+		uint	rr_;			// Release Rate  (0-63)
+		uint	ks_;			// Keyscale      (0-3)
+		uint	ssg_type_;	// SSG-Type Envelop Control
+		
+		bool	keyon_;
+		bool	amon_;		// enable Amplitude Modulation
+		bool	param_changed_;	// ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãŒæ›´æ–°ã•ã‚ŒãŸ
+		bool	mute_;
 		
 	//	Tables ---------------------------------------------------------------
-		enum TableIndex { dldecay = 0, dlattack = 0x400, };
-		
-		static Counter ratetable[64];
+		static Counter rate_table[16];
 		static uint32 multable[4][16];
-
+		
+		static const uint8 notetable[128];
+		static const int8 dttable[256];
+		static const int8 decaytable1[64][8];
+		static const int decaytable2[16];
+		static const int8 attacktable[64][8];
+		static const int ssgenvtable[8][2][3][2];
+		
+		static uint	sinetable[1024];
+		static int32 cltable[FM_CLENTS];
+		
+		static bool tablehasmade;
+		static void MakeTable();
+		
+		
+		
 	//	friends --------------------------------------------------------------
 		friend class Channel4;
 		friend void __stdcall FM_NextPhase(Operator* op);
+		
+	public:
+		int		dbgopout_;
+		int		dbgpgout_;
+		static const int32* dbgGetClTable() { return cltable; }
+		static const uint* dbgGetSineTable() { return sinetable; }
 	};
 	
 	//	4-op Channel ---------------------------------------------------------
@@ -170,6 +197,7 @@ namespace FM
 	{
 	public:
 		Channel4();
+		void SetChip(Chip* chip);
 		void SetType(OpType type);
 		
 		ISample Calc();
@@ -187,16 +215,53 @@ namespace FM
 		void Mute(bool);
 		void Refresh();
 		
+		void dbgStopPG() { for (int i=0; i<4; i++) op[i].dbgStopPG(); }
+		
 	private:
 		static const uint8 fbtable[8];
 		uint	fb;
 		int		buf[4];
-		int*	in[3];			// ³Æ OP ¤ÎÆşÎÏ¥İ¥¤¥ó¥¿
-		int*	out[3];			// ³Æ OP ¤Î½ĞÎÏ¥İ¥¤¥ó¥¿
+		int*	in[3];			// å„ OP ã®å…¥åŠ›ãƒã‚¤ãƒ³ã‚¿
+		int*	out[3];			// å„ OP ã®å‡ºåŠ›ãƒã‚¤ãƒ³ã‚¿
 		int*	pms;
-
+		int		algo_;
+		Chip*	chip_;
+		
+		static void MakeTable();
+		
+		static bool tablehasmade;
+		static int 	kftable[64];
+		
+		
 	public:
 		Operator op[4];
+	};
+	
+	//	Chip resource
+	class Chip
+	{
+	public:
+		Chip();
+		void	SetRatio(uint ratio);
+		void	SetAML(uint l);
+		void	SetPML(uint l);
+		void	SetPMV(int pmv) { pmv_ = pmv; }
+		
+		uint32	GetMulValue(uint dt2, uint mul) { return multable_[dt2][mul]; }
+		uint	GetAML() { return aml_; }
+		uint	GetPML() { return pml_; }
+		int		GetPMV() { return pmv_; }
+		uint	GetRatio() { return ratio_; }
+		
+	private:
+		void	MakeTable();
+		
+		uint	ratio_;
+		uint	aml_;
+		uint	pml_;
+		int		pmv_;
+		OpType	optype_;
+		uint32	multable_[4][16];
 	};
 }
 

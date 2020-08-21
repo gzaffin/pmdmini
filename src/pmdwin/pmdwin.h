@@ -6,77 +6,69 @@
 
 #ifndef PMDWIN_H
 #define PMDWIN_H
-
-#include <stdlib.h>
-#include "opnaw.h"
-#include "ppz8l.h"
-#include "ppsdrv.h"
-#include "p86drv.h"
-#ifdef ENABLE_COM_INTERFACE
-#include "PCMMusDriver.h"
-#endif
-
-#ifdef _WIN32
-# include <windows.h>
-# include <process.h>
-# include <mbstring.h>
+#if defined _WIN32
 #ifdef USE_DLL
-    #ifdef BUILDING_PROJECT
-        #define API_ATTRIBUTE __declspec(dllexport)
-    #else
-        #define API_ATTRIBUTE __declspec(dllimport)
-    #endif
+#ifdef BUILDING_PROJECT
+#define API_ATTRIBUTE __declspec(dllexport)
 #else
-    #define API_ATTRIBUTE
+#define API_ATTRIBUTE __declspec(dllimport)
 #endif
 #else
-//# include "types.h"
-# include "compat.h"
+#define API_ATTRIBUTE
+#endif
+#else
+#define API_ATTRIBUTE
 #endif
 
-//=============================================================================
-//	•–°º•∏•Á•Ûæ??
-//=============================================================================
-#define	DLLVersion			 19		// æÂ£±∑Â°ßmajor, ≤º£≤∑Â°ßminor version
-#define	InterfaceVersion	117		// æÂ£±∑Â°ßmajor, ≤º£≤∑Â°ßminor version
+#include "pcmmusdriver.h"
+
+//#include "types.h"
 
 
 //=============================================================================
-//	DLL §ŒÃ·??√Õ
+//	„Éê„Éº„Ç∏„Éß„É≥ÊÉÖÂ†±
 //=============================================================================
-#define	PMDWIN_OK					  0		// ¿µ??Ω™Œª
-#define	ERR_OPEN_MUSIC_FILE			  1		// ∂  •«°º•ø§Ú≥´§±§ §´§√§ø
-#define	ERR_WRONG_MUSIC_FILE		  2		// PMD §Œ∂ •«°º•ø§«§œ§ §´§√§ø
-#define	ERR_OPEN_PPC_FILE			  3		// PPC §Ú≥´§±§ §´§√§ø
-#define	ERR_OPEN_P86_FILE			  4		// P86 §Ú≥´§±§ §´§√§ø
-#define	ERR_OPEN_PPS_FILE			  5		// PPS §Ú≥´§±§ §´§√§ø
-#define	ERR_OPEN_PPZ1_FILE			  6		// PPZ1 §Ú≥´§±§ §´§√§ø
-#define	ERR_OPEN_PPZ2_FILE			  7		// PPZ2 §Ú≥´§±§ §´§√§ø
-#define	ERR_WRONG_PPC_FILE			  8		// PPC/PVI §«§œ§ §´§√§ø
-#define	ERR_WRONG_P86_FILE			  9		// P86 §«§œ§ §´§√§ø
-#define	ERR_WRONG_PPS_FILE			 10		// PPS §«§œ§ §´§√§ø
-#define	ERR_WRONG_PPZ1_FILE			 11		// PVI/PZI §«§œ§ §´§√§ø(PPZ1)
-#define	ERR_WRONG_PPZ2_FILE			 12		// PVI/PZI §«§œ§ §´§√§ø(PPZ2)
-#define	WARNING_PPC_ALREADY_LOAD	 13		// PPC §œ§π§«§À∆…§ﬂ??§ﬁ??§∆§§??
-#define	WARNING_P86_ALREADY_LOAD	 14		// P86 §œ§π§«§À∆…§ﬂ??§ﬁ??§∆§§??
-#define	WARNING_PPS_ALREADY_LOAD	 15		// PPS §œ§π§«§À∆…§ﬂ??§ﬁ??§∆§§??
-#define	WARNING_PPZ1_ALREADY_LOAD	 16		// PPZ1 §œ§π§«§À∆…§ﬂ??§ﬁ??§∆§§??
-#define	WARNING_PPZ2_ALREADY_LOAD	 17		// PPZ2 §œ§π§«§À∆…§ﬂ??§ﬁ??§∆§§??
+#define	DLLVersion			 39		// ‰∏äÔºëÊ°ÅÔºömajor, ‰∏ãÔºíÊ°ÅÔºöminor version
+#define	InterfaceVersion	117		// ‰∏äÔºëÊ°ÅÔºömajor, ‰∏ãÔºíÊ°ÅÔºöminor version
 
-#define	ERR_WRONG_PARTNO			 30		// •—°º•»»÷πÊ§¨…‘≈¨
-//#define	ERR_ALREADY_MASKED			 31		// ªÿ??•—°º•»§œ§π§«§À•ﬁ•π•Ø§µ??§∆§§??
-#define	ERR_NOT_MASKED				 32		// ªÿ??•—°º•»§œ•ﬁ•π•Ø§µ??§∆§§§ §§
-#define	ERR_MUSIC_STOPPED			 33		// ∂ §¨ªﬂ§ﬁ§√§∆§§??§Œ§À•ﬁ•π•Ø¡‡∫˚¿Ú§∑§ø
-#define	ERR_EFFECT_USED				 34		// ∏˙≤Ã≤ª§«ª»Õ—√Ê§ §Œ§«•ﬁ•π•Ø§Ú¡‡∫˚¿«§≠§ §§
 
-#define	ERR_OUT_OF_MEMORY			 99		// •·•‚•Í§Ú≥Œ ›§«§≠§ §´§√§ø
-#define	ERR_OTHER					999		// §Ω§Œ¬æ§Œ•®•È°º
+//=============================================================================
+//	DLL „ÅÆÊàª„ÇäÂÄ§
+//=============================================================================
+#define	PMDWIN_OK				 	  0		// Ê≠£Â∏∏ÁµÇ‰∫Ü
+#define	ERR_OPEN_MUSIC_FILE			  1		// Êõ≤ „Éá„Éº„Çø„ÇíÈñã„Åë„Å™„Åã„Å£„Åü
+#define	ERR_WRONG_MUSIC_FILE		  2		// PMD „ÅÆÊõ≤„Éá„Éº„Çø„Åß„ÅØ„Å™„Åã„Å£„Åü
+#define	ERR_OPEN_PPC_FILE		 	  3		// PPC „ÇíÈñã„Åë„Å™„Åã„Å£„Åü
+#define	ERR_OPEN_P86_FILE		 	  4		// P86 „ÇíÈñã„Åë„Å™„Åã„Å£„Åü
+#define	ERR_OPEN_PPS_FILE		 	  5		// PPS „ÇíÈñã„Åë„Å™„Åã„Å£„Åü
+#define	ERR_OPEN_PPZ1_FILE		 	  6		// PPZ1 „ÇíÈñã„Åë„Å™„Åã„Å£„Åü
+#define	ERR_OPEN_PPZ2_FILE		 	  7		// PPZ2 „ÇíÈñã„Åë„Å™„Åã„Å£„Åü
+#define	ERR_WRONG_PPC_FILE		 	  8		// PPC/PVI „Åß„ÅØ„Å™„Åã„Å£„Åü
+#define	ERR_WRONG_P86_FILE		 	  9		// P86 „Åß„ÅØ„Å™„Åã„Å£„Åü
+#define	ERR_WRONG_PPS_FILE		 	 10		// PPS „Åß„ÅØ„Å™„Åã„Å£„Åü
+#define	ERR_WRONG_PPZ1_FILE		 	 11		// PVI/PZI „Åß„ÅØ„Å™„Åã„Å£„Åü(PPZ1)
+#define	ERR_WRONG_PPZ2_FILE		 	 12		// PVI/PZI „Åß„ÅØ„Å™„Åã„Å£„Åü(PPZ2)
+#define	WARNING_PPC_ALREADY_LOAD	 13		// PPC „ÅØ„Åô„Åß„Å´Ë™≠„ÅøËæº„Åæ„Çå„Å¶„ÅÑ„Çã
+#define	WARNING_P86_ALREADY_LOAD	 14		// P86 „ÅØ„Åô„Åß„Å´Ë™≠„ÅøËæº„Åæ„Çå„Å¶„ÅÑ„Çã
+#define	WARNING_PPS_ALREADY_LOAD	 15		// PPS „ÅØ„Åô„Åß„Å´Ë™≠„ÅøËæº„Åæ„Çå„Å¶„ÅÑ„Çã
+#define	WARNING_PPZ1_ALREADY_LOAD	 16		// PPZ1 „ÅØ„Åô„Åß„Å´Ë™≠„ÅøËæº„Åæ„Çå„Å¶„ÅÑ„Çã
+#define	WARNING_PPZ2_ALREADY_LOAD	 17		// PPZ2 „ÅØ„Åô„Åß„Å´Ë™≠„ÅøËæº„Åæ„Çå„Å¶„ÅÑ„Çã
+
+#define	ERR_WRONG_PARTNO			 30		// „Éë„Éº„ÉàÁï™Âè∑„Åå‰∏çÈÅ©
+//#define	ERR_ALREADY_MASKED			 31		// ÊåáÂÆö„Éë„Éº„Éà„ÅØ„Åô„Åß„Å´„Éû„Çπ„ÇØ„Åï„Çå„Å¶„ÅÑ„Çã
+#define	ERR_NOT_MASKED				 32		// ÊåáÂÆö„Éë„Éº„Éà„ÅØ„Éû„Çπ„ÇØ„Åï„Çå„Å¶„ÅÑ„Å™„ÅÑ
+#define	ERR_MUSIC_STOPPED			 33		// Êõ≤„ÅåÊ≠¢„Åæ„Å£„Å¶„ÅÑ„Çã„ÅÆ„Å´„Éû„Çπ„ÇØÊìç‰Ωú„Çí„Åó„Åü
+#define	ERR_EFFECT_USED				 34		// ÂäπÊûúÈü≥„Åß‰ΩøÁî®‰∏≠„Å™„ÅÆ„Åß„Éû„Çπ„ÇØ„ÇíÊìç‰Ωú„Åß„Åç„Å™„ÅÑ
+
+#define	ERR_OUT_OF_MEMORY			 99		// „É°„É¢„É™„ÇíÁ¢∫‰øù„Åß„Åç„Å™„Åã„Å£„Åü
+#define	ERR_OTHER					999		// „Åù„ÅÆ‰ªñ„ÅÆ„Ç®„É©„Éº
 
 
 //----------------------------------------------------------------------------
-//	£–£Õ£ƒ£◊£È?˚‹?Õ—§Œ??µ¡
+//	Ôº∞Ôº≠Ôº§Ôº∑ÔΩâÔΩéÂ∞ÇÁî®„ÅÆÂÆöÁæ©
 //----------------------------------------------------------------------------
 #define	SOUND_55K			  55555
+#define	SOUND_55K_2			  55466
 #define	SOUND_48K			  48000
 #define	SOUND_44K			  44100
 #define	SOUND_22K			  22050
@@ -97,7 +89,7 @@
 
 
 //----------------------------------------------------------------------------
-//	§Ω§Œ¬æ??µ¡
+//	„Åù„ÅÆ‰ªñÂÆöÁæ©
 //----------------------------------------------------------------------------
 #define	nbufsample			  30000
 #define	OPNAClock		(3993600*2)
@@ -105,126 +97,79 @@
 #define	NumOfFMPart			      6
 #define	NumOfSSGPart		      3
 #define	NumOfADPCMPart		      1
-#define	NumOFOPNARhythmPart	      1
+#define	NumOfOPNARhythmPart	      1
 #define	NumOfExtPart		      3
 #define	NumOfRhythmPart		      1
 #define	NumOfEffPart		      1
 #define	NumOfPPZ8Part		      8
-#define	NumOfAllPart		(NumOfFMPart+NumOfSSGPart+NumOfADPCMPart+NumOFOPNARhythmPart+NumOfExtPart+NumOfRhythmPart+NumOfEffPart+NumOfPPZ8Part)
+#define	NumOfAllPart		(NumOfFMPart+NumOfSSGPart+NumOfADPCMPart+NumOfOPNARhythmPart+NumOfExtPart+NumOfRhythmPart+NumOfEffPart+NumOfPPZ8Part)
 
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned int uint;
 typedef unsigned long ulong;
-typedef int Sample;
 
 #ifndef __cplusplus
 typedef unsigned char bool;
 #endif
 
 
-typedef struct stereosampletag
-{
-	Sample left;
-	Sample right;
-} StereoSample;
-
-#ifdef _WIN32
-#pragma pack( push, enter_include1 )
-#pragma pack(2)
-#define __PACKED__
-#endif
-
-typedef struct stereo16bittag
-{
-	short left;
-	short right;
-} __PACKED__ Stereo16bit;
-
-typedef struct pcmendstag
-{
-	ushort pcmends;
-	ushort pcmadrs[256][2];
-} __PACKED__ PCMEnds;
-
-#ifdef _WIN32
-#pragma pack( pop, enter_include1 )
-#endif
-
-
-#define	PVIHeader	"PVI2"
-#define	PPCHeader	"ADPCM DATA for  PMD ver.4.4-  "
-//#define ver 		"4.8o"
-//#define vers		0x48
-//#define verc		"o"
-//#define date		"Jun.19th 1997"
-
-//#define max_part1	22		// £∞•Ø??•¢§π§Ÿ§≠•—°º•»??(for PMDPPZ)
-#define max_part2	11		// ΩÈ??≤Ω§π§Ÿ§≠•—°º•»??  (for PMDPPZ)
-
-#define mdata_def	64
-#define voice_def	 8
-#define effect_def	64
-
-#define fmvd_init	0		// £π£∏§œ£∏£∏§Ë§Í§‚£∆£Õ≤ª∏ª§ÚæÆ§µ§Ø
-
-
 /******************************************************************************
 ;	WORK AREA
 ******************************************************************************/
 typedef struct PMDworktag {
-	int		partb;				//	ΩË??√Ê•—°º•»»÷??
-	int		tieflag;			//	&§Œ•’•È•∞(1 : tie)
-	int		volpush_flag;		//	º°§Œ£±≤ª≤ªŒÃdownÕ—§Œflag(1 : voldown)
-	int		rhydmy;				//	R part •¿•ﬂ°º±È¡’•«°º•ø
-	int		fmsel;				//	FM …Ω(=0)§´Œ¢(=0x100)§´ flag
-	int		omote_key[3];		//	FM keyondata…Ω
-	int		ura_key[3];			//	FM keyondataŒ¢
+	int		partb;				//	Âá¶ÁêÜ‰∏≠„Éë„Éº„ÉàÁï™Âè∑
+	int		tieflag;			//	&„ÅÆ„Éï„É©„Ç∞(1 : tie)
+	int		volpush_flag;		//	Ê¨°„ÅÆÔºëÈü≥Èü≥ÈáèdownÁî®„ÅÆflag(1 : voldown)
+	int		rhydmy;				//	R part „ÉÄ„Éü„ÉºÊºîÂ•è„Éá„Éº„Çø
+	int		fmsel;				//	FM Ë°®(=0)„ÅãË£è(=0x100)„Åã flag
+	int		omote_key[3];		//	FM keyondataË°®
+	int		ura_key[3];			//	FM keyondataË£è
 	int		loop_work;			//	Loop Work
-	bool	ppsdrv_flag;		//	ppsdrv §Úª»Õ—§π??§´°©flag(•Ê°º•∂°º§¨¬Â??)
-	int		pcmrepeat1;			//	PCM§Œ??•‘°º•»•¢•…??•π1
-	int		pcmrepeat2;			//	PCM§Œ??•‘°º•»•¢•…??•π2
-	int		pcmrelease;			//	PCM§ŒRelease≥´ªœ•¢•…??•π
-	int		lastTimerAtime;		//	??∏ƒ¡∞§Œ≥‰????§ﬂ??§ŒTimerATime√Õ
-	int		music_flag;			//	B0:º°§«MSTART 1:º°§«MSTOP §ŒFlag
-	int		slotdetune_flag;	//	FM3 Slot Detune§Úª»§√§∆§§??§´
-	int		slot3_flag;			//	FM3 Slot?? Õ◊∏˙≤Ã≤ª•‚°º•…•’•È•∞
-	int		fm3_alg_fb;			//	FM3ch§Œ∫«∏Â§À??µ¡§∑§ø≤ªøß§Œalg/fb
-	int		af_check;			//	FM3ch§Œalg/fb§Ú¿ﬂƒÍ§π??§´§∑§ §§§´flag
-	int		lfo_switch;			//	∂…ΩÍLFO•π•§•√•¡
+	bool	ppsdrv_flag;		//	ppsdrv „Çí‰ΩøÁî®„Åô„Çã„ÅãÔºüflag(„É¶„Éº„Ç∂„Éº„Åå‰ª£ÂÖ•)
+	int		pcmrepeat1;			//	PCM„ÅÆ„É™„Éî„Éº„Éà„Ç¢„Éâ„É¨„Çπ1
+	int		pcmrepeat2;			//	PCM„ÅÆ„É™„Éî„Éº„Éà„Ç¢„Éâ„É¨„Çπ2
+	int		pcmrelease;			//	PCM„ÅÆReleaseÈñãÂßã„Ç¢„Éâ„É¨„Çπ
+	int		lastTimerAtime;		//	‰∏ÄÂÄãÂâç„ÅÆÂâ≤„ÇäËæº„ÅøÊôÇ„ÅÆTimerATimeÂÄ§
+	int		music_flag;			//	B0:Ê¨°„ÅßMSTART 1:Ê¨°„ÅßMSTOP „ÅÆFlag
+	int		slotdetune_flag;	//	FM3 Slot Detune„Çí‰Ωø„Å£„Å¶„ÅÑ„Çã„Åã
+	int		slot3_flag;			//	FM3 SlotÊØé Ë¶ÅÂäπÊûúÈü≥„É¢„Éº„Éâ„Éï„É©„Ç∞
+	int		fm3_alg_fb;			//	FM3ch„ÅÆÊúÄÂæå„Å´ÂÆöÁæ©„Åó„ÅüÈü≥Ëâ≤„ÅÆalg/fb
+	int		af_check;			//	FM3ch„ÅÆalg/fb„ÇíË®≠ÂÆö„Åô„Çã„Åã„Åó„Å™„ÅÑ„Åãflag
+	int		lfo_switch;			//	Â±ÄÊâÄLFO„Çπ„Ç§„ÉÉ„ÉÅ
 } PMDWORK;
 
 
 typedef struct effworktag {
 	int		*effadr;			//	effect address
-	int		eswthz;				//	•»°º•Û•π•••§°º•◊??«»??
-	int		eswtst;				//	•»°º•Û•π•••§°º•◊?? ¨
+	int		eswthz;				//	„Éà„Éº„É≥„Çπ„Ç•„Ç§„Éº„ÉóÂë®Ê≥¢Êï∞
+	int		eswtst;				//	„Éà„Éº„É≥„Çπ„Ç•„Ç§„Éº„ÉóÂ¢óÂàÜ
 	int		effcnt;				//	effect count
-	int		eswnhz;				//	•Œ•§•∫•π•••§°º•◊??«»??
-	int		eswnst;				//	•Œ•§•∫•π•••§°º•◊?? ¨
-	int		eswnct;				//	•Œ•§•∫•π•••§°º•◊•´•¶•Û•»
-	int		effon;				//	∏˙≤Ã≤ª°°»Ø≤ª??
-	int		psgefcnum;			//	∏˙≤Ã≤ª»÷??
-	int		hosei_flag;			//	ppsdrv ≤ªŒÃ/≤ªƒ¯ ‰¿µ§Ú§π??§´§…§¶§´
-	int		last_shot_data;		//	∫«∏Â§À»Ø≤ª§µ§ª§øPPSDRV≤ªøß
+	int		eswnhz;				//	„Éé„Ç§„Ç∫„Çπ„Ç•„Ç§„Éº„ÉóÂë®Ê≥¢Êï∞
+	int		eswnst;				//	„Éé„Ç§„Ç∫„Çπ„Ç•„Ç§„Éº„ÉóÂ¢óÂàÜ
+	int		eswnct;				//	„Éé„Ç§„Ç∫„Çπ„Ç•„Ç§„Éº„Éó„Ç´„Ç¶„É≥„Éà
+	int		effon;				//	ÂäπÊûúÈü≥„ÄÄÁô∫Èü≥‰∏≠
+	int		psgefcnum;			//	ÂäπÊûúÈü≥Áï™Âè∑
+	int		hosei_flag;			//	ppsdrv Èü≥Èáè/Èü≥Á®ãË£úÊ≠£„Çí„Åô„Çã„Åã„Å©„ÅÜ„Åã
+	int		last_shot_data;		//	ÊúÄÂæå„Å´Áô∫Èü≥„Åï„Åõ„ÅüPPSDRVÈü≥Ëâ≤
 } EFFWORK;
 
 
-//	±È¡’√Ê§Œ•«°º•ø•®??•¢
+//	ÊºîÂ•è‰∏≠„ÅÆ„Éá„Éº„Çø„Ç®„É™„Ç¢
 typedef struct qqtag {
-	uchar	*address;			//	2 •®•Û•Ω•¶•¡•Â•¶ •Œ •¢•…??•π
-	uchar	*partloop;			//	2 •®•Û•Ω•¶ •¨ •™??•√•ø•»•≠ •Œ •‚•…??•µ•≠
-	int		leng;				//	1 •Œ•≥?? LENGTH
-	int		qdat;				//	1 gatetime (q/Q√Õ§Ú∑◊ªª§∑§ø√Õ)
-	uint	fnum;				//	2 •®•Û•Ω•¶•¡•Â•¶ •Œ BLOCK/FNUM
-	int		detune;				//	2 •«•¡•Â°º??
+	uchar	*address;			//	2 ÔΩ¥ÔæùÔΩøÔΩ≥ÔæÅÔΩ≠ÔΩ≥ Ôæâ ÔΩ±ÔæÑÔæûÔæöÔΩΩ
+	uchar	*partloop;			//	2 ÔΩ¥ÔæùÔΩøÔΩ≥ ÔΩ∂Ôæû ÔΩµÔæúÔΩØÔæÄÔæÑÔΩ∑ Ôæâ ÔæìÔæÑÔæûÔæòÔΩªÔΩ∑
+	int		leng;				//	1 ÔæâÔΩ∫Ôæò LENGTH
+	int		qdat;				//	1 gatetime (q/QÂÄ§„ÇíË®àÁÆó„Åó„ÅüÂÄ§)
+	uint	fnum;				//	2 ÔΩ¥ÔæùÔΩøÔΩ≥ÔæÅÔΩ≠ÔΩ≥ Ôæâ BLOCK/FNUM
+	int		detune;				//	2 ÔæÉÔæûÔæÅÔΩ≠ÔΩ∞Ôæù
 	int		lfodat;				//	2 LFO DATA
-	int		porta_num;			//	2 •›??•ø•·•Û•»§Œ≤√∏∫√Õ° ¡¥¬Œ°À
-	int		porta_num2;			//	2 •›??•ø•·•Û•»§Œ≤√∏∫√Õ° ??≤Û°À
-	int		porta_num3;			//	2 •›??•ø•·•Û•»§Œ≤√∏∫√Õ° Õæ§Í°À
+	int		porta_num;			//	2 „Éù„É´„Çø„É°„É≥„Éà„ÅÆÂä†Ê∏õÂÄ§ÔºàÂÖ®‰ΩìÔºâ
+	int		porta_num2;			//	2 „Éù„É´„Çø„É°„É≥„Éà„ÅÆÂä†Ê∏õÂÄ§Ôºà‰∏ÄÂõûÔºâ
+	int		porta_num3;			//	2 „Éù„É´„Çø„É°„É≥„Éà„ÅÆÂä†Ê∏õÂÄ§Ôºà‰Ωô„ÇäÔºâ
 	int		volume;				//	1 VOLUME
-	int		shift;				//	1 •™•Û•´•§ •∑•’•» •Œ •¢•ø•§
-	int		delay;				//	1 LFO	[DELAY] 
+	int		shift;				//	1 ÔΩµÔæùÔΩ∂ÔΩ≤ ÔΩºÔæåÔæÑ Ôæâ ÔΩ±ÔæÄÔΩ≤
+	int		delay;				//	1 LFO	[DELAY]
 	int		speed;				//	1	[SPEED]
 	int		step;				//	1	[STEP]
 	int		time;				//	1	[TIME]
@@ -232,48 +177,48 @@ typedef struct qqtag {
 	int		speed2;				//	1	[SPEED_2]
 	int		step2;				//	1	[STEP_2]
 	int		time2;				//	1	[TIME_2]
-	int		lfoswi;				//	1 LFOSW. B0/tone B1/vol B2/∆±?? B3/porta
-								//	         B4/tone B5/vol B6/∆±??
+	int		lfoswi;				//	1 LFOSW. B0/tone B1/vol B2/ÂêåÊúü B3/porta
+								//	         B4/tone B5/vol B6/ÂêåÊúü
 	int		volpush;			//	1 Volume PUSHarea
 	int		mdepth;				//	1 M depth
 	int		mdspd;				//	1 M speed
 	int		mdspd2;				//	1 M speed_2
-	int		envf;				//	1 PSG ENV. [START_FLAG] / -1§«extend
+	int		envf;				//	1 PSG ENV. [START_FLAG] / -1„Åßextend
 	int		eenv_count;			//	1 ExtendPSGenv/No=0 AR=1 DR=2 SR=3 RR=4
-	int		eenv_ar;			//	1 	/AR		/??pat
-	int		eenv_dr;			//	1	/DR		/??pv2
-	int		eenv_sr;			//	1	/SR		/??pr1
-	int		eenv_rr;			//	1	/RR		/??pr2
+	int		eenv_ar;			//	1 	/AR		/Êóßpat
+	int		eenv_dr;			//	1	/DR		/Êóßpv2
+	int		eenv_sr;			//	1	/SR		/Êóßpr1
+	int		eenv_rr;			//	1	/RR		/Êóßpr2
 	int		eenv_sl;			//	1	/SL
 	int		eenv_al;			//	1	/AL
-	int		eenv_arc;			//	1	/AR§Œ•´•¶•Û•ø	/??patb
-	int		eenv_drc;			//	1	/DR§Œ•´•¶•Û•ø
-	int		eenv_src;			//	1	/SR§Œ•´•¶•Û•ø	/??pr1b
-	int		eenv_rrc;			//	1	/RR§Œ•´•¶•Û•ø	/??pr2b
-	int		eenv_volume;		//	1	/Volume√Õ(0°¡15)/??penv
+	int		eenv_arc;			//	1	/AR„ÅÆ„Ç´„Ç¶„É≥„Çø	/Êóßpatb
+	int		eenv_drc;			//	1	/DR„ÅÆ„Ç´„Ç¶„É≥„Çø
+	int		eenv_src;			//	1	/SR„ÅÆ„Ç´„Ç¶„É≥„Çø	/Êóßpr1b
+	int		eenv_rrc;			//	1	/RR„ÅÆ„Ç´„Ç¶„É≥„Çø	/Êóßpr2b
+	int		eenv_volume;		//	1	/VolumeÂÄ§(0„Äú15)/Êóßpenv
 	int		extendmode;			//	1 B1/Detune B2/LFO B3/Env Normal/Extend
 	int		fmpan;				//	1 FM Panning + AMD + PMD
 	int		psgpat;				//	1 PSG PATTERN [TONE/NOISE/MIX]
-	int		voicenum;			//	1 ≤ªøß»÷??
-	int		loopcheck;			//	1 ??°º•◊§∑§ø§È£± Ω™Œª§∑§ø§È£≥
+	int		voicenum;			//	1 Èü≥Ëâ≤Áï™Âè∑
+	int		loopcheck;			//	1 „É´„Éº„Éó„Åó„Åü„ÇâÔºë ÁµÇ‰∫Ü„Åó„Åü„ÇâÔºì
 	int		carrier;			//	1 FM Carrier
-	int		slot1;				//	1 SLOT 1 •Œ TL
-	int		slot3;				//	1 SLOT 3 •Œ TL
-	int		slot2;				//	1 SLOT 2 •Œ TL
-	int		slot4;				//	1 SLOT 4 •Œ TL
+	int		slot1;				//	1 SLOT 1 Ôæâ TL
+	int		slot3;				//	1 SLOT 3 Ôæâ TL
+	int		slot2;				//	1 SLOT 2 Ôæâ TL
+	int		slot4;				//	1 SLOT 4 Ôæâ TL
 	int		slotmask;			//	1 FM slotmask
-	int		neiromask;			//	1 FM ≤ªøß??µ¡Õ—maskdata
-	int		lfo_wave;			//	1 LFO§Œ«»∑¡
-	int		partmask;			//	1 PartMask b0:ƒÃ?? b1:∏˙≤Ã≤ª b2:NECPCMÕ—
-								//	   b3:none b4:PPZ/ADEÕ— b5:s0?? b6:m b7:????
-	int		keyoff_flag;		//	1 Keyoff§∑§ø§´§…§¶§´§ŒFlag
-	int		volmask;			//	1 ≤ªŒÃLFO§Œ•ﬁ•π•Ø
-	int		qdata;				//	1 q§Œ√Õ
-	int		qdatb;				//	1 Q§Œ√Õ
+	int		neiromask;			//	1 FM Èü≥Ëâ≤ÂÆöÁæ©Áî®maskdata
+	int		lfo_wave;			//	1 LFO„ÅÆÊ≥¢ÂΩ¢
+	int		partmask;			//	1 PartMask b0:ÈÄöÂ∏∏ b1:ÂäπÊûúÈü≥ b2:NECPCMÁî®
+								//	   b3:none b4:PPZ/ADEÁî® b5:s0ÊôÇ b6:m b7:‰∏ÄÊôÇ
+	int		keyoff_flag;		//	1 Keyoff„Åó„Åü„Åã„Å©„ÅÜ„Åã„ÅÆFlag
+	int		volmask;			//	1 Èü≥ÈáèLFO„ÅÆ„Éû„Çπ„ÇØ
+	int		qdata;				//	1 q„ÅÆÂÄ§
+	int		qdatb;				//	1 Q„ÅÆÂÄ§
 	int		hldelay;			//	1 HardLFO delay
 	int		hldelay_c;			//	1 HardLFO delay Counter
 	int		_lfodat;			//	2 LFO DATA
-	int		_delay;				//	1 LFO	[DELAY] 
+	int		_delay;				//	1 LFO	[DELAY]
 	int		_speed;				//	1		[SPEED]
 	int		_step;				//	1		[STEP]
 	int		_time;				//	1		[TIME]
@@ -284,116 +229,115 @@ typedef struct qqtag {
 	int		_mdepth;			//	1 M depth
 	int		_mdspd;				//	1 M speed
 	int		_mdspd2;			//	1 M speed_2
-	int		_lfo_wave;			//	1 LFO§Œ«»∑¡
-	int		_volmask;			//	1 ≤ªŒÃLFO§Œ•ﬁ•π•Ø
-	int		mdc;				//	1 M depth Counter ( —∆∞√Õ)
+	int		_lfo_wave;			//	1 LFO„ÅÆÊ≥¢ÂΩ¢
+	int		_volmask;			//	1 Èü≥ÈáèLFO„ÅÆ„Éû„Çπ„ÇØ
+	int		mdc;				//	1 M depth Counter (Â§âÂãïÂÄ§)
 	int		mdc2;				//	1 M depth Counter
-	int		_mdc;				//	1 M depth Counter ( —∆∞√Õ)
+	int		_mdc;				//	1 M depth Counter (Â§âÂãïÂÄ§)
 	int		_mdc2;				//	1 M depth Counter
-	int		onkai;				//	1 ±È¡’√Ê§Œ≤ª≥¨•«°º•ø (0ffh:rest)
+	int		onkai;				//	1 ÊºîÂ•è‰∏≠„ÅÆÈü≥Èöé„Éá„Éº„Çø (0ffh:rest)
 	int		sdelay;				//	1 Slot delay
 	int		sdelay_c;			//	1 Slot delay counter
 	int		sdelay_m;			//	1 Slot delay Mask
-	int		alg_fb;				//	1 ≤ªøß§Œalg/fb
-	int		keyon_flag;			//	1 ø∑≤ª≥¨/µŸ…‰•«°º•ø§ÚΩË??§∑§ø§Èinc
-	int		qdat2;				//	1 q ∫«ƒ„ ›æ⁄√Õ
-	int		onkai_def;			//	1 ±È¡’√Ê§Œ≤ª≥¨•«°º•ø (≈æƒ¥ΩË??¡∞ / ?fh:rest)
-	int		shift_def;			//	1 •ﬁ•π•ø°º≈æƒ¥√Õ
+	int		alg_fb;				//	1 Èü≥Ëâ≤„ÅÆalg/fb
+	int		keyon_flag;			//	1 Êñ∞Èü≥Èöé/‰ºëÁ¨¶„Éá„Éº„Çø„ÇíÂá¶ÁêÜ„Åó„Åü„Çâinc
+	int		qdat2;				//	1 q ÊúÄ‰Ωé‰øùË®ºÂÄ§
+	int		onkai_def;			//	1 ÊºîÂ•è‰∏≠„ÅÆÈü≥Èöé„Éá„Éº„Çø (Ëª¢Ë™øÂá¶ÁêÜÂâç / ?fh:rest)
+	int		shift_def;			//	1 „Éû„Çπ„Çø„ÉºËª¢Ë™øÂÄ§
 	int		qdat3;				//	1 q Random
 } QQ;
 
 
 typedef struct OpenWorktag {
-	QQ *MusPart[NumOfAllPart];	// •—°º•»??°º•Ø§Œ•›•§•Û•ø
-	uchar	*mmlbuf;			//	Musicdata§Œaddress+1
-	uchar	*tondat;			//	Voicedata§Œaddress
-	uchar	*efcdat;			//	FM  Effecdata§Œaddress
-	uchar	*prgdat_adr;		//	∂ •«°º•ø√Ê≤ªøß•«°º•ø¿Ë∆¨»÷√œ
-	ushort	*radtbl;			//	R part offset table ¿Ë∆¨»÷√œ
-	uchar	*rhyadr;			//	R part ±È¡’√Ê»÷√œ
-	int		rhythmmask;			//	Rhythm≤ª∏ª§Œ•ﬁ•π•Ø x8c/10h§Œbit§À¬–??
-	int		fm_voldown;			//	FM voldown øÙ√Õ
-	int		ssg_voldown;		//	PSG voldown øÙ√Õ
-	int		pcm_voldown;		//	ADPCM voldown øÙ√Õ
-	int		rhythm_voldown;		//	RHYTHM voldown øÙ√Õ
-	int		prg_flg;			//	∂ •«°º•ø§À≤ªøß§¨¥ﬁ§ﬁ??§∆§§??§´flag
+	QQ *MusPart[NumOfAllPart];	// „Éë„Éº„Éà„ÉØ„Éº„ÇØ„ÅÆ„Éù„Ç§„É≥„Çø
+	uchar	*mmlbuf;			//	Musicdata„ÅÆaddress+1
+	uchar	*tondat;			//	Voicedata„ÅÆaddress
+	uchar	*efcdat;			//	FM  Effecdata„ÅÆaddress
+	uchar	*prgdat_adr;		//	Êõ≤„Éá„Éº„Çø‰∏≠Èü≥Ëâ≤„Éá„Éº„ÇøÂÖàÈ†≠Áï™Âú∞
+	ushort	*radtbl;			//	R part offset table ÂÖàÈ†≠Áï™Âú∞
+	uchar	*rhyadr;			//	R part ÊºîÂ•è‰∏≠Áï™Âú∞
+	int		rhythmmask;			//	RhythmÈü≥Ê∫ê„ÅÆ„Éû„Çπ„ÇØ x8c/10h„ÅÆbit„Å´ÂØæÂøú
+	int		fm_voldown;			//	FM voldown Êï∞ÂÄ§
+	int		ssg_voldown;		//	PSG voldown Êï∞ÂÄ§
+	int		pcm_voldown;		//	ADPCM voldown Êï∞ÂÄ§
+	int		rhythm_voldown;		//	RHYTHM voldown Êï∞ÂÄ§
+	int		prg_flg;			//	Êõ≤„Éá„Éº„Çø„Å´Èü≥Ëâ≤„ÅåÂê´„Åæ„Çå„Å¶„ÅÑ„Çã„Åãflag
 	int		x68_flg;			//	OPM flag
 	int		status;				//	status1
 	int		status2;			//	status2
 	int		tempo_d;			//	tempo (TIMER-B)
-	int		fadeout_speed;		//	Fadeout¬Æ≈Ÿ
-	int		fadeout_volume;		//	Fadeout≤ªŒÃ
-	int		tempo_d_push;		//	tempo (TIMER-B) /  ›¬∏Õ—
-	int		syousetu_lng;		//	æÆ¿·§Œƒπ§µ
-	int		opncount;			//	∫«√ª≤ª…‰•´•¶•Û•ø
-	int		TimerAtime;			//	TimerA•´•¶•Û•ø
-	int		effflag;			//	PSG∏˙≤Ã≤ª»Ø¿ºon/off flag(•Ê°º•∂°º§¨¬Â??)
-	int		psnoi;				//	PSG noise??«»??
-	int		psnoi_last;			//	PSG noise??«»??(∫«∏Â§À??µ¡§∑§øøÙ√Õ)
-	int		pcmstart;			//	PCM≤ªøß§Œstart√Õ
-	int		pcmstop;			//	PCM≤ªøß§Œstop√Õ
-	int		rshot_dat;			//	??•∫•‡≤ª∏ª shot flag
-	int		rdat[6];			//	??•∫•‡≤ª∏ª ≤ªŒÃ/•—•Û•«°º•ø
-	int		rhyvol;				//	??•∫•‡•»°º•ø????•Ÿ??
-	int		kshot_dat;			//	£”£”£«??•∫?? shot flag
+	int		fadeout_speed;		//	FadeoutÈÄüÂ∫¶
+	int		fadeout_volume;		//	FadeoutÈü≥Èáè
+	int		tempo_d_push;		//	tempo (TIMER-B) / ‰øùÂ≠òÁî®
+	int		syousetu_lng;		//	Â∞èÁØÄ„ÅÆÈï∑„Åï
+	int		opncount;			//	ÊúÄÁü≠Èü≥Á¨¶„Ç´„Ç¶„É≥„Çø
+	int		TimerAtime;			//	TimerA„Ç´„Ç¶„É≥„Çø
+	int		effflag;			//	PSGÂäπÊûúÈü≥Áô∫Â£∞on/off flag(„É¶„Éº„Ç∂„Éº„Åå‰ª£ÂÖ•)
+	int		psnoi;				//	PSG noiseÂë®Ê≥¢Êï∞
+	int		psnoi_last;			//	PSG noiseÂë®Ê≥¢Êï∞(ÊúÄÂæå„Å´ÂÆöÁæ©„Åó„ÅüÊï∞ÂÄ§)
+	int		pcmstart;			//	PCMÈü≥Ëâ≤„ÅÆstartÂÄ§
+	int		pcmstop;			//	PCMÈü≥Ëâ≤„ÅÆstopÂÄ§
+	int		rshot_dat;			//	„É™„Ç∫„É†Èü≥Ê∫ê shot flag
+	int		rdat[6];			//	„É™„Ç∫„É†Èü≥Ê∫ê Èü≥Èáè/„Éë„É≥„Éá„Éº„Çø
+	int		rhyvol;				//	„É™„Ç∫„É†„Éà„Éº„Çø„É´„É¨„Éô„É´
+	int		kshot_dat;			//	Ôº≥Ôº≥Ôºß„É™„Ç∫„É† shot flag
 	int		play_flag;			//	play flag
-	int		fade_stop_flag;		//	Fadeout?? MSTOP§π??§´§…§¶§´§Œ•’•È•∞
-	bool	kp_rhythm_flag;		//	K/Rpart§«Rhythm≤ª∏ª§ÚÃƒ§È§π§´flag
-	int		pcm_gs_flag;		//	ADPCMª»Õ— µˆ≤ƒ•’•È•∞ (0§«µˆ≤ƒ)
-	int		slot_detune1;		//	FM3 Slot Detune√Õ slot1
-	int		slot_detune2;		//	FM3 Slot Detune√Õ slot2
-	int		slot_detune3;		//	FM3 Slot Detune√Õ slot3
-	int		slot_detune4;		//	FM3 Slot Detune√Õ slot4
-	int		TimerB_speed;		//	TimerB§Œ∏Ω∫ﬂ√Õ(=ff_tempo§ §Èff??)
-	int		fadeout_flag;		//	∆‚…Ù§´§Èfout§Ú∏∆§”Ω–§∑§ø??1
-	int		revpan;				//	PCM86µ’¡Íflag
-	int		pcm86_vol;			//	PCM86§Œ≤ªŒÃ§ÚSPB§ÀπÁ??§ª??§´?
-	int		syousetu;			//	æÆ¿·•´•¶•Û•ø
-	int		port22h;			//	OPN-PORT 22H §À∫«∏Â§ÀΩ–Œœ§∑§ø√Õ(hlfo)
-	int		tempo_48;			//	∏Ω∫ﬂ§Œ•∆•Û•›(clock=48 t§Œ√Õ)
-	int		tempo_48_push;		//	∏Ω∫ﬂ§Œ•∆•Û•›(∆±??/ ›¬∏Õ—)
-	int		_fm_voldown;		//	FM voldown øÙ√Õ ( ›¬∏Õ—)
-	int		_ssg_voldown;		//	PSG voldown øÙ√Õ ( ›¬∏Õ—)
-	int		_pcm_voldown;		//	PCM voldown øÙ√Õ ( ›¬∏Õ—)
-	int		_rhythm_voldown;	//	RHYTHM voldown øÙ√Õ ( ›¬∏Õ—)
-	int		_pcm86_vol;			//	PCM86§Œ≤ªŒÃ§ÚSPB§ÀπÁ??§ª??§´? ( ›¬∏Õ—)
-	int		rshot_bd;			//	??•∫•‡≤ª∏ª shot inc flag (BD)
-	int		rshot_sd;			//	??•∫•‡≤ª∏ª shot inc flag (SD)
-	int		rshot_sym;			//	??•∫•‡≤ª∏ª shot inc flag (CYM)
-	int		rshot_hh;			//	??•∫•‡≤ª∏ª shot inc flag (HH)
-	int		rshot_tom;			//	??•∫•‡≤ª∏ª shot inc flag (TOM)
-	int		rshot_rim;			//	??•∫•‡≤ª∏ª shot inc flag (RIM)
-	int		rdump_bd;			//	??•∫•‡≤ª∏ª dump inc flag (BD)
-	int		rdump_sd;			//	??•∫•‡≤ª∏ª dump inc flag (SD)
-	int		rdump_sym;			//	??•∫•‡≤ª∏ª dump inc flag (CYM)
-	int		rdump_hh;			//	??•∫•‡≤ª∏ª dump inc flag (HH)
-	int		rdump_tom;			//	??•∫•‡≤ª∏ª dump inc flag (TOM)
-	int		rdump_rim;			//	??•∫•‡≤ª∏ª dump inc flag (RIM)
+	int		fade_stop_flag;		//	FadeoutÂæå MSTOP„Åô„Çã„Åã„Å©„ÅÜ„Åã„ÅÆ„Éï„É©„Ç∞
+	bool	kp_rhythm_flag;		//	K/Rpart„ÅßRhythmÈü≥Ê∫ê„ÇíÈ≥¥„Çâ„Åô„Åãflag
+	int		pcm_gs_flag;		//	ADPCM‰ΩøÁî® Ë®±ÂèØ„Éï„É©„Ç∞ (0„ÅßË®±ÂèØ)
+	int		slot_detune1;		//	FM3 Slot DetuneÂÄ§ slot1
+	int		slot_detune2;		//	FM3 Slot DetuneÂÄ§ slot2
+	int		slot_detune3;		//	FM3 Slot DetuneÂÄ§ slot3
+	int		slot_detune4;		//	FM3 Slot DetuneÂÄ§ slot4
+	int		TimerB_speed;		//	TimerB„ÅÆÁèæÂú®ÂÄ§(=ff_tempo„Å™„Çâff‰∏≠)
+	int		fadeout_flag;		//	ÂÜÖÈÉ®„Åã„Çâfout„ÇíÂëº„Å≥Âá∫„Åó„ÅüÊôÇ1
+	int		revpan;				//	PCM86ÈÄÜÁõ∏flag
+	int		pcm86_vol;			//	PCM86„ÅÆÈü≥Èáè„ÇíSPB„Å´Âêà„Çè„Åõ„Çã„Åã?
+	int		syousetu;			//	Â∞èÁØÄ„Ç´„Ç¶„É≥„Çø
+	int		port22h;			//	OPN-PORT 22H „Å´ÊúÄÂæå„Å´Âá∫Âäõ„Åó„ÅüÂÄ§(hlfo)
+	int		tempo_48;			//	ÁèæÂú®„ÅÆ„ÉÜ„É≥„Éù(clock=48 t„ÅÆÂÄ§)
+	int		tempo_48_push;		//	ÁèæÂú®„ÅÆ„ÉÜ„É≥„Éù(Âêå‰∏ä/‰øùÂ≠òÁî®)
+	int		_fm_voldown;		//	FM voldown Êï∞ÂÄ§ (‰øùÂ≠òÁî®)
+	int		_ssg_voldown;		//	PSG voldown Êï∞ÂÄ§ (‰øùÂ≠òÁî®)
+	int		_pcm_voldown;		//	PCM voldown Êï∞ÂÄ§ (‰øùÂ≠òÁî®)
+	int		_rhythm_voldown;	//	RHYTHM voldown Êï∞ÂÄ§ (‰øùÂ≠òÁî®)
+	int		_pcm86_vol;			//	PCM86„ÅÆÈü≥Èáè„ÇíSPB„Å´Âêà„Çè„Åõ„Çã„Åã? (‰øùÂ≠òÁî®)
+	int		rshot_bd;			//	„É™„Ç∫„É†Èü≥Ê∫ê shot inc flag (BD)
+	int		rshot_sd;			//	„É™„Ç∫„É†Èü≥Ê∫ê shot inc flag (SD)
+	int		rshot_sym;			//	„É™„Ç∫„É†Èü≥Ê∫ê shot inc flag (CYM)
+	int		rshot_hh;			//	„É™„Ç∫„É†Èü≥Ê∫ê shot inc flag (HH)
+	int		rshot_tom;			//	„É™„Ç∫„É†Èü≥Ê∫ê shot inc flag (TOM)
+	int		rshot_rim;			//	„É™„Ç∫„É†Èü≥Ê∫ê shot inc flag (RIM)
+	int		rdump_bd;			//	„É™„Ç∫„É†Èü≥Ê∫ê dump inc flag (BD)
+	int		rdump_sd;			//	„É™„Ç∫„É†Èü≥Ê∫ê dump inc flag (SD)
+	int		rdump_sym;			//	„É™„Ç∫„É†Èü≥Ê∫ê dump inc flag (CYM)
+	int		rdump_hh;			//	„É™„Ç∫„É†Èü≥Ê∫ê dump inc flag (HH)
+	int		rdump_tom;			//	„É™„Ç∫„É†Èü≥Ê∫ê dump inc flag (TOM)
+	int		rdump_rim;			//	„É™„Ç∫„É†Èü≥Ê∫ê dump inc flag (RIM)
 	int		ch3mode;			//	ch3 Mode
-	int		ppz_voldown;		//	PPZ8 voldown øÙ√Õ
-	int		_ppz_voldown;		//	PPZ8 voldown øÙ√Õ ( ›¬∏Õ—)
-	int		TimerAflag;			//	TimerA≥‰????§ﬂ√Ê°©•’•È•∞° °˜…‘Õ◊°©°À
-	int		TimerBflag;			//	TimerB≥‰????§ﬂ√Ê°©•’•È•∞° °˜…‘Õ◊°©°À
-
+	int		ppz_voldown;		//	PPZ8 voldown Êï∞ÂÄ§
+	int		_ppz_voldown;		//	PPZ8 voldown Êï∞ÂÄ§ (‰øùÂ≠òÁî®)
+	int		TimerAflag;			//	TimerAÂâ≤„ÇäËæº„Åø‰∏≠Ôºü„Éï„É©„Ç∞ÔºàÔº†‰∏çË¶ÅÔºüÔºâ
+	int		TimerBflag;			//	TimerBÂâ≤„ÇäËæº„Åø‰∏≠Ôºü„Éï„É©„Ç∞ÔºàÔº†‰∏çË¶ÅÔºüÔºâ
+	
 	// for PMDWin
-	int		rate;				//	PCM Ω–Œœ??«»??(11k, 22k, 44k, 55k)
-	int		ppzrate;			//	PPZ Ω–Œœ??«»??
-	bool	fmcalc55k;							// FM §« 55kHz πÁ¿Æ§Ú§π??§´°©
-	bool	ppz8ip;								//	PPZ8 §« ‰¥∞§π??§´
-	bool	ppsip;								//	PPS  §« ‰¥∞§π??§´
-	bool	p86ip;								//	P86  §« ‰¥∞§π??§´
-	bool	use_p86;							//	P86  §Úª»Õ—§∑§∆§§??§´
-	int		fadeout2_speed;						//	fadeout(π‚≤ªº¡)speed(>0§« fadeout)
-	char	mus_filename[_MAX_PATH];			//	∂ §ŒFILEÃæ•–•√•’•°
-	char	ppcfilename[_MAX_PATH];				//	PPC §ŒFILEÃæ•–•√•’•°
-	char	pcmdir[MAX_PCMDIR+1][_MAX_PATH];	//	PCM ∏°∫˜•«•£??•Ø•»??
+	int		rate;				//	PCM Âá∫ÂäõÂë®Ê≥¢Êï∞(11k, 22k, 44k, 55k)
+	int		ppzrate;			//	PPZ Âá∫ÂäõÂë®Ê≥¢Êï∞
+	bool	fmcalc55k;							// FM „Åß 55kHz ÂêàÊàê„Çí„Åô„Çã„ÅãÔºü
+	bool	ppz8ip;								//	PPZ8 „ÅßË£úÂÆå„Åô„Çã„Åã
+	bool	ppsip;								//	PPS  „ÅßË£úÂÆå„Åô„Çã„Åã
+	bool	p86ip;								//	P86  „ÅßË£úÂÆå„Åô„Çã„Åã
+	bool	use_p86;							//	P86  „Çí‰ΩøÁî®„Åó„Å¶„ÅÑ„Çã„Åã
+	int		fadeout2_speed;						//	fadeout(È´òÈü≥Ë≥™)speed(>0„Åß fadeout)
+	TCHAR	mus_filename[_MAX_PATH];			//	Êõ≤„ÅÆFILEÂêç„Éê„ÉÉ„Éï„Ç°
+	TCHAR	ppcfilename[_MAX_PATH];				//	PPC „ÅÆFILEÂêç„Éê„ÉÉ„Éï„Ç°
+	TCHAR	pcmdir[MAX_PCMDIR+1][_MAX_PATH];	//	PCM Ê§úÁ¥¢„Éá„Ç£„É¨„ÇØ„Éà„É™
 } OPEN_WORK;
 
 
 //=============================================================================
-//	COM ?? interface class
+//	COM È¢® interface class
 //=============================================================================
-#ifdef ENABLE_COM_INTERFACE
 interface IPMDWIN : public IFMPMD {
 	virtual void WINAPI setppsuse(bool value) = 0;
 	virtual void WINAPI setrhythmwithssgeffect(bool value) = 0;
@@ -421,333 +365,28 @@ interface IPMDWIN : public IFMPMD {
 	virtual char* WINAPI getmemo(char *dest, uchar *musdata, int size, int al) = 0;
 	virtual char* WINAPI getmemo2(char *dest, uchar *musdata, int size, int al) = 0;
 	virtual char* WINAPI getmemo3(char *dest, uchar *musdata, int size, int al) = 0;
-	virtual int	WINAPI fgetmemo(char *dest, char *filename, int al) = 0;
-	virtual int	WINAPI fgetmemo2(char *dest, char *filename, int al) = 0;
-	virtual int	WINAPI fgetmemo3(char *dest, char *filename, int al) = 0;
-	virtual char* WINAPI getppcfilename(char *dest) = 0;
-	virtual char* WINAPI getppsfilename(char *dest) = 0;
-	virtual char* WINAPI getp86filename(char *dest) = 0;
-	virtual int WINAPI ppc_load(char *filename) = 0;
-	virtual int WINAPI pps_load(char *filename) = 0;
-	virtual int WINAPI p86_load(char *filename) = 0;
-	virtual int WINAPI ppz_load(char *filename, int bufnum) = 0;
+	virtual int	WINAPI fgetmemo(char *dest, TCHAR *filename, int al) = 0;
+	virtual int	WINAPI fgetmemo2(char *dest, TCHAR *filename, int al) = 0;
+	virtual int	WINAPI fgetmemo3(char *dest, TCHAR *filename, int al) = 0;
+	virtual TCHAR* WINAPI getppcfilename(TCHAR *dest) = 0;
+	virtual TCHAR* WINAPI getppsfilename(TCHAR *dest) = 0;
+	virtual TCHAR* WINAPI getp86filename(TCHAR *dest) = 0;
+	virtual int WINAPI ppc_load(TCHAR *filename) = 0;
+	virtual int WINAPI pps_load(TCHAR *filename) = 0;
+	virtual int WINAPI p86_load(TCHAR *filename) = 0;
+	virtual int WINAPI ppz_load(TCHAR *filename, int bufnum) = 0;
 	virtual OPEN_WORK* WINAPI getopenwork(void) = 0;
 	virtual QQ* WINAPI getpartwork(int ch) = 0;
-};
-#endif /* ENABLE_COM_INTERFACE */
-
-//=============================================================================
-//	PMDWin class
-//=============================================================================
-
-class PMDWIN /*  : public IPMDWIN */
-{
-public:
-	PMDWIN();
-	~PMDWIN();
-	
-	// IUnknown
-#ifdef ENABLE_COM_INTERFACE
-	HRESULT WINAPI QueryInterface(
-           /* [in] */ REFIID riid,
-           /* [iid_is][out] */ void __RPC_FAR *__RPC_FAR *ppvObject);
-	ULONG WINAPI AddRef(void);
-	ULONG WINAPI Release(void);
-#endif
-	
-	// IPCMMUSICDRIVER
-	bool WINAPI init(char *path);
-	int WINAPI music_load(char *filename);
-	int WINAPI music_load2(uchar *musdata, int size);
-	char* WINAPI getmusicfilename(char *dest);
-	void WINAPI music_start(void);
-	void WINAPI music_stop(void);
-	int WINAPI getloopcount(void);
-	bool WINAPI getlength(char *filename, int *length, int *loop);
-	int WINAPI getpos(void);
-	void WINAPI setpos(int pos);
-	void WINAPI getpcmdata(short *buf, int nsamples);
-	
-	// IFMPMD
-	bool WINAPI loadrhythmsample(char *path);
-	bool WINAPI setpcmdir(char **path);
-	void WINAPI setpcmrate(int rate);
-	void WINAPI setppzrate(int rate);
-	void WINAPI setfmcalc55k(bool flag);
-	void WINAPI setppzinterpolation(bool ip);
-	void WINAPI setfmwait(int nsec);
-	void WINAPI setssgwait(int nsec);
-	void WINAPI setrhythmwait(int nsec);
-	void WINAPI setadpcmwait(int nsec);
-	void WINAPI fadeout(int speed);
-	void WINAPI fadeout2(int speed);
-	void WINAPI setpos2(int pos);
-	int WINAPI getpos2(void);
-	char* WINAPI getpcmfilename(char *dest);
-	char* WINAPI getppzfilename(char *dest, int bufnum);
-	bool WINAPI getlength2(char *filename, int *length, int *loop);
-	
-	// IPMDWIN
-	void WINAPI setppsuse(bool value);
-	void WINAPI setrhythmwithssgeffect(bool value);
-	void WINAPI setpmd86pcmmode(bool value);
-	bool WINAPI getpmd86pcmmode(void);
-	void WINAPI setppsinterpolation(bool ip);
-	void WINAPI setp86interpolation(bool ip);
-	int WINAPI maskon(int ch);
-	int WINAPI maskoff(int ch);
-	void WINAPI setfmvoldown(int voldown);
-	void WINAPI setssgvoldown(int voldown);
-	void WINAPI setrhythmvoldown(int voldown);
-	void WINAPI setadpcmvoldown(int voldown);
-	void WINAPI setppzvoldown(int voldown);
-	int WINAPI getfmvoldown(void);
-	int WINAPI getfmvoldown2(void);
-	int WINAPI getssgvoldown(void);
-	int WINAPI getssgvoldown2(void);
-	int WINAPI getrhythmvoldown(void);
-	int WINAPI getrhythmvoldown2(void);
-	int WINAPI getadpcmvoldown(void);
-	int WINAPI getadpcmvoldown2(void);
-	int WINAPI getppzvoldown(void);
-	int WINAPI getppzvoldown2(void);
-	
-	char* WINAPI getmemo(char *dest, uchar *musdata, int size, int al);
-	char* WINAPI getmemo2(char *dest, uchar *musdata, int size, int al);
-	char* WINAPI getmemo3(char *dest, uchar *musdata, int size, int al);
-	int	WINAPI fgetmemo(char *dest, char *filename, int al);
-	int	WINAPI fgetmemo2(char *dest, char *filename, int al);
-	int	WINAPI fgetmemo3(char *dest, char *filename, int al);
-	char* WINAPI getppcfilename(char *dest);
-	char* WINAPI getppsfilename(char *dest);
-	char* WINAPI getp86filename(char *dest);
-	int WINAPI ppc_load(char *filename);
-	int WINAPI pps_load(char *filename);
-	int WINAPI p86_load(char *filename);
-	int WINAPI ppz_load(char *filename, int bufnum);
-	OPEN_WORK* WINAPI getopenwork(void);
-	QQ* WINAPI getpartwork(int ch);
-	
-private:
-	FM::OPNAW	opna;
-	PPZ8		ppz8;
-	PPSDRV		ppsdrv;
-	P86DRV		p86drv;
-	
-	OPEN_WORK open_work;
-	QQ FMPart[NumOfFMPart], SSGPart[NumOfSSGPart], ADPCMPart, RhythmPart;
-	QQ ExtPart[NumOfExtPart], DummyPart, EffPart, PPZ8Part[NumOfPPZ8Part];
-	
-	PMDWORK pmdwork;
-	EFFWORK effwork;
-	
-	Stereo16bit	wavbuf2[nbufsample];
-	StereoSample	wavbuf[nbufsample];
-	StereoSample	wavbuf_conv[nbufsample];
-	
-	char	*pos2;						// buf §ÀÕæ§√§∆§§??•µ•Û•◊??§Œ¿Ë∆¨∞Ã√÷
-	int	us2;						// buf §ÀÕæ§√§∆§§??•µ•Û•◊????
-	__int64	upos;						// ±È¡’≥´ªœ§´§È§Œ??¥÷(¶Ãs)
-	__int64	fpos;						// fadeout2 ≥´ªœ??¥÷
-	
-	uchar mdataarea[mdata_def*1024];
-	uchar vdataarea[voice_def*1024];		//@…‘Õ◊°©
-	uchar edataarea[effect_def*1024];		//@…‘Õ◊°©
-	PCMEnds pcmends;
-
-protected:
-	int uRefCount;		// ª≤æ»•´•¶•Û•ø
-	short read_short(void *value);
-	ushort read_word(void *value);
-	long read_long(void *value);
-	int  read_char(void *value);
-
-	void opnint_start(void);
-	void data_init(void);
-	void opn_init(void);
-	void mstop(void);
-	void mstop_f(void);
-	void silence(void);
-	void mstart(void);
-	void mstart_f(void);
-	void play_init(void);
-	void setint(void);
-	void calc_tb_tempo(void);
-	void calc_tempo_tb(void);
-	void settempo_b(void);
-	void FM_Timer_main(void);
-	void TimerA_main(void);
-	void TimerB_main(void);
-	void mmain(void);
-	void syousetu_count(void);
-	void fmmain(QQ *qq);
-	void psgmain(QQ *qq);
-	void rhythmmain(QQ *qq);
-	void adpcmmain(QQ *qq);
-	void pcm86main(QQ *qq);
-	void ppz8main(QQ *qq);
-	uchar *rhythmon(QQ *qq, uchar *bx, int al, int *result);
-	void effgo(QQ *qq, int al);
-	void eff_on2(QQ *qq, int al);
-	void eff_main(QQ *qq, int al);
-	void effplay(void);
-	void efffor(const int *si);
-	void effend(void);
-	void effsweep(void);
-	uchar *pdrswitch(QQ *qq, uchar *si);
-
-	int silence_fmpart(QQ *qq);
-	void keyoff(QQ *qq);
-	void kof1(QQ *qq);
-	void keyoffp(QQ *qq);
-	void keyoffm(QQ *qq);
-	void keyoff8(QQ *qq);
-	void keyoffz(QQ *qq);
-	int ssgdrum_check(QQ *qq, int al);
-	uchar *commands(QQ *qq, uchar *si);
-	uchar *commandsp(QQ *qq, uchar *si);
-	uchar *commandsr(QQ *qq, uchar *si);
-	uchar *commandsm(QQ *qq, uchar *si);
-	uchar *commands8(QQ *qq, uchar *si);
-	uchar *commandsz(QQ *qq, uchar *si);
-	uchar *special_0c0h(QQ *qq, uchar *si, uchar al);
-	uchar *_vd_fm(QQ *qq, uchar *si);
-	uchar *_vd_ssg(QQ *qq, uchar *si);
-	uchar *_vd_pcm(QQ *qq, uchar *si);
-	uchar *_vd_rhythm(QQ *qq, uchar *si);
-	uchar *_vd_ppz(QQ *qq, uchar *si);
-	uchar *comt(uchar *si);
-	uchar *comat(QQ *qq, uchar *si);
-	uchar *comatm(QQ *qq, uchar *si);
-	uchar *comat8(QQ *qq, uchar *si);
-	uchar *comatz(QQ *qq, uchar *si);
-	uchar *comstloop(QQ *qq, uchar *si);
-	uchar *comedloop(QQ *qq, uchar *si);
-	uchar *comexloop(QQ *qq, uchar *si);
-	uchar *extend_psgenvset(QQ *qq, uchar *si);
-	void lfoinit(QQ *qq, int al);
-	void lfoinitp(QQ *qq, int al);
-	uchar *lfoset(QQ *qq, uchar *si);
-	uchar *psgenvset(QQ *qq, uchar *si);
-	uchar *rhykey(uchar *si);
-	uchar *rhyvs(uchar *si);
-	uchar *rpnset(uchar *si);
-	uchar *rmsvs(uchar *si);
-	uchar *rmsvs_sft(uchar *si);
-	uchar *rhyvs_sft(uchar *si);
-
-	uchar *vol_one_up_psg(QQ *qq, uchar *si);
-	uchar *vol_one_up_pcm(QQ *qq, uchar *si);
-	uchar *vol_one_down(QQ *qq, uchar *si);
-	uchar *portap(QQ *qq, uchar *si);
-	uchar *portam(QQ *qq, uchar *si);
-	uchar *portaz(QQ *qq, uchar *si);
-	uchar *psgnoise_move(uchar *si);
-	uchar *mdepth_count(QQ *qq, uchar *si);
-	uchar *toneadr_calc(QQ *qq, int dl);
-	void neiroset(QQ *qq, int dl);
-
-	int oshift(QQ *qq, int al);
-	int oshiftp(QQ *qq, int al);
-	void fnumset(QQ *qq, int al);
-	void fnumsetp(QQ *qq, int al);
-	void fnumsetm(QQ *qq, int al);
-	void fnumset8(QQ *qq, int al);
-	void fnumsetz(QQ *qq, int al);
-	uchar *panset(QQ *qq, uchar *si);
-	uchar *panset_ex(QQ *qq, uchar *si);
-	uchar *pansetm(QQ *qq, uchar *si);
-	uchar *panset8(QQ *qq, uchar *si);
-	uchar *pansetz(QQ *qq, uchar *si);
-	uchar *pansetz_ex(QQ *qq, uchar *si);
-	void panset_main(QQ *qq, int al);
-	uchar calc_panout(QQ *qq);
-	uchar *calc_q(QQ *qq, uchar *si);
-	void fm_block_calc(int *cx, int *ax);
-	int ch3_setting(QQ *qq);
-	void cm_clear(int *ah, int *al);
-	void ch3mode_set(QQ *qq);
-	void ch3_special(QQ *qq, int ax, int cx);
-	void volset(QQ *qq);
-	void volsetp(QQ *qq);
-	void volsetm(QQ *qq);
-	void volset8(QQ *qq);
-	void volsetz(QQ *qq);
-	void otodasi(QQ *qq);
-	void otodasip(QQ *qq);
-	void otodasim(QQ *qq);
-	void otodasi8(QQ *qq);
-	void otodasiz(QQ *qq);
-	void keyon(QQ *qq);
-	void keyonp(QQ *qq);
-	void keyonm(QQ *qq);
-	void keyon8(QQ *qq);
-	void keyonz(QQ *qq);
-	int lfo(QQ *qq);
-	int lfop(QQ *qq);
-	uchar *lfoswitch(QQ *qq, uchar *si);
-	void lfoinit_main(QQ *qq);
-	void lfo_change(QQ *qq);
-	void lfo_exit(QQ *qq);
-	void lfin1(QQ *qq);
-	void lfo_main(QQ *qq);
-	void fmlfo_sub(QQ *qq, int al, int bl, uchar *vol_tbl);
-	void volset_slot(int dh, int dl, int al);
-	void porta_calc(QQ *qq);
-	int soft_env(QQ *qq);
-	int soft_env_main(QQ *qq);
-	int soft_env_sub(QQ *qq);
-	int ext_ssgenv_main(QQ *qq);
-	void esm_sub(QQ *qq, int ah);
-	void psgmsk(void);
-	int get07(void);
-	void md_inc(QQ *qq);
-	uchar *pcmrepeat_set(QQ *qq, uchar * si);
-	uchar *pcmrepeat_set8(QQ *qq, uchar * si);
-	uchar *ppzrepeat_set(QQ *qq, uchar * si);
-	uchar *pansetm_ex(QQ *qq, uchar * si);
-	uchar *panset8_ex(QQ *qq, uchar * si);
-	uchar *pcm_mml_part_mask(QQ *qq, uchar * si);
-	uchar *pcm_mml_part_mask8(QQ *qq, uchar * si);
-	uchar *ppz_mml_part_mask(QQ *qq, uchar * si);
-	void pcmstore(ushort pcmstart, ushort pcmstop, uchar *buf);
-	void pcmread(ushort pcmstart, ushort pcmstop, uchar *buf);
-
-	uchar *hlfo_set(QQ *qq, uchar *si);
-	uchar *vol_one_up_fm(QQ *qq, uchar *si);
-	uchar *porta(QQ *qq, uchar *si);
-	uchar *slotmask_set(QQ *qq, uchar *si);
-	uchar *slotdetune_set(QQ *qq, uchar *si);
-	uchar *slotdetune_set2(QQ *qq, uchar *si);
-	void fm3_partinit(QQ *qq, uchar *ax);
-	uchar *fm3_extpartset(QQ *qq, uchar *si);
-	uchar *ppz_extpartset(QQ *qq, uchar *si);
-	uchar *volmask_set(QQ *qq, uchar *si);
-	uchar *fm_mml_part_mask(QQ *qq, uchar *si);
-	uchar *ssg_mml_part_mask(QQ *qq, uchar *si);
-	uchar *rhythm_mml_part_mask(QQ *qq, uchar *si);
-	uchar *_lfoswitch(QQ *qq, uchar *si);
-	uchar *_volmask_set(QQ *qq, uchar *si);
-	uchar *tl_set(QQ *qq, uchar *si);
-	uchar *fb_set(QQ *qq, uchar *si);
-	uchar *fm_efct_set(QQ *qq, uchar *si);
-	uchar *ssg_efct_set(QQ *qq, uchar *si);
-	void fout(void);
-	void neiro_reset(QQ *qq);
-	int music_load3(uchar *musdata, int size, char *current_dir);
-	int ppc_load2(char *filename);
-	int ppc_load3(uchar *pcmdata, int size);
-	char *search_pcm(char *dest, const char *filename, const char *current_dir);
-	void swap(int *a, int *b);
 };
 
 
 //=============================================================================
 //	Interface ID(IID) & Class ID(CLSID)
 //=============================================================================
-#ifdef ENABLE_COM_INTERFACE
+#if defined _WIN32
+
 // GUID of IPMDWIN Interface ID
-interface	__declspec(uuid("C07008F4-CAE0-421C-B08F-D8B319AFA4B4")) IPMDWIN;	
+interface	__declspec(uuid("C07008F4-CAE0-421C-B08F-D8B319AFA4B4")) IPMDWIN;
 
 // GUID of PMDWIN Class ID
 class		__declspec(uuid("97C7C3F0-35D8-4304-8C1B-AA926E7AEC5C")) PMDWIN;
@@ -766,16 +405,16 @@ extern "C" {
 
 API_ATTRIBUTE int WINAPI getversion(void);
 API_ATTRIBUTE int WINAPI getinterfaceversion(void);
-API_ATTRIBUTE bool WINAPI pmdwininit(char *path);
-API_ATTRIBUTE bool WINAPI loadrhythmsample(char *path);
-API_ATTRIBUTE bool WINAPI setpcmdir(char **path);
+API_ATTRIBUTE bool WINAPI pmdwininit(TCHAR *path);
+API_ATTRIBUTE bool WINAPI loadrhythmsample(TCHAR *path);
+API_ATTRIBUTE bool WINAPI setpcmdir(TCHAR **path);
 API_ATTRIBUTE void WINAPI setpcmrate(int rate);
 API_ATTRIBUTE void WINAPI setppzrate(int rate);
 API_ATTRIBUTE void WINAPI setppsuse(bool value);
 API_ATTRIBUTE void WINAPI setrhythmwithssgeffect(bool value);
 API_ATTRIBUTE void WINAPI setpmd86pcmmode(bool value);
 API_ATTRIBUTE bool WINAPI getpmd86pcmmode(void);
-API_ATTRIBUTE int WINAPI music_load(char *filename);
+API_ATTRIBUTE int WINAPI music_load(TCHAR *filename);
 API_ATTRIBUTE int WINAPI music_load2(uchar *musdata, int size);
 API_ATTRIBUTE void WINAPI music_start(void);
 API_ATTRIBUTE void WINAPI music_stop(void);
@@ -789,19 +428,19 @@ API_ATTRIBUTE void WINAPI setppzinterpolation(bool ip);
 API_ATTRIBUTE char * WINAPI getmemo(char *dest, uchar *musdata, int size, int al);
 API_ATTRIBUTE char * WINAPI getmemo2(char *dest, uchar *musdata, int size, int al);
 API_ATTRIBUTE char * WINAPI getmemo3(char *dest, uchar *musdata, int size, int al);
-API_ATTRIBUTE int WINAPI fgetmemo(char *dest, char *filename, int al);
-API_ATTRIBUTE int WINAPI fgetmemo2(char *dest, char *filename, int al);
-API_ATTRIBUTE int WINAPI fgetmemo3(char *dest, char *filename, int al);
-API_ATTRIBUTE char * WINAPI getmusicfilename(char *dest);
-API_ATTRIBUTE char * WINAPI getpcmfilename(char *dest);
-API_ATTRIBUTE char * WINAPI getppcfilename(char *dest);
-API_ATTRIBUTE char * WINAPI getppsfilename(char *dest);
-API_ATTRIBUTE char * WINAPI getp86filename(char *dest);
-API_ATTRIBUTE char * WINAPI getppzfilename(char *dest, int bufnum);
-API_ATTRIBUTE int WINAPI ppc_load(char *filename);
-API_ATTRIBUTE int WINAPI pps_load(char *filename);
-API_ATTRIBUTE int WINAPI p86_load(char *filename);
-API_ATTRIBUTE int WINAPI ppz_load(char *filename, int bufnum);
+API_ATTRIBUTE int WINAPI fgetmemo(char *dest, TCHAR *filename, int al);
+API_ATTRIBUTE int WINAPI fgetmemo2(char *dest, TCHAR *filename, int al);
+API_ATTRIBUTE int WINAPI fgetmemo3(char *dest, TCHAR *filename, int al);
+API_ATTRIBUTE TCHAR * WINAPI getmusicfilename(TCHAR *dest);
+API_ATTRIBUTE TCHAR * WINAPI getpcmfilename(TCHAR *dest);
+API_ATTRIBUTE TCHAR * WINAPI getppcfilename(TCHAR *dest);
+API_ATTRIBUTE TCHAR * WINAPI getppsfilename(TCHAR *dest);
+API_ATTRIBUTE TCHAR * WINAPI getp86filename(TCHAR *dest);
+API_ATTRIBUTE TCHAR * WINAPI getppzfilename(TCHAR *dest, int bufnum);
+API_ATTRIBUTE int WINAPI ppc_load(TCHAR *filename);
+API_ATTRIBUTE int WINAPI pps_load(TCHAR *filename);
+API_ATTRIBUTE int WINAPI p86_load(TCHAR *filename);
+API_ATTRIBUTE int WINAPI ppz_load(TCHAR *filename, int bufnum);
 API_ATTRIBUTE int WINAPI maskon(int ch);
 API_ATTRIBUTE int WINAPI maskoff(int ch);
 API_ATTRIBUTE void WINAPI setfmvoldown(int voldown);
@@ -823,8 +462,8 @@ API_ATTRIBUTE void WINAPI setpos(int pos);
 API_ATTRIBUTE void WINAPI setpos2(int pos);
 API_ATTRIBUTE int WINAPI getpos(void);
 API_ATTRIBUTE int WINAPI getpos2(void);
-API_ATTRIBUTE bool WINAPI getlength(char *filename, int *length, int *loop);
-API_ATTRIBUTE bool WINAPI getlength2(char *filename, int *length, int *loop);
+API_ATTRIBUTE bool WINAPI getlength(TCHAR *filename, int *length, int *loop);
+API_ATTRIBUTE bool WINAPI getlength2(TCHAR *filename, int *length, int *loop);
 API_ATTRIBUTE int WINAPI getloopcount(void);
 API_ATTRIBUTE void WINAPI setfmwait(int nsec);
 API_ATTRIBUTE void WINAPI setssgwait(int nsec);
@@ -833,7 +472,7 @@ API_ATTRIBUTE void WINAPI setadpcmwait(int nsec);
 API_ATTRIBUTE OPEN_WORK * WINAPI getopenwork(void);
 API_ATTRIBUTE QQ * WINAPI getpartwork(int ch);
 
-#ifdef ENABLE_COM_INTERFACE
+#if defined _WIN32
 API_ATTRIBUTE HRESULT WINAPI pmd_CoCreateInstance(
   REFCLSID rclsid,     //Class identifier (CLSID) of the object
   LPUNKNOWN pUnkOuter, //Pointer to whether object is or isn't part 
@@ -844,6 +483,7 @@ API_ATTRIBUTE HRESULT WINAPI pmd_CoCreateInstance(
                        // the interface pointer requested in riid
 );
 #endif
+
 
 #ifdef __cplusplus
 }

@@ -1,3 +1,9 @@
+if(COMMAND cmake_policy)
+	cmake_policy(SET CMP0003 NEW)
+endif(COMMAND cmake_policy)
+
+project(pmdmini)
+
 if(MSVC OR MINGW)
 	cmake_minimum_required(VERSION 3.10)
 endif()
@@ -20,7 +26,7 @@ endif()
 
 add_subdirectory(src)
 
-file(GLOB SOURCES sdlplay.c)
+file(GLOB SOURCES sdlplay.cpp)
 
 include_directories(src src/fmgen src/pmdwin)
 

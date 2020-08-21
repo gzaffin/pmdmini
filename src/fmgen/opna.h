@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
 //	OPN/A/B interface with ADPCM support
-//	Copyright (C) cisc 1998, 2001.
+//	Copyright (C) cisc 1998, 2003.
 // ---------------------------------------------------------------------------
-//	$Id: opna.h,v 1.1 2001/04/23 22:25:34 kaoru-k Exp $
+//	$Id: opna.h,v 1.33 2003/06/12 13:14:37 cisc Exp $
 
 #ifndef FM_OPNA_H
 #define FM_OPNA_H
@@ -13,75 +13,70 @@
 
 // ---------------------------------------------------------------------------
 //	class OPN/OPNA
-//	OPN/OPNA ¤ËÎÉ¤¯»÷¤¿²»¤òÀ¸À®¤¹¤ë²»¸»¥æ¥Ë¥Ã¥È
+//	OPN/OPNA ã«è‰¯ãä¼¼ãŸéŸ³ã‚’ç”Ÿæˆã™ã‚‹éŸ³æºãƒ¦ãƒ‹ãƒƒãƒˆ
 //	
 //	interface:
-//	bool Init(uint clock, uint rate, bool interpolation, const char* path);
-//		½é´ü²½¡¥¤³¤Î¥¯¥é¥¹¤ò»ÈÍÑ¤¹¤ëÁ°¤Ë¤«¤Ê¤é¤º¸Æ¤ó¤Ç¤ª¤¯¤³¤È¡¥
-//		OPNA ¤Î¾ì¹ç¤Ï¤³¤Î´Ø¿ô¤Ç¥ê¥º¥à¥µ¥ó¥×¥ë¤òÆÉ¤ß¹ş¤à
+//	bool Init(uint clock, uint rate, bool, const TCHAR* path);
+//		åˆæœŸåŒ–ï¼ã“ã®ã‚¯ãƒ©ã‚¹ã‚’ä½¿ç”¨ã™ã‚‹å‰ã«ã‹ãªã‚‰ãšå‘¼ã‚“ã§ãŠãã“ã¨ï¼
+//		OPNA ã®å ´åˆã¯ã“ã®é–¢æ•°ã§ãƒªã‚ºãƒ ã‚µãƒ³ãƒ—ãƒ«ã‚’èª­ã¿è¾¼ã‚€
 //
-//		clock:	OPN/OPNA/OPNB ¤Î¥¯¥í¥Ã¥¯¼şÇÈ¿ô(Hz)
+//		clock:	OPN/OPNA/OPNB ã®ã‚¯ãƒ­ãƒƒã‚¯å‘¨æ³¢æ•°(Hz)
 //
-//		rate:	À¸À®¤¹¤ë PCM ¤ÎÉ¸ËÜ¼şÇÈ¿ô(Hz)
+//		rate:	ç”Ÿæˆã™ã‚‹ PCM ã®æ¨™æœ¬å‘¨æ³¢æ•°(Hz)
 //
-//		inter.:	Àş·ÁÊä´°¥â¡¼¥É (OPNA ¤Î¤ßÍ­¸ú)
-//				true ¤Ë¤¹¤ë¤È¡¤FM ²»¸»¤Î¹çÀ®¤Ï²»¸»ËÜÍè¤Î¥ì¡¼¥È¤Ç¹Ô¤¦¤è¤¦¤Ë
-//				¤Ê¤ë¡¥ºÇ½ªÅª¤ËÀ¸À®¤µ¤ì¤ë PCM ¤Ï rate ¤Ç»ØÄê¤µ¤ì¤¿¥ì¡¼¥È¤Ë¤Ê¤ë
-//				¤è¤¦Àş·ÁÊä´°¤µ¤ì¤ë
-//				
-//		path:	¥ê¥º¥à¥µ¥ó¥×¥ë¤Î¥Ñ¥¹(OPNA ¤Î¤ßÍ­¸ú)
-//				¾ÊÎ¬»ş¤Ï¥«¥ì¥ó¥È¥Ç¥£¥ì¥¯¥È¥ê¤«¤éÆÉ¤ß¹ş¤à
-//				Ê¸»úÎó¤ÎËöÈø¤Ë¤Ï '\' ¤ä '/' ¤Ê¤É¤ò¤Ä¤±¤ë¤³¤È
+//		path:	ãƒªã‚ºãƒ ã‚µãƒ³ãƒ—ãƒ«ã®ãƒ‘ã‚¹(OPNA ã®ã¿æœ‰åŠ¹)
+//				çœç•¥æ™‚ã¯ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‹ã‚‰èª­ã¿è¾¼ã‚€
+//				æ–‡å­—åˆ—ã®æœ«å°¾ã«ã¯ '\' ã‚„ '/' ãªã©ã‚’ã¤ã‘ã‚‹ã“ã¨
 //
-//		ÊÖ¤êÃÍ	½é´ü²½¤ËÀ®¸ù¤¹¤ì¤Ğ true
+//		è¿”ã‚Šå€¤	åˆæœŸåŒ–ã«æˆåŠŸã™ã‚Œã° true
 //
-//	bool LoadRhythmSample(const char* path)
+//	bool LoadRhythmSample(const TCHAR* path)
 //		(OPNA ONLY)
-//		Rhythm ¥µ¥ó¥×¥ë¤òÆÉ¤ßÄ¾¤¹¡¥
-//		path ¤Ï Init ¤Î path ¤ÈÆ±¤¸¡¥
-//		
-//	bool SetRate(uint clock, uint rate, bool interpolation)
-//		¥¯¥í¥Ã¥¯¤ä PCM ¥ì¡¼¥È¤òÊÑ¹¹¤¹¤ë
-//		°ú¿ôÅù¤Ï Init ¤ò»²¾È¤Î¤³¤È¡¥
+//		Rhythm ã‚µãƒ³ãƒ—ãƒ«ã‚’èª­ã¿ç›´ã™ï¼
+//		path ã¯ Init ã® path ã¨åŒã˜ï¼
+//	
+//	bool SetRate(uint clock, uint rate, bool)
+//		ã‚¯ãƒ­ãƒƒã‚¯ã‚„ PCM ãƒ¬ãƒ¼ãƒˆã‚’å¤‰æ›´ã™ã‚‹
+//		å¼•æ•°ç­‰ã¯ Init ã‚’å‚ç…§ã®ã“ã¨ï¼
 //	
 //	void Mix(FM_SAMPLETYPE* dest, int nsamples)
-//		Stereo PCM ¥Ç¡¼¥¿¤ò nsamples Ê¬¹çÀ®¤·¡¤ dest ¤Ç»Ï¤Ş¤ëÇÛÎó¤Ë
-//		²Ã¤¨¤ë(²Ã»»¤¹¤ë)
-//		¡¦dest ¤Ë¤Ï sample*2 ¸ÄÊ¬¤ÎÎÎ°è¤¬É¬Í×
-//		¡¦³ÊÇ¼·Á¼°¤Ï L, R, L, R... ¤È¤Ê¤ë¡¥
-//		¡¦¤¢¤¯¤Ş¤Ç²Ã»»¤Ê¤Î¤Ç¡¤¤¢¤é¤«¤¸¤áÇÛÎó¤ò¥¼¥í¥¯¥ê¥¢¤¹¤ëÉ¬Í×¤¬¤¢¤ë
-//		¡¦FM_SAMPLETYPE ¤¬ short ·¿¤Î¾ì¹ç¥¯¥ê¥Ã¥Ô¥ó¥°¤¬¹Ô¤ï¤ì¤ë.
-//		¡¦¤³¤Î´Ø¿ô¤Ï²»¸»ÆâÉô¤Î¥¿¥¤¥Ş¡¼¤È¤ÏÆÈÎ©¤·¤Æ¤¤¤ë¡¥
-//		  Timer ¤Ï Count ¤È GetNextEvent ¤ÇÁàºî¤¹¤ëÉ¬Í×¤¬¤¢¤ë¡¥
+//		Stereo PCM ãƒ‡ãƒ¼ã‚¿ã‚’ nsamples åˆ†åˆæˆã—ï¼Œ dest ã§å§‹ã¾ã‚‹é…åˆ—ã«
+//		åŠ ãˆã‚‹(åŠ ç®—ã™ã‚‹)
+//		ãƒ»dest ã«ã¯ sample*2 å€‹åˆ†ã®é ˜åŸŸãŒå¿…è¦
+//		ãƒ»æ ¼ç´å½¢å¼ã¯ L, R, L, R... ã¨ãªã‚‹ï¼
+//		ãƒ»ã‚ãã¾ã§åŠ ç®—ãªã®ã§ï¼Œã‚ã‚‰ã‹ã˜ã‚é…åˆ—ã‚’ã‚¼ãƒ­ã‚¯ãƒªã‚¢ã™ã‚‹å¿…è¦ãŒã‚ã‚‹
+//		ãƒ»FM_SAMPLETYPE ãŒ short å‹ã®å ´åˆã‚¯ãƒªãƒƒãƒ”ãƒ³ã‚°ãŒè¡Œã‚ã‚Œã‚‹.
+//		ãƒ»ã“ã®é–¢æ•°ã¯éŸ³æºå†…éƒ¨ã®ã‚¿ã‚¤ãƒãƒ¼ã¨ã¯ç‹¬ç«‹ã—ã¦ã„ã‚‹ï¼
+//		  Timer ã¯ Count ã¨ GetNextEvent ã§æ“ä½œã™ã‚‹å¿…è¦ãŒã‚ã‚‹ï¼
 //	
 //	void Reset()
-//		²»¸»¤ò¥ê¥»¥Ã¥È(½é´ü²½)¤¹¤ë
+//		éŸ³æºã‚’ãƒªã‚»ãƒƒãƒˆ(åˆæœŸåŒ–)ã™ã‚‹
 //
 //	void SetReg(uint reg, uint data)
-//		²»¸»¤Î¥ì¥¸¥¹¥¿ reg ¤Ë data ¤ò½ñ¤­¹ş¤à
+//		éŸ³æºã®ãƒ¬ã‚¸ã‚¹ã‚¿ reg ã« data ã‚’æ›¸ãè¾¼ã‚€
 //	
 //	uint GetReg(uint reg)
-//		²»¸»¤Î¥ì¥¸¥¹¥¿ reg ¤ÎÆâÍÆ¤òÆÉ¤ß½Ğ¤¹
-//		ÆÉ¤ß¹ş¤à¤³¤È¤¬½ĞÍè¤ë¥ì¥¸¥¹¥¿¤Ï PSG, ADPCM ¤Î°ìÉô¡¤ID(0xff) ¤È¤«
+//		éŸ³æºã®ãƒ¬ã‚¸ã‚¹ã‚¿ reg ã®å†…å®¹ã‚’èª­ã¿å‡ºã™
+//		èª­ã¿è¾¼ã‚€ã“ã¨ãŒå‡ºæ¥ã‚‹ãƒ¬ã‚¸ã‚¹ã‚¿ã¯ PSG, ADPCM ã®ä¸€éƒ¨ï¼ŒID(0xff) ã¨ã‹
 //	
 //	uint ReadStatus()/ReadStatusEx()
-//		²»¸»¤Î¥¹¥Æ¡¼¥¿¥¹¥ì¥¸¥¹¥¿¤òÆÉ¤ß½Ğ¤¹
-//		ReadStatusEx ¤Ï³ÈÄ¥¥¹¥Æ¡¼¥¿¥¹¥ì¥¸¥¹¥¿¤ÎÆÉ¤ß½Ğ¤·(OPNA)
-//		busy ¥Õ¥é¥°¤Ï¾ï¤Ë 0
+//		éŸ³æºã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒ¬ã‚¸ã‚¹ã‚¿ã‚’èª­ã¿å‡ºã™
+//		ReadStatusEx ã¯æ‹¡å¼µã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒ¬ã‚¸ã‚¹ã‚¿ã®èª­ã¿å‡ºã—(OPNA)
+//		busy ãƒ•ãƒ©ã‚°ã¯å¸¸ã« 0
 //	
 //	bool Count(uint32 t)
-//		²»¸»¤Î¥¿¥¤¥Ş¡¼¤ò t [¦ÌÉÃ] ¿Ê¤á¤ë¡¥
-//		²»¸»¤ÎÆâÉô¾õÂÖ¤ËÊÑ²½¤¬¤¢¤Ã¤¿»ş(timer ¥ª¡¼¥Ğ¡¼¥Õ¥í¡¼)
-//		true ¤òÊÖ¤¹
+//		éŸ³æºã®ã‚¿ã‚¤ãƒãƒ¼ã‚’ t [Î¼ç§’] é€²ã‚ã‚‹ï¼
+//		éŸ³æºã®å†…éƒ¨çŠ¶æ…‹ã«å¤‰åŒ–ãŒã‚ã£ãŸæ™‚(timer ã‚ªãƒ¼ãƒãƒ¼ãƒ•ãƒ­ãƒ¼)
+//		true ã‚’è¿”ã™
 //
 //	uint32 GetNextEvent()
-//		²»¸»¤Î¥¿¥¤¥Ş¡¼¤Î¤É¤Á¤é¤«¤¬¥ª¡¼¥Ğ¡¼¥Õ¥í¡¼¤¹¤ë¤Ş¤Ç¤ËÉ¬Í×¤Ê
-//		»ş´Ö[¦ÌÉÃ]¤òÊÖ¤¹
-//		¥¿¥¤¥Ş¡¼¤¬Ää»ß¤·¤Æ¤¤¤ë¾ì¹ç¤Ï ULONG_MAX ¤òÊÖ¤¹¡Ä ¤È»×¤¦
+//		éŸ³æºã®ã‚¿ã‚¤ãƒãƒ¼ã®ã©ã¡ã‚‰ã‹ãŒã‚ªãƒ¼ãƒãƒ¼ãƒ•ãƒ­ãƒ¼ã™ã‚‹ã¾ã§ã«å¿…è¦ãª
+//		æ™‚é–“[Î¼ç§’]ã‚’è¿”ã™
+//		ã‚¿ã‚¤ãƒãƒ¼ãŒåœæ­¢ã—ã¦ã„ã‚‹å ´åˆã¯ ULONG_MAX ã‚’è¿”ã™â€¦ ã¨æ€ã†
 //	
 //	void SetVolumeFM(int db)/SetVolumePSG(int db) ...
-//		³Æ²»¸»¤Î²»ÎÌ¤ò¡Ü¡İÊı¸ş¤ËÄ´Àá¤¹¤ë¡¥É¸½àÃÍ¤Ï 0.
-//		Ã±°Ì¤ÏÌó 1/2 dB¡¤Í­¸úÈÏ°Ï¤Î¾å¸Â¤Ï 20 (10dB)
+//		å„éŸ³æºã®éŸ³é‡ã‚’ï¼‹âˆ’æ–¹å‘ã«èª¿ç¯€ã™ã‚‹ï¼æ¨™æº–å€¤ã¯ 0.
+//		å˜ä½ã¯ç´„ 1/2 dBï¼Œæœ‰åŠ¹ç¯„å›²ã®ä¸Šé™ã¯ 20 (10dB)
 //
 namespace FM
 {
@@ -96,35 +91,33 @@ namespace FM
 		
 		void	SetVolumeFM(int db);
 		void	SetVolumePSG(int db);
-	
+		void	SetLPFCutoff(uint freq) {}	// obsolete
+		
 	protected:
 		void	SetParameter(Channel4* ch, uint addr, uint data);
 		void	SetPrescaler(uint p);
 		void	RebuildTimeTable();
 		
 		int		fmvolume;
-		int		fbch;
 		
-		uint	clock;
-		uint	rate;
-		uint	psgrate;
-//		uint	status;
+		uint	clock;				// OPN ã‚¯ãƒ­ãƒƒã‚¯
+		uint	rate;				// FM éŸ³æºåˆæˆãƒ¬ãƒ¼ãƒˆ
+		uint	psgrate;			// FMGen  å‡ºåŠ›ãƒ¬ãƒ¼ãƒˆ
+		uint	status;
 		Channel4* csmch;
 		
-		int32	mixdelta;
-		int		mpratio;
-		bool	interpolation;
 		
-		static  uint32 lfotable[8];
-	
+		uint32 lfotable[8];			// OPNA/B ç”¨
+		
 	private:
 		void	TimerA();
 		uint8	prescale;
 		
 	protected:
+		Chip	chip;
 		PSG		psg;
 	};
-
+	
 	//	OPN2 Base ------------------------------------------------------
 	class OPNABase : public OPNBase
 	{
@@ -135,45 +128,42 @@ namespace FM
 		uint	ReadStatus() { return status & 0x03; }
 		uint	ReadStatusEx();
 		void	SetChannelMask(uint mask);
-	
+		
 	private:
 		virtual void Intr(bool) {}
-	
+		
+		void	MakeTable2();
+		
 	protected:
-		bool	Init(uint c, uint r, bool ipflag);
-		bool	SetRate(uint c, uint r, bool ipflag);
-
+		bool	Init(uint c, uint r, bool);
+		bool	SetRate(uint c, uint r, bool);
+		
 		void	Reset();
 		void 	SetReg(uint addr, uint data);
 		void	SetADPCMBReg(uint reg, uint data);
 		uint	GetReg(uint addr);	
-	
+		
 	protected:
 		void	FMMix(Sample* buffer, int nsamples);
 		void 	Mix6(Sample* buffer, int nsamples, int activech);
-		void 	Mix6I(Sample* buffer, int nsamples, int activech);
 		
 		void	MixSubS(int activech, ISample**);
 		void	MixSubSL(int activech, ISample**);
-
+		
 		void	SetStatus(uint bit);
 		void	ResetStatus(uint bit);
 		void	UpdateStatus();
 		void	LFO();
-
+		
 		void	DecodeADPCMB();
 		void	ADPCMBMix(Sample* dest, uint count);
-
+		
 		void	WriteRAM(uint data);
 		uint	ReadRAM();
 		int		ReadRAMN();
 		int		DecodeADPCMBSample(uint);
 		
-	// Àş·ÁÊä´ÖÍÑ¥ï¡¼¥¯
-		int32	mixl, mixl1;
-		int32	mixr, mixr1;
-		
-	// FM ²»¸»´Ø·¸
+	// FM éŸ³æºé–¢ä¿‚
 		uint8	pan[6];
 		uint8	fnum2[9];
 		
@@ -182,49 +172,54 @@ namespace FM
 		
 		uint	stmask;
 		uint	statusnext;
-
+		
 		uint32	lfocount;
 		uint32	lfodcount;
 		
 		uint	fnum[6];
 		uint	fnum3[3];
 		
-	// ADPCM ´Ø·¸
+	// ADPCM é–¢ä¿‚
 		uint8*	adpcmbuf;		// ADPCM RAM
-		uint	adpcmmask;		// ¥á¥â¥ê¥¢¥É¥ì¥¹¤ËÂĞ¤¹¤ë¥Ó¥Ã¥È¥Ş¥¹¥¯
-		uint	adpcmnotice;	// ADPCM ºÆÀ¸½ªÎ»»ş¤Ë¤¿¤Ä¥Ó¥Ã¥È
+		uint	adpcmmask;		// ãƒ¡ãƒ¢ãƒªã‚¢ãƒ‰ãƒ¬ã‚¹ã«å¯¾ã™ã‚‹ãƒ“ãƒƒãƒˆãƒã‚¹ã‚¯
+		uint	adpcmnotice;	// ADPCM å†ç”Ÿçµ‚äº†æ™‚ã«ãŸã¤ãƒ“ãƒƒãƒˆ
 		uint	startaddr;		// Start address
 		uint	stopaddr;		// Stop address
-		uint	memaddr;		// ºÆÀ¸Ãæ¥¢¥É¥ì¥¹
+		uint	memaddr;		// å†ç”Ÿä¸­ã‚¢ãƒ‰ãƒ¬ã‚¹
 		uint	limitaddr;		// Limit address/mask
-		int		adpcmlevel;		// ADPCM ²»ÎÌ
+		int		adpcmlevel;		// ADPCM éŸ³é‡
 		int		adpcmvolume;
 		int		adpcmvol;
-		uint	deltan;
-		int		adplc;			// ¼şÇÈ¿ôÊÑ´¹ÍÑÊÑ¿ô
-		int		adpld;			// ¼şÇÈ¿ôÊÑ´¹ÍÑÊÑ¿ôº¹Ê¬ÃÍ
-		uint	adplbase;		// adpld ¤Î¸µ
-		int		adpcmx;			// ADPCM ¹çÀ®ÍÑ x
-		int		adpcmd;			// ADPCM ¹çÀ®ÍÑ ??
-		int		adpcmout;		// ADPCM ¹çÀ®¸å¤Î½ĞÎÏ
+		uint	deltan;			// DeltaN
+		int		adplc;			// å‘¨æ³¢æ•°å¤‰æ›ç”¨å¤‰æ•°
+		int		adpld;			// å‘¨æ³¢æ•°å¤‰æ›ç”¨å¤‰æ•°å·®åˆ†å€¤
+		uint	adplbase;		// adpld ã®å…ƒ
+		int		adpcmx;			// ADPCM åˆæˆç”¨ x
+		int		adpcmd;			// ADPCM åˆæˆç”¨ âŠ¿
+		int		adpcmout;		// ADPCM åˆæˆå¾Œã®å‡ºåŠ›
 		int		apout0;			// out(t-2)+out(t-1)
 		int		apout1;			// out(t-1)+out(t)
-
-		uint	adpcmreadbuf;	// ADPCM ¥ê¡¼¥ÉÍÑ¥Ğ¥Ã¥Õ¥¡
-		bool	adpcmplay;		// ADPCM ºÆÀ¸Ãæ
-		int8	granuality;		
-
-		uint8	control1;		// ADPCM ¥³¥ó¥È¥í¡¼¥ë¥ì¥¸¥¹¥¿£±
-		uint8	control2;		// ADPCM ¥³¥ó¥È¥í¡¼¥ë¥ì¥¸¥¹¥¿£²
-		uint8	adpcmreg[8];	// ADPCM ¥ì¥¸¥¹¥¿¤Î°ìÉôÊ¬
-
+		
+		uint	adpcmreadbuf;	// ADPCM ãƒªãƒ¼ãƒ‰ç”¨ãƒãƒƒãƒ•ã‚¡
+		bool	adpcmplay;		// ADPCM å†ç”Ÿä¸­
+		int8	granuality;
+		bool	adpcmmask_;
+		
+		uint8	control1;		// ADPCM ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ãƒ¬ã‚¸ã‚¹ã‚¿ï¼‘
+		uint8	control2;		// ADPCM ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ãƒ¬ã‚¸ã‚¹ã‚¿ï¼’
+		uint8	adpcmreg[8];	// ADPCM ãƒ¬ã‚¸ã‚¹ã‚¿ã®ä¸€éƒ¨åˆ†
+		
+		int		rhythmmask_;
+		
 		Channel4 ch[6];
-
+		
 		static void	BuildLFOTable();
 		static int amtable[FM_LFOENTS];
 		static int pmtable[FM_LFOENTS];
+		static int32 tltable[FM_TLENTS+FM_TLPOS];
+		static bool	tablehasmade;
 	};
-
+	
 	//	YM2203(OPN) ----------------------------------------------------
 	class OPN : public OPNBase
 	{
@@ -232,7 +227,153 @@ namespace FM
 		OPN();
 		virtual ~OPN() {}
 		
-		bool	Init(uint c, uint r, bool=false, const char* =0);
+		bool	Init(uint c, uint r, bool=false, const TCHAR* =0);
+		bool	SetRate(uint c, uint r, bool=false);
+		
+		void	Reset();
+		void 	Mix(Sample* buffer, int nsamples);
+		void 	SetReg(uint addr, uint data);
+		uint	GetReg(uint addr);
+		uint	ReadStatus() { return status & 0x03; }
+		uint	ReadStatusEx() { return 0xff; }
+		
+		void	SetChannelMask(uint mask);
+		
+		int		dbgGetOpOut(int c, int s) { return ch[c].op[s].dbgopout_; }
+		int		dbgGetPGOut(int c, int s) { return ch[c].op[s].dbgpgout_; }
+		Channel4* dbgGetCh(int c) { return &ch[c]; }
+		
+	private:
+		virtual void Intr(bool) {}
+		
+		void	SetStatus(uint bit);
+		void	ResetStatus(uint bit);
+		
+		uint	fnum[3];
+		uint	fnum3[3];
+		uint8	fnum2[6];
+		
+		Channel4 ch[3];
+	};
+	
+	//	YM2608(OPNA) ---------------------------------------------------
+	class OPNA : public OPNABase
+	{
+	public:
+		OPNA();
+		virtual ~OPNA();
+		
+		bool	Init(uint c, uint r, bool  = false, const TCHAR* rhythmpath=0);
+		bool	LoadRhythmSample(const TCHAR*);
+		
+		bool	SetRate(uint c, uint r, bool = false);
+		void 	Mix(Sample* buffer, int nsamples);
+		
+		void	Reset();
+		void 	SetReg(uint addr, uint data);
+		uint	GetReg(uint addr);
+		
+		void	SetVolumeADPCM(int db);
+		void	SetVolumeRhythmTotal(int db);
+		void	SetVolumeRhythm(int index, int db);
+		
+		uint8*	GetADPCMBuffer() { return adpcmbuf; }
+		
+		int		dbgGetOpOut(int c, int s) { return ch[c].op[s].dbgopout_; }
+		int		dbgGetPGOut(int c, int s) { return ch[c].op[s].dbgpgout_; }
+		Channel4* dbgGetCh(int c) { return &ch[c]; }
+		
+		
+	private:
+		struct Rhythm
+		{
+			uint8	pan;		// ã±ã‚“
+			int8	level;		// ãŠã‚“ã‚Šã‚‡ã†
+			int		volume;		// ãŠã‚“ã‚Šã‚‡ã†ã›ã£ã¦ã„
+			int16*	sample;		// ã•ã‚“ã·ã‚‹
+			uint	size;		// ã•ã„ãš
+			uint	pos;		// ã„ã¡
+			uint	step;		// ã™ã¦ã£ã·ã¡
+			uint	rate;		// ã•ã‚“ã·ã‚‹ã®ã‚Œãƒ¼ã¨
+		};
+		
+		void	RhythmMix(Sample* buffer, uint count);
+		
+	// ãƒªã‚ºãƒ éŸ³æºé–¢ä¿‚
+		Rhythm	rhythm[6];
+		int8	rhythmtl;		// ãƒªã‚ºãƒ å…¨ä½“ã®éŸ³é‡
+		int		rhythmtvol;
+		uint8	rhythmkey;		// ãƒªã‚ºãƒ ã®ã‚­ãƒ¼
+	};
+	
+	//	YM2610/B(OPNB) ---------------------------------------------------
+	class OPNB : public OPNABase
+	{
+	public:
+		OPNB();
+		virtual ~OPNB();
+		
+		bool	Init(uint c, uint r, bool = false,
+					 uint8 *_adpcma = 0, int _adpcma_size = 0,
+					 uint8 *_adpcmb = 0, int _adpcmb_size = 0);
+		
+		bool	SetRate(uint c, uint r, bool = false);
+		void 	Mix(Sample* buffer, int nsamples);
+		
+		void	Reset();
+		void 	SetReg(uint addr, uint data);
+		uint	GetReg(uint addr);
+		uint	ReadStatusEx();
+		
+		void	SetVolumeADPCMATotal(int db);
+		void	SetVolumeADPCMA(int index, int db);
+		void	SetVolumeADPCMB(int db);
+		
+//		void	SetChannelMask(uint mask);
+		
+	private:
+		struct ADPCMA
+		{
+			uint8	pan;		// ã±ã‚“
+			int8	level;		// ãŠã‚“ã‚Šã‚‡ã†
+			int		volume;		// ãŠã‚“ã‚Šã‚‡ã†ã›ã£ã¦ã„
+			uint	pos;		// ã„ã¡
+			uint	step;		// ã™ã¦ã£ã·ã¡
+			
+			uint	start;		// é–‹å§‹
+			uint	stop;		// çµ‚äº†
+			uint	nibble;		// æ¬¡ã® 4 bit
+			int		adpcmx;		// å¤‰æ›ç”¨
+			int		adpcmd;		// å¤‰æ›ç”¨
+		};
+		
+		int		DecodeADPCMASample(uint);
+		void	ADPCMAMix(Sample* buffer, uint count);
+		static void InitADPCMATable();
+		
+	// ADPCMA é–¢ä¿‚
+		uint8*	adpcmabuf;		// ADPCMA ROM
+		int		adpcmasize;
+		ADPCMA	adpcma[6];
+		int8	adpcmatl;		// ADPCMA å…¨ä½“ã®éŸ³é‡
+		int		adpcmatvol;
+		uint8	adpcmakey;		// ADPCMA ã®ã‚­ãƒ¼
+		int		adpcmastep;
+		uint8	adpcmareg[32];
+		
+		static int jedi_table[(48+1)*16];
+		
+		Channel4 ch[6];
+	};
+	
+	//	YM2612/3438(OPN2) ----------------------------------------------------
+	class OPN2 : public OPNBase
+	{
+	public:
+		OPN2();
+		virtual ~OPN2() {}
+		
+		bool	Init(uint c, uint r, bool=false, const TCHAR* =0);
 		bool	SetRate(uint c, uint r, bool);
 		
 		void	Reset();
@@ -254,115 +395,10 @@ namespace FM
 		uint	fnum3[3];
 		uint8	fnum2[6];
 		
-	// Àş·ÁÊä´ÖÍÑ¥ï¡¼¥¯
+	// ç·šå½¢è£œé–“ç”¨ãƒ¯ãƒ¼ã‚¯
 		int32	mixc, mixc1;
 		
 		Channel4 ch[3];
-	};
-
-	//	YM2608(OPNA) ---------------------------------------------------
-	class OPNA : public OPNABase
-	{
-	public:
-		OPNA();
-		virtual ~OPNA();
-		
-		bool	Init(uint c, uint r, bool ipflag = false, const char* rhythmpath=0);
-		bool	LoadRhythmSample(const char*);
-	
-		bool	SetRate(uint c, uint r, bool ipflag = false);
-		void 	Mix(Sample* buffer, int nsamples);
-
-		void	Reset();
-		void 	SetReg(uint addr, uint data);
-		uint	GetReg(uint addr);
-
-		void	SetVolumeADPCM(int db);
-		void	SetVolumeRhythmTotal(int db);
-		void	SetVolumeRhythm(int index, int db);
-
-		uint8*	GetADPCMBuffer() { return adpcmbuf; }
-		
-	private:
-		struct Rhythm
-		{
-			uint8	pan;		// ¤Ñ¤ó
-			int8	level;		// ¤ª¤ó¤ê¤ç¤¦
-			int		volume;		// ¤ª¤ó¤ê¤ç¤¦¤»¤Ã¤Æ¤¤
-			int16*	sample;		// ¤µ¤ó¤×¤ë
-			uint	size;		// ¤µ¤¤¤º
-			uint	pos;		// ¤¤¤Á
-			uint	step;		// ¤¹¤Æ¤Ã¤×¤Á
-			uint	rate;		// ¤µ¤ó¤×¤ë¤Î¤ì¡¼¤È
-		};
-	
-		void	RhythmMix(Sample* buffer, uint count);
-
-	// ¥ê¥º¥à²»¸»´Ø·¸
-		Rhythm	rhythm[6];
-		int8	rhythmtl;		// ¥ê¥º¥àÁ´ÂÎ¤Î²»ÎÌ
-		int		rhythmtvol;		
-		uint8	rhythmkey;		// ¥ê¥º¥à¤Î¥­¡¼
-	};
-
-	//	YM2610/B(OPNB) ---------------------------------------------------
-	class OPNB : public OPNABase
-	{
-	public:
-		OPNB();
-		virtual ~OPNB();
-		
-		bool	Init(uint c, uint r, bool ipflag = false,
-					 uint8 *_adpcma = 0, int _adpcma_size = 0,
-					 uint8 *_adpcmb = 0, int _adpcmb_size = 0);
-	
-		bool	SetRate(uint c, uint r, bool ipflag = false);
-		void 	Mix(Sample* buffer, int nsamples);
-
-		void	Reset();
-		void 	SetReg(uint addr, uint data);
-		uint	GetReg(uint addr);
-		uint	ReadStatusEx();
-
-		void	SetVolumeADPCMATotal(int db);
-		void	SetVolumeADPCMA(int index, int db);
-		void	SetVolumeADPCMB(int db);
-
-//		void	SetChannelMask(uint mask);
-		
-	private:
-		struct ADPCMA
-		{
-			uint8	pan;		// ¤Ñ¤ó
-			int8	level;		// ¤ª¤ó¤ê¤ç¤¦
-			int		volume;		// ¤ª¤ó¤ê¤ç¤¦¤»¤Ã¤Æ¤¤
-			uint	pos;		// ¤¤¤Á
-			uint	step;		// ¤¹¤Æ¤Ã¤×¤Á
-
-			uint	start;		// ³«»Ï
-			uint	stop;		// ½ªÎ»
-			uint	nibble;		// ¼¡¤Î 4 bit
-			int		adpcmx;		// ÊÑ´¹ÍÑ
-			int		adpcmd;		// ÊÑ´¹ÍÑ
-		};
-	
-		int		DecodeADPCMASample(uint);
-		void	ADPCMAMix(Sample* buffer, uint count);
-		static void InitADPCMATable();
-		
-	// ADPCMA ´Ø·¸
-		uint8*	adpcmabuf;		// ADPCMA ROM
-		int		adpcmasize;
-		ADPCMA	adpcma[6];
-		int8	adpcmatl;		// ADPCMA Á´ÂÎ¤Î²»ÎÌ
-		int		adpcmatvol;		
-		uint8	adpcmakey;		// ADPCMA ¤Î¥­¡¼
-		int		adpcmastep;
-		uint8	adpcmareg[32];
- 
-		static int jedi_table[(48+1)*16];
-
-//		Channel4 ch[6];
 	};
 }
 

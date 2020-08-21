@@ -1,31 +1,39 @@
 // ---------------------------------------------------------------------------
 //	FM Sound Generator
-//	Copyright (C) cisc 1998, 2000.
+//	Copyright (C) cisc 1998, 2003.
 // ---------------------------------------------------------------------------
-//	$Id: fmgeninl.h,v 1.1 2001/04/23 22:25:34 kaoru-k Exp $
+//	$Id: fmgeninl.h,v 1.26 2003/06/12 13:14:36 cisc Exp $
 
 #ifndef FM_GEN_INL_H
 #define FM_GEN_INL_H
 
 // ---------------------------------------------------------------------------
-//	ƒÍøÙ§Ω§Œ£≤
+//	ÂÆöÊï∞„Åù„ÅÆÔºí
 //	
 #define FM_PI			3.14159265358979323846
 
-#define FM_SINEPRESIS	2			// EG§»•µ•§•Û«»§Œ¿∫≈Ÿ§Œ∫π  0(ƒ„)-2(π‚)
+#define FM_SINEPRESIS	2			// EG„Å®„Çµ„Ç§„É≥Ê≥¢„ÅÆÁ≤æÂ∫¶„ÅÆÂ∑Æ  0(‰Ωé)-2(È´ò)
 
-#define FM_CLENTS		(0xc00 << FM_SINEPRESIS)	// 0x400(C++) 0x800(asm) ∞ æÂ 0xc00 Ã§À˛
 
 #define FM_OPSINBITS	10
 #define FM_OPSINENTS	(1 << FM_OPSINBITS)
 
-#define FM_EGCBITS		18			// eg §Œ count §Œ•∑•’•»√Õ
+#define FM_EGCBITS		18			// eg „ÅÆ count „ÅÆ„Ç∑„Éï„ÉàÂÄ§
 #define FM_LFOCBITS		14
-#define FM_PGBITS		9
 
-#define FM_ISHIFT		3
+#ifdef FM_TUNEBUILD
+ #define FM_PGBITS		2
+ #define FM_RATIOBITS	0
+#else
+ #define FM_PGBITS		9
+ #define FM_RATIOBITS	7			// 8-12 „Åè„Çâ„ÅÑ„Åæ„ÅßÔºü
+#endif
 
-#define FM_RATIOBITS	12			// 8-12 §Ø§È§§§ﬁ§«°©
+#define FM_EGBITS		16
+
+//extern int paramcount[];
+//#define PARAMCHANGE(i) paramcount[i]++;
+#define PARAMCHANGE(i)
 
 namespace FM
 {
@@ -33,160 +41,172 @@ namespace FM
 // ---------------------------------------------------------------------------
 //	Operator
 //
-
-//	AM §Œ•Ï•Ÿ•Î§Ú¿ﬂƒÍ
-inline void Operator::SetAML(uint l)
-{
-	aml = l & (FM_LFOENTS - 1);
-}
-
-//	PM §Œ•Ï•Ÿ•Î§Ú¿ﬂƒÍ
-inline void Operator::SetPML(uint l)
-{
-	pml = l & (FM_LFOENTS - 1);
-}
-
-//	•’•£°º•…•–•√•Ø•–•√•’•°§Ú•Ø•Í•¢
+//	„Éï„Ç£„Éº„Éâ„Éê„ÉÉ„ÇØ„Éê„ÉÉ„Éï„Ç°„Çí„ÇØ„É™„Ç¢
 inline void Operator::ResetFB()
 {
-	out = out2 = 0;
+	out_ = out2_ = 0;
 }
 
-//	•≠°º•™•Û
+//	„Ç≠„Éº„Ç™„É≥
 inline void Operator::KeyOn()
 {
-	if (!keyon)
+	if (!keyon_)
 	{
-		keyon = true;
-		if (phase == off || phase == release)
+		keyon_ = true;
+		if (eg_phase_ == off || eg_phase_ == release)
 		{
+			ssg_phase_ = -1;
 			ShiftPhase(attack);
 			EGUpdate();
-			out = out2 = 0;
-			pgcount = 0;
+			in2_ = out_ = out2_ = 0;
+			pg_count_ = 0;
 		}
 	}
 }
 
-//	•≠°º•™•’
+//	„Ç≠„Éº„Ç™„Éï
 inline void	Operator::KeyOff()
 {
-	if (keyon)
+	if (keyon_)
 	{
-		keyon = false;
+		keyon_ = false;
 		ShiftPhase(release);
 	}
 }
 
-//	•™•⁄•Ï°º•ø§œ≤‘∆Ø√Ê§´°©
+//	„Ç™„Éö„É¨„Éº„Çø„ÅØÁ®ºÂÉç‰∏≠„ÅãÔºü
 inline int Operator::IsOn()
 {
-	return phase - off;
+	return eg_phase_ - off;
 }
 
 //	Detune (0-7)
 inline void Operator::SetDT(uint dt)
 {
-	detune = dt * 0x20, paramchanged = true;
+	detune_ = dt * 0x20, param_changed_ = true;
+	PARAMCHANGE(4);
 }
 
 //	DT2 (0-3)
 inline void Operator::SetDT2(uint dt2)
 {
-	detune2 = dt2 & 3, paramchanged = true;
+	detune2_ = dt2 & 3, param_changed_ = true;
+	PARAMCHANGE(5);
 }
 
 //	Multiple (0-15)
-inline void Operator::SetMULTI(uint mul)	
-{ 
-	multiple = mul, paramchanged = true;
+inline void Operator::SetMULTI(uint mul)
+{
+	multiple_ = mul, param_changed_ = true;
+	PARAMCHANGE(6);
 }
 
 //	Total Level (0-127) (0.75dB step)
-inline void Operator::SetTL(uint _tl, bool csm)
+inline void Operator::SetTL(uint tl, bool csm)
 {
 	if (!csm)
-		tl = _tl, paramchanged = true;
-	tll = _tl;
+	{
+		tl_ = tl, param_changed_ = true;
+		PARAMCHANGE(7);
+	}
+	tl_latch_ = tl;
 }
 
 //	Attack Rate (0-63)
-inline void Operator::SetAR(uint _ar)
+inline void Operator::SetAR(uint ar)
 {
-	ar = _ar; paramchanged = true;
+	ar_ = ar;
+	param_changed_ = true;
+	PARAMCHANGE(8);
 }
 
 //	Decay Rate (0-63)
-inline void Operator::SetDR(uint _dr)
-{ 
-	dr = _dr; paramchanged = true;
+inline void Operator::SetDR(uint dr)
+{
+	dr_ = dr;
+	param_changed_ = true;
+	PARAMCHANGE(9);
 }
 
 //	Sustain Rate (0-63)
-inline void Operator::SetSR(uint _sr)		
-{ 
-	sr = _sr; paramchanged = true;
+inline void Operator::SetSR(uint sr)
+{
+	sr_ = sr;
+	param_changed_ = true;
+	PARAMCHANGE(10);
 }
 
 //	Sustain Level (0-127)
-inline void Operator::SetSL(uint _sl)		
-{ 
-	sl = _sl; paramchanged = true;
+inline void Operator::SetSL(uint sl)
+{
+	sl_ = sl;
+	param_changed_ = true;
+	PARAMCHANGE(11);
 }
 
 //	Release Rate (0-63)
-inline void Operator::SetRR(uint _rr)		
-{ 
-	rr = _rr; paramchanged = true;
+inline void Operator::SetRR(uint rr)
+{
+	rr_ = rr;
+	param_changed_ = true;
+	PARAMCHANGE(12);
 }
 
 //	Keyscale (0-3)
-inline void Operator::SetKS(uint _ks)		
-{ 
-	ks = _ks; paramchanged = true; 
+inline void Operator::SetKS(uint ks)
+{
+	ks_ = ks;
+	param_changed_ = true;
+	PARAMCHANGE(13);
 }
 
 //	SSG-type Envelop (0-15)
-inline void Operator::SetSSGEC(uint ssgec)	
-{ 
-	ssgtype = ssgec; 
-}
-
-inline void Operator::SetAMON(bool on)		
-{ 
-	amon = on;  
-	paramchanged = true;
-}
-
-inline void Operator::Mute(bool m)
+inline void Operator::SetSSGEC(uint ssgec)
 {
-	mute = m;
-	paramchanged = true;
+	if (ssgec & 8)
+		ssg_type_ = ssgec;
+	else
+		ssg_type_ = 0;
 }
 
-inline void Operator::SetMS(uint _ms)
+inline void Operator::SetAMON(bool amon)
 {
-	ms = _ms;
-	paramchanged = true;
+	amon_ = amon;
+	param_changed_ = true;
+	PARAMCHANGE(14);
+}
+
+inline void Operator::Mute(bool mute)
+{
+	mute_ = mute;
+	param_changed_ = true;
+	PARAMCHANGE(15);
+}
+
+inline void Operator::SetMS(uint ms)
+{
+	ms_ = ms;
+	param_changed_ = true;
+	PARAMCHANGE(16);
 }
 
 // ---------------------------------------------------------------------------
 //	4-op Channel
 
-//	•™•⁄•Ï°º•ø§ŒºÔŒ‡ (LFO) §Ú¿ﬂƒÍ
+//	„Ç™„Éö„É¨„Éº„Çø„ÅÆÁ®ÆÈ°û (LFO) „ÇíË®≠ÂÆö
 inline void Channel4::SetType(OpType type)
 {
 	for (int i=0; i<4; i++)
-		op[i].type = type;
+		op[i].type_ = type;
 }
 
-//	•ª•Î•’°¶•’•£°º•…•–•√•Ø•Ï°º•»§Œ¿ﬂƒÍ (0-7)
+//	„Çª„É´„Éï„Éª„Éï„Ç£„Éº„Éâ„Éê„ÉÉ„ÇØ„É¨„Éº„Éà„ÅÆË®≠ÂÆö (0-7)
 inline void Channel4::SetFB(uint feedback)
 {
 	fb = fbtable[feedback];
 }
 
-//	OPNA ∑œ LFO §Œ¿ﬂƒÍ
+//	OPNA Á≥ª LFO „ÅÆË®≠ÂÆö
 inline void Channel4::SetMS(uint ms)
 {
 	op[0].SetMS(ms);
@@ -195,18 +215,26 @@ inline void Channel4::SetMS(uint ms)
 	op[3].SetMS(ms);
 }
 
-//	•¡•„•Û•Õ•Î°¶•ﬁ•π•Ø
+//	„ÉÅ„É£„É≥„Éç„É´„Éª„Éû„Çπ„ÇØ
 inline void Channel4::Mute(bool m)
 {
 	for (int i=0; i<4; i++)
 		op[i].Mute(m);
 }
 
-//	∆‚…Ù•—•È•·°º•ø§Ú∫∆∑◊ªª
+//	ÂÜÖÈÉ®„Éë„É©„É°„Éº„Çø„ÇíÂÜçË®àÁÆó
 inline void Channel4::Refresh()
 {
 	for (int i=0; i<4; i++)
-		op[i].paramchanged = true;
+		op[i].param_changed_ = true;
+	PARAMCHANGE(3);
+}
+
+inline void Channel4::SetChip(Chip* chip)
+{
+	chip_ = chip;
+	for (int i=0; i<4; i++)
+		op[i].SetChip(chip);
 }
 
 // ---------------------------------------------------------------------------
@@ -219,6 +247,21 @@ inline void StoreSample(Sample& dest, ISample data)
 	else
 		dest += data;
 }
+
+
+// ---------------------------------------------------------------------------
+//	AM „ÅÆ„É¨„Éô„É´„ÇíË®≠ÂÆö
+inline void Chip::SetAML(uint l)
+{
+	aml_ = l & (FM_LFOENTS - 1);
+}
+
+//	PM „ÅÆ„É¨„Éô„É´„ÇíË®≠ÂÆö
+inline void Chip::SetPML(uint l)
+{
+	pml_ = l & (FM_LFOENTS - 1);
+}
+
 
 }
 

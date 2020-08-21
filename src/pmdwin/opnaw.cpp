@@ -1,10 +1,13 @@
 //=============================================================================
 //		opnaw : OPNA unit with wait
-//			ver 0.01
+//			ver 0.04
 //=============================================================================
 
-#ifdef _WIN32
-# include	<windows.h>
+#if defined _WIN32
+#include	<windows.h>
+#else
+#include	<cstdint>
+typedef std::int64_t _int64;
 #endif
 #include	<stdio.h>
 #include	<string.h>
@@ -14,18 +17,65 @@
 #include	"util.h"
 #include	"misc.h"
 
+#define		M_PI	3.14159265358979323846
+
+
+
+//-----------------------------------------------------------------------------
+//	ã“ã®ãƒ¦ãƒ‹ãƒƒãƒˆã§ç·šå½¢è£œé–“ã‚’è¡Œã†å ´åˆã«å®£è¨€ã™ã‚‹
+//	fmgen 007 ã§ç·šå½¢è£œé–“ãŒå»ƒæ­¢ã•ã‚ŒãŸãŸã‚è¿½åŠ 
+//-----------------------------------------------------------------------------
+#define INTERPOLATION_IN_THIS_UNIT
+
 
 namespace FM {
 
 //-----------------------------------------------------------------------------
-//	¥³¥ó¥¹¥È¥é¥¯¥¿¡¦¥Ç¥¹¥È¥é¥¯¥¿
+//	ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ãƒ»ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 //-----------------------------------------------------------------------------
 OPNAW::OPNAW()
 {
+	_Init();
+}
+
+
+OPNAW::~OPNAW()
+{
+}
+
+
+//-----------------------------------------------------------------------------
+//	åˆæœŸåŒ–
+//-----------------------------------------------------------------------------
+bool OPNAW::Init(uint c, uint r, bool ipflag, const TCHAR* path)
+{
+	_Init();
+	rate2 = r;
+	
+#ifdef INTERPOLATION_IN_THIS_UNIT
+	if(ipflag) {
+		return OPNA::Init(c, SOUND_55K_2, false, path);
+	} else {
+		return OPNA::Init(c, r, false, path);
+	}
+#else
+	return OPNA::Init(c, r, ipflag, path);
+#endif
+}
+
+
+//-----------------------------------------------------------------------------
+//	åˆæœŸåŒ–(å†…éƒ¨å‡¦ç†)
+//-----------------------------------------------------------------------------
+void OPNAW::_Init()
+{
+	memset(pre_buffer, 0, sizeof(pre_buffer));
+	
 	fmwait = 0;
 	ssgwait = 0;
 	rhythmwait = 0;
 	adpcmwait = 0;
+	
 	fmwaitcount = 0;
 	ssgwaitcount = 0;
 	rhythmwaitcount = 0;
@@ -34,15 +84,16 @@ OPNAW::OPNAW()
 	read_pos = 0;
 	write_pos = 0;
 	count2 = 0;
-	memset(pre_buffer, 0, sizeof(pre_buffer));
+	
+	memset(ip_buffer, 0, sizeof(ip_buffer));
+	rate2 = 0;
+	interpolation2 = false;
+	delta = 0;
 }
 
-OPNAW::~OPNAW()
-{
-}
 
 //-----------------------------------------------------------------------------
-//	¥µ¥ó¥×¥ê¥ó¥°¥ì¡¼¥ÈÊÑ¹¹
+//	ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°ãƒ¬ãƒ¼ãƒˆå¤‰æ›´
 //-----------------------------------------------------------------------------
 bool OPNAW::SetRate(uint c, uint r, bool ipflag)
 {
@@ -50,11 +101,28 @@ bool OPNAW::SetRate(uint c, uint r, bool ipflag)
 	SetSSGWait(ssgwait);
 	SetRhythmWait(rhythmwait);
 	SetADPCMWait(adpcmwait);
+	
+	interpolation2 = ipflag;
+	rate2 = r;
+	
+#ifdef INTERPOLATION_IN_THIS_UNIT
+	if(ipflag) {
+		return OPNA::SetRate(c, SOUND_55K_2, false);
+	} else {
+		return OPNA::SetRate(c, r, false);
+	}
+#else
 	return OPNA::SetRate(c, r, ipflag);
+#endif
+	fmwaitcount = fmwait * rate / 1000000;
+	ssgwaitcount = ssgwait * rate / 1000000;
+	rhythmwaitcount = rhythmwait * rate / 1000000;
+	adpcmwaitcount = adpcmwait * rate / 1000000;
 }
 
+
 //-----------------------------------------------------------------------------
-//	Wait ÀßÄê
+//	Wait è¨­å®š
 //-----------------------------------------------------------------------------
 void OPNAW::SetFMWait(int nsec)
 {
@@ -80,8 +148,9 @@ void OPNAW::SetADPCMWait(int nsec)
 	adpcmwaitcount = nsec * rate / 1000000;
 }
 
+
 //-----------------------------------------------------------------------------
-//	Wait ¼èÆÀ
+//	Wait å–å¾—
 //-----------------------------------------------------------------------------
 int OPNAW::GetFMWait(void)
 {
@@ -103,8 +172,9 @@ int OPNAW::GetADPCMWait(void)
 	return adpcmwait;
 }
 
-// ---------------------------------------------------------------------------
-//	¥ì¥¸¥¹¥¿¥¢¥ì¥¤¤Ë¥Ç¡¼¥¿¤òÀßÄê
+
+//-----------------------------------------------------------------------------
+//	ãƒ¬ã‚¸ã‚¹ã‚¿ã‚¢ãƒ¬ã‚¤ã«ãƒ‡ãƒ¼ã‚¿ã‚’è¨­å®š
 //-----------------------------------------------------------------------------
 void OPNAW::SetReg(uint addr, uint data)
 {
@@ -112,7 +182,7 @@ void OPNAW::SetReg(uint addr, uint data)
 		if(ssgwaitcount) {
 			CalcWaitPCM(ssgwaitcount);
 		}
-	} else if((addr % 100) <= 0x10) {	// ADPCM
+	} else if((addr % 0x100) <= 0x10) {	// ADPCM
 		if(adpcmwaitcount) {
 			CalcWaitPCM(adpcmwaitcount);
 		}
@@ -129,20 +199,21 @@ void OPNAW::SetReg(uint addr, uint data)
 	OPNA::SetReg(addr, data);
 }
 
-// ---------------------------------------------------------------------------
-//	SetReg() wait »ş¤Î PCM ¤ò·×»»
+
+//-----------------------------------------------------------------------------
+//	SetReg() wait æ™‚ã® PCM ã‚’è¨ˆç®—
 //-----------------------------------------------------------------------------
 void OPNAW::CalcWaitPCM(int waitcount)
 {
 	int		outsamples;
-
+	
 	count2 += waitcount % 1000;
 	waitcount /= 1000;
 	if(count2 > 1000) {
 		waitcount++;
 		count2 -= 1000;
 	}
-
+	
 	do {
 		if(write_pos + waitcount > WAIT_PCM_BUFFER_SIZE) {
 			outsamples = WAIT_PCM_BUFFER_SIZE - write_pos;
@@ -160,16 +231,17 @@ void OPNAW::CalcWaitPCM(int waitcount)
 	} while (waitcount > 0);
 }
 
-// ---------------------------------------------------------------------------
-//	¹çÀ®
+
 //-----------------------------------------------------------------------------
-void OPNAW::Mix(Sample* buffer, int nsamples)
+//	åˆæˆï¼ˆä¸€æ¬¡è£œé–“ãªã—Ver.)
+//-----------------------------------------------------------------------------
+void OPNAW::_Mix(Sample* buffer, int nsamples)
 {
 	int		bufsamples;
 	int		outsamples;
 	int		i;
-
-	if(read_pos != write_pos) {			// buffer ¤«¤é½ĞÎÏ
+	
+	if(read_pos != write_pos) {			// buffer ã‹ã‚‰å‡ºåŠ›
 		if(read_pos < write_pos) {
 			bufsamples = write_pos - read_pos;
 		} else {
@@ -190,7 +262,7 @@ void OPNAW::Mix(Sample* buffer, int nsamples)
 				*buffer += pre_buffer[read_pos * 2 + i];
 				buffer++;
 			}
-
+			
 //			memcpy(buffer, &pre_buffer[read_pos * 2], outsamples * 2 * sizeof(Sample));
 			read_pos += outsamples;
 			if(read_pos == WAIT_PCM_BUFFER_SIZE) {
@@ -204,12 +276,56 @@ void OPNAW::Mix(Sample* buffer, int nsamples)
 	OPNA::Mix(buffer, nsamples);
 }
 
-// ---------------------------------------------------------------------------
-//	ÆâÉô¥Ğ¥Ã¥Õ¥¡¥¯¥ê¥¢
+
+//-----------------------------------------------------------------------------
+//	åˆæˆ
+//-----------------------------------------------------------------------------
+void OPNAW::Mix(Sample* buffer, int nsamples)
+{
+
+#ifdef INTERPOLATION_IN_THIS_UNIT
+	int	nmixdata2;
+	
+	if(interpolation2) {
+		while(nsamples > 0) {
+			int nmixdata = (int)(delta + ((_int64)nsamples) * (SOUND_55K_2 * 16384 / rate2)) / 16384;
+			if(nmixdata > (IP_PCM_BUFFER_SIZE - 1)) {
+				int snsamples = (IP_PCM_BUFFER_SIZE - 2) * rate2 / SOUND_55K_2;
+				nmixdata = (delta + (snsamples) * (SOUND_55K_2 * 16384 / rate2)) / 16384;
+			}
+			memset(&ip_buffer[2], 0, sizeof(Sample) * 2 * nmixdata);
+			_Mix(&ip_buffer[2], nmixdata);
+			
+			nmixdata2 = 0;
+			while(nmixdata > nmixdata2) {
+				*buffer++ += (ip_buffer[nmixdata2*2    ] * (16384 - delta) + ip_buffer[nmixdata2*2+2] * delta) / 16384;
+				*buffer++ += (ip_buffer[nmixdata2*2 + 1] * (16384 - delta) + ip_buffer[nmixdata2*2+3] * delta) / 16384;
+				delta += SOUND_55K_2 * 16384 / rate2;
+				nmixdata2 += delta / 16384;
+				delta %= 16384;
+				nsamples--;
+			}
+			ip_buffer[0] = ip_buffer[nmixdata * 2    ];
+			ip_buffer[1] = ip_buffer[nmixdata * 2 + 1];
+		}
+	} else {
+		_Mix(buffer, nsamples);
+	}
+#else
+	_Mix(buffer, nsamples);
+#endif
+}
+
+
+//-----------------------------------------------------------------------------
+//	å†…éƒ¨ãƒãƒƒãƒ•ã‚¡ã‚¯ãƒªã‚¢
 //-----------------------------------------------------------------------------
 void OPNAW::ClearBuffer(void)
 {
 	read_pos = write_pos = 0;
+	memset(pre_buffer, 0, sizeof(pre_buffer));
+	memset(ip_buffer, 0, sizeof(ip_buffer));
 }
+
 
 }

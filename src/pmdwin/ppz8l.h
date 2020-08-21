@@ -1,5 +1,5 @@
 //=============================================================================
-//		8 Channel PCM Driver ¡ÖPPZ8¡× Unit(Light Version)
+//		8 Channel PCM Driver ã€ŒPPZ8ã€ Unit(Light Version)
 //			Programmed by UKKY
 //			Windows Converted by C60
 //=============================================================================
@@ -7,12 +7,14 @@
 #ifndef PPZ8L_H
 #define PPZ8L_H
 
-#ifdef _WIN32
-# include <windows.h>
-#else
-//# include	"types.h"
-# include "compat.h"
+#if defined _WIN32
+#define		NOMINMAX
+#include	<windows.h>
+#include	<tchar.h>
 #endif
+#include	"file.h"
+//#include	"types.h"
+
 
 #define	SOUND_44K		 44100
 
@@ -23,13 +25,13 @@
 #define		X_N0			  0x80
 #define		DELTA_N0		   127
 
-//	DLL ¤Î Ìá¤êÃÍ
-#define	_PPZ8_OK				 	  0		// Àµ¾ï½ªÎ»
-#define	_ERR_OPEN_PPZ_FILE			  1		// PVI/PZI ¤ò³«¤±¤Ê¤«¤Ã¤¿
-#define	_ERR_WRONG_PPZ_FILE		 	  2		// PVI/PZI ¤Î·Á¼°¤¬°Û¤Ê¤Ã¤Æ¤¤¤ë
-#define	_WARNING_PPZ_ALREADY_LOAD	  3		// PVI/PZI ¤Ï¤¹¤Ç¤ËÆÉ¤ß¹ş¤Ş¤ì¤Æ¤¤¤ë
+//	DLL ã® æˆ»ã‚Šå€¤
+#define	_PPZ8_OK				 	  0		// æ­£å¸¸çµ‚äº†
+#define	_ERR_OPEN_PPZ_FILE			  1		// PVI/PZI ã‚’é–‹ã‘ãªã‹ã£ãŸ
+#define	_ERR_WRONG_PPZ_FILE		 	  2		// PVI/PZI ã®å½¢å¼ãŒç•°ãªã£ã¦ã„ã‚‹
+#define	_WARNING_PPZ_ALREADY_LOAD	  3		// PVI/PZI ã¯ã™ã§ã«èª­ã¿è¾¼ã¾ã‚Œã¦ã„ã‚‹
 
-#define	_ERR_OUT_OF_MEMORY			 99		// ¥á¥â¥ê¤ò³ÎÊİ¤Ç¤­¤Ê¤«¤Ã¤¿
+#define	_ERR_OUT_OF_MEMORY			 99		// ãƒ¡ãƒ¢ãƒªã‚’ç¢ºä¿ã§ããªã‹ã£ãŸ
 
 typedef int				Sample;
 typedef	unsigned char	uchar;
@@ -37,111 +39,146 @@ typedef	unsigned int	uint;
 
 typedef struct channelworktag
 {
-	int		PCM_ADD_L;				// ¥¢¥É¥ì¥¹Áı²ÃÎÌ LOW
-	int		PCM_ADD_H;				// ¥¢¥É¥ì¥¹Áı²ÃÎÌ HIGH
-	int		PCM_ADDS_L;				// ¥¢¥É¥ì¥¹Áı²ÃÎÌ LOW¡Ê¸µ¤ÎÃÍ¡Ë
-	int		PCM_ADDS_H;				// ¥¢¥É¥ì¥¹Áı²ÃÎÌ HIGH¡Ê¸µ¤ÎÃÍ¡Ë
-	int		PCM_SORC_F;				// ¸µ¥Ç¡¼¥¿¤ÎºÆÀ¸¥ì¡¼¥È
-	int		PCM_FLG;				// ºÆÀ¸¥Õ¥é¥°
-	int		PCM_VOL;				// ¥Ü¥ê¥å¡¼¥à
+	int		PCM_ADD_L;				// ã‚¢ãƒ‰ãƒ¬ã‚¹å¢—åŠ é‡ LOW
+	int		PCM_ADD_H;				// ã‚¢ãƒ‰ãƒ¬ã‚¹å¢—åŠ é‡ HIGH
+	int		PCM_ADDS_L;				// ã‚¢ãƒ‰ãƒ¬ã‚¹å¢—åŠ é‡ LOWï¼ˆå…ƒã®å€¤ï¼‰
+	int		PCM_ADDS_H;				// ã‚¢ãƒ‰ãƒ¬ã‚¹å¢—åŠ é‡ HIGHï¼ˆå…ƒã®å€¤ï¼‰
+	int		PCM_SORC_F;				// å…ƒãƒ‡ãƒ¼ã‚¿ã®å†ç”Ÿãƒ¬ãƒ¼ãƒˆ
+	int		PCM_FLG;				// å†ç”Ÿãƒ•ãƒ©ã‚°
+	int		PCM_VOL;				// ãƒœãƒªãƒ¥ãƒ¼ãƒ 
 	int		PCM_PAN;				// PAN
-	int		PCM_NUM;				// PCMÈÖ¹æ
-	int		PCM_LOOP_FLG;			// ¥ë¡¼¥×»ÈÍÑ¥Õ¥é¥°
-	uchar	*PCM_NOW;				// ¸½ºß¤ÎÃÍ
-	int		PCM_NOW_XOR;			// ¸½ºß¤ÎÃÍ¡Ê¾®¿ôÉô¡Ë
-	uchar	*PCM_END;				// ¸½ºß¤Î½ªÎ»¥¢¥É¥ì¥¹
-	uchar	*PCM_END_S;				// ËÜÅö¤Î½ªÎ»¥¢¥É¥ì¥¹
-	uchar	*PCM_LOOP;				// ¥ë¡¼¥×³«»Ï¥¢¥É¥ì¥¹
-	uint	PCM_LOOP_START;			// ¥ê¥Ë¥¢¤Ê¥ë¡¼¥×³«»Ï¥¢¥É¥ì¥¹
-	uint	PCM_LOOP_END;			// ¥ê¥Ë¥¢¤Ê¥ë¡¼¥×½ªÎ»¥¢¥É¥ì¥¹
-	bool	pviflag;				// PVI ¤Ê¤é true
+	int		PCM_NUM;				// PCMç•ªå·
+	int		PCM_LOOP_FLG;			// ãƒ«ãƒ¼ãƒ—ä½¿ç”¨ãƒ•ãƒ©ã‚°
+	uchar	*PCM_NOW;				// ç¾åœ¨ã®å€¤
+	int		PCM_NOW_XOR;			// ç¾åœ¨ã®å€¤ï¼ˆå°æ•°éƒ¨ï¼‰
+	uchar	*PCM_END;				// ç¾åœ¨ã®çµ‚äº†ã‚¢ãƒ‰ãƒ¬ã‚¹
+	uchar	*PCM_END_S;				// æœ¬å½“ã®çµ‚äº†ã‚¢ãƒ‰ãƒ¬ã‚¹
+	uchar	*PCM_LOOP;				// ãƒ«ãƒ¼ãƒ—é–‹å§‹ã‚¢ãƒ‰ãƒ¬ã‚¹
+	uint	PCM_LOOP_START;			// ãƒªãƒ‹ã‚¢ãªãƒ«ãƒ¼ãƒ—é–‹å§‹ã‚¢ãƒ‰ãƒ¬ã‚¹
+	uint	PCM_LOOP_END;			// ãƒªãƒ‹ã‚¢ãªãƒ«ãƒ¼ãƒ—çµ‚äº†ã‚¢ãƒ‰ãƒ¬ã‚¹
+	bool	pviflag;				// PVI ãªã‚‰ true
 } CHANNELWORK;
 
-#ifdef _WIN32
+#if defined _WIN32
 #pragma pack( push, enter_include1 )
 #pragma pack(1)
-#define __PACKED__
 #endif
 
 typedef struct pziheadertag
 {
 	char	header[4];				// 'PZI1'
-	char	dummy1[0x0b-4];			// Í½È÷£±
-	uchar	pzinum;					// PZI¥Ç¡¼¥¿¤ÎÄêµÁ¿ô
-	char	dummy2[0x20-0x0b-1];	// Í½È÷£²
+	char	dummy1[0x0b-4];			// äºˆå‚™ï¼‘
+	uchar	pzinum;					// PZIãƒ‡ãƒ¼ã‚¿ã®å®šç¾©æ•°
+	char	dummy2[0x20-0x0b-1];	// äºˆå‚™ï¼’
 	struct	{
-		DWORD	startaddress;		// ÀèÆ¬¥¢¥É¥ì¥¹
-		DWORD	size;				// ¥Ç¡¼¥¿ÎÌ
-		DWORD	loop_start;			// ¥ë¡¼¥×³«»Ï¥İ¥¤¥ó¥¿
-		DWORD	loop_end;			// ¥ë¡¼¥×½ªÎ»¥İ¥¤¥ó¥¿
-		WORD	rate;				// ºÆÀ¸¼şÇÈ¿ô
-	} __PACKED__ pcmnum[128];
-} __PACKED__ PZIHEADER;
+		DWORD	startaddress;		// å…ˆé ­ã‚¢ãƒ‰ãƒ¬ã‚¹
+		DWORD	size;				// ãƒ‡ãƒ¼ã‚¿é‡
+		DWORD	loop_start;			// ãƒ«ãƒ¼ãƒ—é–‹å§‹ãƒã‚¤ãƒ³ã‚¿
+		DWORD	loop_end;			// ãƒ«ãƒ¼ãƒ—çµ‚äº†ãƒã‚¤ãƒ³ã‚¿
+		WORD	rate;				// å†ç”Ÿå‘¨æ³¢æ•°
+	} pcmnum[128];
+} PZIHEADER;
 
 typedef struct pviheadertag
 {
 	char	header[4];				// 'PVI2'
-	char	dummy1[0x0b-4];			// Í½È÷£±
-	uchar	pvinum;					// PVI¥Ç¡¼¥¿¤ÎÄêµÁ¿ô
-	char	dummy2[0x10-0x0b-1];	// Í½È÷£²
+	char	dummy1[0x0b-4];			// äºˆå‚™ï¼‘
+	uchar	pvinum;					// PVIãƒ‡ãƒ¼ã‚¿ã®å®šç¾©æ•°
+	char	dummy2[0x10-0x0b-1];	// äºˆå‚™ï¼’
 	struct	{
-		WORD	startaddress;		// ÀèÆ¬¥¢¥É¥ì¥¹
-		WORD	endaddress;			// ¥Ç¡¼¥¿ÎÌ
-	} __PACKED__ pcmnum[128];
-} __PACKED__ PVIHEADER;
+		WORD	startaddress;		// å…ˆé ­ã‚¢ãƒ‰ãƒ¬ã‚¹
+		WORD	endaddress;			// ãƒ‡ãƒ¼ã‚¿é‡
+	} pcmnum[128];
+} PVIHEADER;
 
-#ifdef _WIN32
+#if defined _WIN32
 #pragma pack( pop, enter_include1 )
 #endif
 
 
-class PPZ8
+/// <summary>
+/// PPZ8 ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ãƒ¼ã‚¹
+/// </summary>
+class IPPZ8
+{
+public:
+	virtual bool __cdecl Init(uint rate, bool ip) = 0;				// 00H åˆæœŸåŒ–
+	virtual bool __cdecl Play(int ch, int bufnum, int num, WORD start, WORD stop) = 0;
+												// 01H PCM ç™ºéŸ³
+	virtual bool __cdecl Stop(int ch) = 0;							// 02H PCM åœæ­¢
+	virtual int __cdecl Load(TCHAR *filename, int bufnum) = 0;	// 03H PVI/PZIï¾Œï½§ï½²ï¾™ã®èª­ã¿è¾¼ã¿
+	virtual bool __cdecl SetVol(int ch, int vol) = 0;				// 07H ï¾ï¾ï¾˜ï½­ï½°ï¾‘è¨­å®š
+	virtual bool __cdecl SetOntei(int ch, uint ontei) = 0;			// 0BH éŸ³ç¨‹å‘¨æ³¢æ•°ã®è¨­å®š
+	virtual bool __cdecl SetLoop(int ch, uint loop_start, uint loop_end) = 0;
+												// 0EH ï¾™ï½°ï¾Œï¾Ÿï¾ï¾Ÿï½²ï¾ï¾€ã®è¨­å®š
+	virtual void __cdecl AllStop(void) = 0;							// 12H (PPZ8)å…¨åœæ­¢
+	virtual bool __cdecl SetPan(int ch, int pan) = 0;				// 13H (PPZ8)PANæŒ‡å®š
+	virtual bool __cdecl SetRate(uint rate, bool ip) = 0;			// 14H (PPZ8)ï¾šï½°ï¾„è¨­å®š
+	virtual bool __cdecl SetSourceRate(int ch, int rate) = 0;		// 15H (PPZ8)å…ƒï¾ƒï¾ï½°ï¾€å‘¨æ³¢æ•°è¨­å®š
+	virtual void __cdecl SetAllVolume(int vol) = 0;					// 16H (PPZ8)å…¨ä½“ï¾ï¾ï¾˜ï¾•ï½°ï¾‘ã®è¨­å®šï¼ˆ86B Mixer)
+	virtual void __cdecl SetVolume(int vol) = 0;
+	//PCMTMP_SET		;17H PCMï¾ƒï¾ï¾ï¾Ÿï¾—ï¾˜è¨­å®š
+	virtual void __cdecl ADPCM_EM_SET(bool flag) = 0;				// 18H (PPZ8)ADPCMã‚¨ãƒŸãƒ¥ãƒ¬ãƒ¼ãƒˆ
+	//REMOVE_FSET		;19H (PPZ8)å¸¸é§è§£é™¤ï¾Œï¾—ï½¸ï¾è¨­å®š
+	//FIFOBUFF_SET		;1AH (PPZ8)FIFOï¾Šï¾ï½¯ï¾Œï½§ã®å¤‰æ›´
+	//RATE_SET		;1BH (PPZ8)WSSè©³ç´°ï¾šï½°ï¾„è¨­å®š
+};
+
+
+class PPZ8 : public IPPZ8
 {
 public:
 	PPZ8();
 	~PPZ8();
 	
-	bool Init(uint rate, bool ip);				// 00H ½é´ü²½
-	bool Play(int ch, int bufnum, int num);		// 01H PCM È¯²»
-	bool Stop(int ch);							// 02H PCM Ää»ß
-	int Load(char *filename, int bufnum);		// 03H PVI/PZI¥Õ¥¡¥¤¥ë¤ÎÆÉ¤ß¹ş¤ß
-	bool SetVol(int ch, int vol);				// 07H ¥Ü¥ê¥å¡¼¥àÀßÄê
-	bool SetOntei(int ch, uint ontei);			// 0BH ²»Äø¼şÇÈ¿ô¤ÎÀßÄê
-	bool SetLoop(int ch, uint loop_start, uint loop_end);
-												// 0EH ¥ë¡¼¥×¥İ¥¤¥ó¥¿¤ÎÀßÄê
-	void AllStop(void);							// 12H (PPZ8)Á´Ää»ß
-	bool SetPan(int ch, int pan);				// 13H (PPZ8)PAN»ØÄê
-	bool SetRate(uint rate, bool ip);			// 14H (PPZ8)¥ì¡¼¥ÈÀßÄê
-	bool SetSourceRate(int ch, int rate);		// 15H (PPZ8)¸µ¥Ç¡¼¥¿¼şÇÈ¿ôÀßÄê
-	void SetAllVolume(int vol);					// 16H (PPZ8)Á´ÂÎ¥Ü¥ê¥æ¡¼¥à¤ÎÀßÄê¡Ê86B Mixer)
-	void SetVolume(int vol);
-	//PCMTMP_SET		;17H PCM¥Æ¥ó¥İ¥é¥êÀßÄê
-	//ADPCM_EM_SET		;18H (PPZ8)ADPCM¥¨¥ß¥å¥ì¡¼¥È
-	//REMOVE_FSET		;19H (PPZ8)¾ïÃó²ò½ü¥Õ¥é¥°ÀßÄê
-	//FIFOBUFF_SET		;1AH (PPZ8)FIFO¥Ğ¥Ã¥Õ¥¡¤ÎÊÑ¹¹
-	//RATE_SET		;1BH (PPZ8)WSS¾ÜºÙ¥ì¡¼¥ÈÀßÄê
-
-	void Mix(Sample* dest, int nsamples);
-
-	PZIHEADER PCME_WORK[2];						// PCM¤Î²»¿§¥Ø¥Ã¥À¡¼
-	bool	pviflag[2];							// PVI ¤Ê¤é true
-	char	PVI_FILE[2][_MAX_PATH];				// ¥Õ¥¡¥¤¥ëÌ¾
-
-private:
-	void	WORK_INIT(void);					// ¥ï¡¼¥¯½é´ü²½
-	bool	interpolation;						// Êä´°¤¹¤ë¤«¡©
-	int		AVolume;
-	CHANNELWORK	channelwork[PCM_CNL_MAX];		// ³Æ¥Á¥ã¥ó¥Í¥ë¤Î¥ï¡¼¥¯
-	uchar	*XMS_FRAME_ADR[2];					// XMS¤Ç³ÎÊİ¤·¤¿¥á¥â¥ê¥¢¥É¥ì¥¹¡Ê¥ê¥Ë¥¢¡Ë
-	int		PCM_VOLUME;							// 86B MixerÁ´ÂÎ¥Ü¥ê¥å¡¼¥à
-												// (DEF=12)
-	int		volume;								// Á´ÂÎ¥Ü¥ê¥å¡¼¥à
-												// (opna unit ¸ß´¹)
-	int		DIST_F;								// ºÆÀ¸¼şÇÈ¿ô
+	bool __cdecl Init(uint rate, bool ip);				// 00H åˆæœŸåŒ–
+	bool __cdecl Play(int ch, int bufnum, int num, WORD start, WORD stop);
+														// 01H PCM ç™ºéŸ³
+	bool  __cdecl Stop(int ch);							// 02H PCM åœæ­¢
+	int  __cdecl Load(TCHAR *filename, int bufnum);		// 03H PVI/PZIï¾Œï½§ï½²ï¾™ã®èª­ã¿è¾¼ã¿
+	bool  __cdecl SetVol(int ch, int vol);				// 07H ï¾ï¾ï¾˜ï½­ï½°ï¾‘è¨­å®š
+	bool  __cdecl SetOntei(int ch, uint ontei);			// 0BH éŸ³ç¨‹å‘¨æ³¢æ•°ã®è¨­å®š
+	bool  __cdecl SetLoop(int ch, uint loop_start, uint loop_end);
+														// 0EH ï¾™ï½°ï¾Œï¾Ÿï¾ï¾Ÿï½²ï¾ï¾€ã®è¨­å®š
+	void  __cdecl AllStop(void);						// 12H (PPZ8)å…¨åœæ­¢
+	bool  __cdecl SetPan(int ch, int pan);				// 13H (PPZ8)PANæŒ‡å®š
+	bool  __cdecl SetRate(uint rate, bool ip);			// 14H (PPZ8)ï¾šï½°ï¾„è¨­å®š
+	bool  __cdecl SetSourceRate(int ch, int rate);		// 15H (PPZ8)å…ƒï¾ƒï¾ï½°ï¾€å‘¨æ³¢æ•°è¨­å®š
+	void  __cdecl SetAllVolume(int vol);				// 16H (PPZ8)å…¨ä½“ï¾ï¾ï¾˜ï¾•ï½°ï¾‘ã®è¨­å®šï¼ˆ86B Mixer)
+	void  __cdecl SetVolume(int vol);
+	//PCMTMP_SET		;17H PCMï¾ƒï¾ï¾ï¾Ÿï¾—ï¾˜è¨­å®š
+	void  __cdecl ADPCM_EM_SET(bool flag);				// 18H (PPZ8)ADPCMã‚¨ãƒŸãƒ¥ãƒ¬ãƒ¼ãƒˆ
+	//REMOVE_FSET		;19H (PPZ8)å¸¸é§è§£é™¤ï¾Œï¾—ï½¸ï¾è¨­å®š
+	//FIFOBUFF_SET		;1AH (PPZ8)FIFOï¾Šï¾ï½¯ï¾Œï½§ã®å¤‰æ›´
+	//RATE_SET		;1BH (PPZ8)WSSè©³ç´°ï¾šï½°ï¾„è¨­å®š
 	
-//	static Sample VolumeTable[16][256];			// ²»ÎÌ¥Æ¡¼¥Ö¥ë
-	Sample VolumeTable[16][256];				// ²»ÎÌ¥Æ¡¼¥Ö¥ë
-	void	MakeVolumeTable(int vol);			// ²»ÎÌ¥Æ¡¼¥Ö¥ë¤ÎºîÀ®
+	void Mix(Sample* dest, int nsamples);
+	
+	PZIHEADER PCME_WORK[2];						// PCMã®éŸ³è‰²ãƒ˜ãƒƒãƒ€ãƒ¼
+	bool	pviflag[2];							// PVI ãªã‚‰ true
+	TCHAR	PVI_FILE[2][_MAX_PATH];				// ãƒ•ã‚¡ã‚¤ãƒ«å
+	
+private:
+	FilePath	filepath;						// ãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹é–¢é€£ã®ã‚¯ãƒ©ã‚¹ãƒ©ã‚¤ãƒ–ãƒ©ãƒª
+	
+	void	WORK_INIT(void);					// ï¾œï½°ï½¸åˆæœŸåŒ–
+	bool	ADPCM_EM_FLG;						// CH8 ã§ADPCM ã‚¨ãƒŸãƒ¥ãƒ¬ãƒ¼ãƒˆã™ã‚‹ã‹ï¼Ÿ
+	bool	interpolation;						// è£œå®Œã™ã‚‹ã‹ï¼Ÿ
+	int		AVolume;
+	CHANNELWORK	channelwork[PCM_CNL_MAX];		// å„ãƒãƒ£ãƒ³ãƒãƒ«ã®ãƒ¯ãƒ¼ã‚¯
+	uchar	*XMS_FRAME_ADR[2];					// XMSã§ç¢ºä¿ã—ãŸãƒ¡ãƒ¢ãƒªã‚¢ãƒ‰ãƒ¬ã‚¹ï¼ˆãƒªãƒ‹ã‚¢ï¼‰
+	int		XMS_FRAME_SIZE[2];					// PZI or PVI å†…éƒ¨ãƒ‡ãƒ¼ã‚¿ã‚µã‚¤ã‚º
+	int		PCM_VOLUME;							// 86B Mixerå…¨ä½“ãƒœãƒªãƒ¥ãƒ¼ãƒ 
+												// (DEF=12)
+	int		volume;								// å…¨ä½“ãƒœãƒªãƒ¥ãƒ¼ãƒ 
+												// (opna unit äº’æ›)
+	int		DIST_F;								// å†ç”Ÿå‘¨æ³¢æ•°
+	
+//	static Sample VolumeTable[16][256];			// éŸ³é‡ãƒ†ãƒ¼ãƒ–ãƒ«
+	Sample VolumeTable[16][256];				// éŸ³é‡ãƒ†ãƒ¼ãƒ–ãƒ«
+	
+	void	_Init(void);						// åˆæœŸåŒ–(å†…éƒ¨å‡¦ç†)
+	void	MakeVolumeTable(int vol);			// éŸ³é‡ãƒ†ãƒ¼ãƒ–ãƒ«ã®ä½œæˆ
 };
 
 #endif	// PPZ8L_H

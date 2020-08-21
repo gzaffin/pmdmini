@@ -1,32 +1,64 @@
 //=============================================================================
-//		86B PCM Driver ¡ÖP86DRV¡× Unit
+//		86B PCM Driver ã€ŒP86DRVã€ Unit
 //			programmed by M.Kajihara 96/01/16
 //			Windows Converted by C60
 //=============================================================================
 
+#if !defined _WIN32
+#include	<cstdint>
+#endif
 #include	<stdio.h>
-#include	<stdlib.h>
-#include	<string.h>
 #include	<math.h>
 #include	"p86drv.h"
 #include	"util.h"
 
 //-----------------------------------------------------------------------------
-//	¥³¥ó¥¹¥È¥é¥¯¥¿¡¦¥Ç¥¹¥È¥é¥¯¥¿
+//	ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ãƒ»ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 //-----------------------------------------------------------------------------
 P86DRV::P86DRV()
 {
-	rate = SOUND_44K;			// ºÆÀ¸¼şÇÈ¿ô
-	p86_addr = NULL;			// P86 buffer
-	interpolation = false;
-	
-	memset(&p86header, 0, sizeof(p86header));
-	memset(p86_file, 0, sizeof(p86_file));
+	p86_addr = NULL;
+	_Init();
+}
 
+
+P86DRV::~P86DRV()
+{
+	if(p86_addr != NULL) {
+		free(p86_addr);			// ãƒ¡ãƒ¢ãƒªé–‹æ”¾
+	}
+}
+
+
+//-----------------------------------------------------------------------------
+//	åˆæœŸåŒ–
+//-----------------------------------------------------------------------------
+bool P86DRV::Init(uint r, bool ip)
+{
+	_Init();
+	SetRate(r, ip);
+	return true;
+}
+
+
+//-----------------------------------------------------------------------------
+//	åˆæœŸåŒ–(å†…éƒ¨å‡¦ç†)
+//-----------------------------------------------------------------------------
+void P86DRV::_Init(void)
+{
+	memset(p86_file, 0, sizeof(p86_file));
+	memset(&p86header, 0, sizeof(p86header));
+	
+	interpolation = false;
+	rate = SOUND_44K;
 	srcrate = ratetable[3];		// 16.54kHz
-	rate = ratetable[7];		// 44.1kHz
-	pcm86_pan_flag = false;		// ¥Ñ¥ó¥Ç¡¼¥¿£±(bit0=º¸/bit1=±¦/bit2=µÕ)
-	pcm86_pan_dat = 0;			// ¥Ñ¥ó¥Ç¡¼¥¿£²(²»ÎÌ¤ò²¼¤²¤ë¥µ¥¤¥É¤Î²»ÎÌÃÍ)
+	ontei = 0;
+	vol = 0;
+	
+	if(p86_addr != NULL) {
+		free(p86_addr);			// ãƒ¡ãƒ¢ãƒªé–‹æ”¾
+		p86_addr = NULL;
+	}
 	
 	start_ofs = NULL;
 	start_ofs_x = 0;
@@ -35,7 +67,6 @@ P86DRV::P86DRV()
 	_size = 0;
 	addsize1 = 0;
 	addsize2 = 0;
-	ontei = 0;
 	repeat_ofs = NULL;
 	repeat_size = 0;
 	release_ofs = NULL;
@@ -43,33 +74,18 @@ P86DRV::P86DRV()
 	repeat_flag = false;
 	release_flag1 = false;
 	release_flag2 = false;
+	
+	pcm86_pan_flag = 0;
+	pcm86_pan_dat = 0;
 	play86_flag = false;
-
+	
+	AVolume = 0;
 	SetVolume(0);
 }
 
 
-P86DRV::~P86DRV()
-{
-	if(p86_addr != NULL) {
-		free(p86_addr);			// ¥á¥â¥ê³«Êü
-	}
-}
-
-
 //-----------------------------------------------------------------------------
-//	½é´ü²½
-//-----------------------------------------------------------------------------
-bool P86DRV::Init(uint r, bool ip)
-{
-	SetVolume(0);
-	SetRate(r, ip);
-	return true;
-}
-
-
-//-----------------------------------------------------------------------------
-//	ºÆÀ¸¼şÇÈ¿ô¡¢°ì¼¡Êä´°ÀßÄêÀßÄê
+//	å†ç”Ÿå‘¨æ³¢æ•°ã€ä¸€æ¬¡è£œå®Œè¨­å®šè¨­å®š
 //-----------------------------------------------------------------------------
 bool P86DRV::SetRate(uint r, bool ip)
 {
@@ -78,39 +94,29 @@ bool P86DRV::SetRate(uint r, bool ip)
 	rate = r;
 	interpolation = ip;
 
-	_ontei = (uint)((unsigned long long)ontei * srcrate / rate);
+#if defined _WIN32	
+	_ontei = (uint)((unsigned _int64)ontei * srcrate / rate);
+#else
+	_ontei = (uint)((std::uint64_t)ontei * srcrate / rate);
+#endif
 	addsize2 = (_ontei & 0xffff) >> 4;
 	addsize1 = _ontei >> 16;
-
+	
 	return true;
 }
 
 
 //-----------------------------------------------------------------------------
-//	²»ÎÌÄ´À°ÍÑ
+//	éŸ³é‡èª¿æ•´ç”¨
 //-----------------------------------------------------------------------------
 void P86DRV::SetVolume(int volume)
 {
 	MakeVolumeTable(volume);
 }
 
-int P86DRV::read_char(void *value)
-{
-	int temp;
-	
-	if ((*(uchar *)value) & 0x80)
-		temp = -1;
-	else
-		temp = 0;
-
-	memcpy(&temp,value,sizeof(char));
-		
-	return temp;
-}
-
 
 //-----------------------------------------------------------------------------
-//	²»ÎÌ¥Æ¡¼¥Ö¥ëºîÀ®
+//	éŸ³é‡ãƒ†ãƒ¼ãƒ–ãƒ«ä½œæˆ
 //-----------------------------------------------------------------------------
 void P86DRV::MakeVolumeTable(int volume)
 {
@@ -122,9 +128,10 @@ void P86DRV::MakeVolumeTable(int volume)
 	if(AVolume != AVolume_temp) {
 		AVolume = AVolume_temp;
 		for(i = 0; i < 16; i++) {
-			temp = pow(2.0, (i + 15) / 2.0) * AVolume / 0x18000;
+//@			temp = pow(2.0, (i + 15) / 2.0) * AVolume / 0x18000;
+			temp = i * AVolume / 256;
 			for(j = 0; j < 256; j++) {
-				VolumeTable[i][j] = (Sample)(read_char(&j) * temp);
+				VolumeTable[i][j] = (Sample)((char)j * temp);
 			}
 		}
 	}
@@ -132,81 +139,90 @@ void P86DRV::MakeVolumeTable(int volume)
 
 
 //-----------------------------------------------------------------------------
-//	P86 ÆÉ¤ß¹ş¤ß
+//	P86 èª­ã¿è¾¼ã¿
 //-----------------------------------------------------------------------------
-int P86DRV::Load(char *filename)
+int P86DRV::Load(TCHAR *filename)
 {
-	FILE		*fp;
+	FileIO		file;
 	int			i, size;
 	P86HEADER	_p86header;
 	P86HEADER2	p86header2;
 	
 	Stop();
-
-	p86_file[0] = '\0';	
-	if((fp = fopen(filename, "rb")) == NULL) {
-		if(p86_addr != NULL) {
-			free(p86_addr);		// ³«Êü
-			p86_addr = NULL;
-			memset(&p86header, 0, sizeof(p86header));
-		}
-		return _ERR_OPEN_P86_FILE;						//	¥Õ¥¡¥¤¥ë¤¬³«¤±¤Ê¤¤
+	
+	filepath.Clear(p86_file, sizeof(p86_file)/sizeof(TCHAR));
+	
+	if(*filename == filepath.EmptyChar) {
+		return _ERR_OPEN_P86_FILE;
 	}
 	
-		size = (int)GetFileSize_s(filename);		// ¥Õ¥¡¥¤¥ë¥µ¥¤¥º
-		fread(&_p86header, 1, sizeof(_p86header), fp);
-		
-		// P86HEADER ¢ª P86HEADER2 ¤ØÊÑ´¹
-		memset(&p86header2, 0, sizeof(p86header2));
-		
-		for(i = 0; i < MAX_P86; i++) {
-			p86header2.pcmnum[i].start = 
-				_p86header.pcmnum[i].start[0] +
-				_p86header.pcmnum[i].start[1] * 0x100 + 
-				_p86header.pcmnum[i].start[2] * 0x10000 - 0x610;
-			p86header2.pcmnum[i].size = 
-				_p86header.pcmnum[i].size[0] +
-				_p86header.pcmnum[i].size[1] * 0x100 + 
-				_p86header.pcmnum[i].size[2] * 0x10000;
-		}
-		
-		if(memcmp(&p86header, &p86header2, sizeof(p86header)) == 0) {
-			strcpy(p86_file, filename);
-			fclose(fp);
-			return _WARNING_P86_ALREADY_LOAD;		// Æ±¤¸¥Õ¥¡¥¤¥ë
-		}
-		
+	if(file.Open(filename, FileIO::readonly) == false) {
 		if(p86_addr != NULL) {
-			free(p86_addr);		// ¤¤¤Ã¤¿¤ó³«Êü
+			free(p86_addr);		// é–‹æ”¾
 			p86_addr = NULL;
+			memset(&p86header, 0, sizeof(p86header));
+			memset(p86_file, 0, sizeof(p86_file));
 		}
-		
-		memcpy(&p86header, &p86header2, sizeof(p86header));
-		
-		size -= sizeof(_p86header);
-
-		if((p86_addr = (uchar *)malloc(size)) == NULL) {
-			fclose(fp);
-			return _ERR_OUT_OF_MEMORY;			// ¥á¥â¥ê¤¬³ÎÊİ¤Ç¤­¤Ê¤¤
-		}
-
-		fread(p86_addr, size, 1, fp);
+		return _ERR_OPEN_P86_FILE;						//	ãƒ•ã‚¡ã‚¤ãƒ«ãŒé–‹ã‘ãªã„
+	}
 	
-		//	¥Õ¥¡¥¤¥ëÌ¾ÅĞÏ¿
-		strcpy(p86_file, filename);
+	size = (int)filepath.GetFileSize(filename);		// ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚º
+	file.Read(&_p86header, sizeof(_p86header));
 	
-		fclose(fp);
-
+	// P86HEADER â†’ P86HEADER2 ã¸å¤‰æ›
+	memset(&p86header2, 0, sizeof(p86header2));
+	
+	for(i = 0; i < MAX_P86; i++) {
+		p86header2.pcmnum[i].start = 
+			_p86header.pcmnum[i].start[0] +
+			_p86header.pcmnum[i].start[1] * 0x100 + 
+			_p86header.pcmnum[i].start[2] * 0x10000 - 0x610;
+		p86header2.pcmnum[i].size = 
+			_p86header.pcmnum[i].size[0] +
+			_p86header.pcmnum[i].size[1] * 0x100 + 
+			_p86header.pcmnum[i].size[2] * 0x10000;
+	}
+	
+	if(memcmp(&p86header, &p86header2, sizeof(p86header)) == 0) {
+		filepath.Strcpy(p86_file, filename);
+		file.Close();
+		return _WARNING_P86_ALREADY_LOAD;		// åŒã˜ãƒ•ã‚¡ã‚¤ãƒ«
+	}
+	
+	if(p86_addr != NULL) {
+		free(p86_addr);		// ã„ã£ãŸã‚“é–‹æ”¾
+		p86_addr = NULL;
+	}
+	
+	memcpy(&p86header, &p86header2, sizeof(p86header));
+	
+	size -= sizeof(_p86header);
+	
+	if((p86_addr = (uchar *)malloc(size)) == NULL) {
+		file.Close();
+		return _ERR_OUT_OF_MEMORY;			// ãƒ¡ãƒ¢ãƒªãŒç¢ºä¿ã§ããªã„
+	}
+	
+	file.Read(p86_addr, size);
+	
+	//	ãƒ•ã‚¡ã‚¤ãƒ«åç™»éŒ²
+	filepath.Strcpy(p86_file, filename);
+	
+	file.Close();
 	return _P86DRV_OK;
 }
 
 
 //-----------------------------------------------------------------------------
-//	PCM ÈÖ¹æÀßÄê
+//	PCM ç•ªå·è¨­å®š
 //-----------------------------------------------------------------------------
 bool P86DRV::SetNeiro(int num)
 {
-	_start_ofs = p86_addr + p86header.pcmnum[num].start;
+	if(p86_addr == NULL) {
+		_start_ofs = NULL;
+	} else {
+		_start_ofs = p86_addr + p86header.pcmnum[num].start;
+	}
 	_size = p86header.pcmnum[num].size;
 	repeat_flag = false;
 	release_flag1 = false;
@@ -215,18 +231,18 @@ bool P86DRV::SetNeiro(int num)
 
 
 //-----------------------------------------------------------------------------
-//	PAN ÀßÄê
+//	PAN è¨­å®š
 //-----------------------------------------------------------------------------
 bool P86DRV::SetPan(int flag, int data)
 {
 	pcm86_pan_flag = flag;
 	pcm86_pan_dat = data;
-	return true;	
+	return true;
 }
 
 
 //-----------------------------------------------------------------------------
-//	²»ÎÌÀßÄê
+//	éŸ³é‡è¨­å®š
 //-----------------------------------------------------------------------------
 bool P86DRV::SetVol(int _vol)
 {
@@ -236,8 +252,8 @@ bool P86DRV::SetVol(int _vol)
 
 
 //-----------------------------------------------------------------------------
-//	²»Äø¼şÇÈ¿ô¤ÎÀßÄê
-//		_srcrate : ÆşÎÏ¥Ç¡¼¥¿¤Î¼şÇÈ¿ô
+//	éŸ³ç¨‹å‘¨æ³¢æ•°ã®è¨­å®š
+//		_srcrate : å…¥åŠ›ãƒ‡ãƒ¼ã‚¿ã®å‘¨æ³¢æ•°
 //			0 : 4.13kHz
 //			1 : 5.52kHz
 //			2 : 8.27kHz
@@ -246,18 +262,22 @@ bool P86DRV::SetVol(int _vol)
 //			5 : 22.05kHz
 //			6 : 33.08kHz
 //			7 : 44.1kHz
-//		_ontei : ÀßÄê²»Äø
+//		_ontei : è¨­å®šéŸ³ç¨‹
 //-----------------------------------------------------------------------------
 bool P86DRV::SetOntei(int _srcrate, uint _ontei)
 {
 	if(_srcrate < 0 || _srcrate > 7) return false;
 	if(_ontei > 0x1fffff) return false;
-
+	
 	ontei = _ontei;
 	srcrate = ratetable[_srcrate];
 	
-	_ontei = (uint)((unsigned long long)_ontei * srcrate / rate);
-
+#if defined _WIN32	
+	_ontei = (uint)((unsigned _int64)_ontei * srcrate / rate);
+#else
+	_ontei = (uint)((std::uint64_t)_ontei * srcrate / rate);
+#endif
+	
 	addsize2 = (_ontei & 0xffff) >> 4;
 	addsize1 = _ontei >> 16;
 	return true;
@@ -265,113 +285,112 @@ bool P86DRV::SetOntei(int _srcrate, uint _ontei)
 
 
 //-----------------------------------------------------------------------------
-//	¥ê¥Ô¡¼¥ÈÀßÄê
+//	ãƒªãƒ”ãƒ¼ãƒˆè¨­å®š
 //-----------------------------------------------------------------------------
 bool P86DRV::SetLoop(int loop_start, int loop_end, int release_start, bool adpcm)
 {
 	int		ax, dx, _dx;
-
+	
 	repeat_flag = true;
 	release_flag1 = false;
 	dx = _dx = _size;
 	
-	
-	// °ì¸ÄÌÜ = ¥ê¥Ô¡¼¥È³«»Ï°ÌÃÖ
+	// ä¸€å€‹ç›® = ãƒªãƒ”ãƒ¼ãƒˆé–‹å§‹ä½ç½®
 	ax = loop_start;
 	if(ax >= 0) {
-		// Àµ¤Î¾ì¹ç
+		// æ­£ã®å ´åˆ
 		if(adpcm) ax *= 32;
-		if(ax >= _size - 1) ax = _size - 2;		// ¥¢¥¯¥»¥¹°ãÈ¿ÂĞºö
+		if(ax >= _size - 1) ax = _size - 2;		// ã‚¢ã‚¯ã‚»ã‚¹é•åå¯¾ç­–
 		if(ax < 0) ax = 0;
-
-		repeat_size = _size - ax;		// ¥ê¥Ô¡¼¥È¥µ¥¤¥º¡áÁ´ÂÎ¤Î¥µ¥¤¥º-»ØÄêÃÍ
-		repeat_ofs = _start_ofs + ax;	// ¥ê¥Ô¡¼¥È³«»Ï°ÌÃÖ¤«¤é»ØÄêÃÍ¤ò²Ã»»
+		
+		repeat_size = _size - ax;		// ãƒªãƒ”ãƒ¼ãƒˆã‚µã‚¤ã‚ºï¼å…¨ä½“ã®ã‚µã‚¤ã‚º-æŒ‡å®šå€¤
+		repeat_ofs = _start_ofs + ax;	// ãƒªãƒ”ãƒ¼ãƒˆé–‹å§‹ä½ç½®ã‹ã‚‰æŒ‡å®šå€¤ã‚’åŠ ç®—
 	} else {
-		// Éé¤Î¾ì¹ç
+		// è² ã®å ´åˆ
 		ax = -ax;
 		if(adpcm) ax *= 32;
 		dx -= ax;
-		if(dx < 0) {							// ¥¢¥¯¥»¥¹°ãÈ¿ÂĞºö
+		if(dx < 0) {							// ã‚¢ã‚¯ã‚»ã‚¹é•åå¯¾ç­–
 			ax = _dx;
 			dx = 0;
 		}
 		
-		repeat_size = ax;	// ¥ê¥Ô¡¼¥È¥µ¥¤¥º¡áneg(»ØÄêÃÍ)
-		repeat_ofs = _start_ofs + dx;	//¥ê¥Ô¡¼¥È³«»Ï°ÌÃÖ¤Ë(Á´ÂÎ¥µ¥¤¥º-»ØÄêÃÍ)¤ò²Ã»»
+		repeat_size = ax;	// ãƒªãƒ”ãƒ¼ãƒˆã‚µã‚¤ã‚ºï¼neg(æŒ‡å®šå€¤)
+		repeat_ofs = _start_ofs + dx;	//ãƒªãƒ”ãƒ¼ãƒˆé–‹å§‹ä½ç½®ã«(å…¨ä½“ã‚µã‚¤ã‚º-æŒ‡å®šå€¤)ã‚’åŠ ç®—
 	
 	}
 	
-	// £²¸ÄÌÜ = ¥ê¥Ô¡¼¥È½ªÎ»°ÌÃÖ
+	// ï¼’å€‹ç›® = ãƒªãƒ”ãƒ¼ãƒˆçµ‚äº†ä½ç½®
 	ax = loop_end;
 	if(ax > 0) {
-		// Àµ¤Î¾ì¹ç
+		// æ­£ã®å ´åˆ
 		if(adpcm) ax *= 32;
-		if(ax >= _size - 1) ax = _size - 2;		// ¥¢¥¯¥»¥¹°ãÈ¿ÂĞºö
+		if(ax >= _size - 1) ax = _size - 2;		// ã‚¢ã‚¯ã‚»ã‚¹é•åå¯¾ç­–
 		if(ax < 0) ax = 0;
-
+		
 		_size = ax;
 		dx -= ax;
-		// ¥ê¥Ô¡¼¥È¥µ¥¤¥º¤«¤é(µì¥µ¥¤¥º-¿·¥µ¥¤¥º)¤ò°ú¤¯
+		// ãƒªãƒ”ãƒ¼ãƒˆã‚µã‚¤ã‚ºã‹ã‚‰(æ—§ã‚µã‚¤ã‚º-æ–°ã‚µã‚¤ã‚º)ã‚’å¼•ã
 		repeat_size -= dx;
 	} else if(ax < 0) {
-		// Éé¤Î¾ì¹ç
+		// è² ã®å ´åˆ
 		ax = -ax;
 		if(adpcm) ax *= 32;
 		if(ax > repeat_size) ax = repeat_size;
-		repeat_size -= ax;	// ¥ê¥Ô¡¼¥È¥µ¥¤¥º¤«¤éneg(»ØÄêÃÍ)¤ò°ú¤¯
-		_size -= ax;			// ËÜÍè¤Î¥µ¥¤¥º¤«¤é»ØÄêÃÍ¤ò°ú¤¯
+		repeat_size -= ax;	// ãƒªãƒ”ãƒ¼ãƒˆã‚µã‚¤ã‚ºã‹ã‚‰neg(æŒ‡å®šå€¤)ã‚’å¼•ã
+		_size -= ax;			// æœ¬æ¥ã®ã‚µã‚¤ã‚ºã‹ã‚‰æŒ‡å®šå€¤ã‚’å¼•ã
 	}
 	
-	// £³¸ÄÌÜ = ¥ê¥ê¡¼¥¹³«»Ï°ÌÃÖ
+	// ï¼“å€‹ç›® = ãƒªãƒªãƒ¼ã‚¹é–‹å§‹ä½ç½®
 	ax = release_start;
-	if((ushort)ax != 0x8000) {				// 8000H¤Ê¤éÀßÄê¤·¤Ê¤¤
-		// release³«»Ï°ÌÃÖ = start°ÌÃÖ¤ËÀßÄê
+	if((ushort)ax != 0x8000) {				// 8000Hãªã‚‰è¨­å®šã—ãªã„
+		// releaseé–‹å§‹ä½ç½® = startä½ç½®ã«è¨­å®š
 		release_ofs = _start_ofs;
 		
-		// release_size = º£¤Îsize¤ËÀßÄê
+		// release_size = ä»Šã®sizeã«è¨­å®š
 		release_size = _dx;
 		
-		// ¥ê¥ê¡¼¥¹¤¹¤ë¤ËÀßÄê
+		// ãƒªãƒªãƒ¼ã‚¹ã™ã‚‹ã«è¨­å®š
 		release_flag1 = true;
 		if(ax > 0) {
-			// Àµ¤Î¾ì¹ç
+			// æ­£ã®å ´åˆ
 			if(adpcm) ax *= 32;
-			if(ax >= _size - 1) ax = _size - 2;		// ¥¢¥¯¥»¥¹°ãÈ¿ÂĞºö
+			if(ax >= _size - 1) ax = _size - 2;		// ã‚¢ã‚¯ã‚»ã‚¹é•åå¯¾ç­–
 			if(ax < 0) ax = 0;
 			
-			// ¥ê¡¼¥¹¥µ¥¤¥º¡áÁ´ÂÎ¤Î¥µ¥¤¥º-»ØÄêÃÍ
+			// ãƒªãƒ¼ã‚¹ã‚µã‚¤ã‚ºï¼å…¨ä½“ã®ã‚µã‚¤ã‚º-æŒ‡å®šå€¤
 			release_size -= ax;
 			
-			// ¥ê¥ê¡¼¥¹³«»Ï°ÌÃÖ¤«¤é»ØÄêÃÍ¤ò²Ã»»
+			// ãƒªãƒªãƒ¼ã‚¹é–‹å§‹ä½ç½®ã‹ã‚‰æŒ‡å®šå€¤ã‚’åŠ ç®—
 			release_ofs += ax;
 		} else {
-			// Éé¤Î¾ì¹ç
+			// è² ã®å ´åˆ
 			ax = -ax;
 			if(adpcm) ax *= 32;
 			if(ax > _size) ax = _size;
 			
-			// ¥ê¥ê¡¼¥¹¥µ¥¤¥º¡áneg(»ØÄêÃÍ)
+			// ãƒªãƒªãƒ¼ã‚¹ã‚µã‚¤ã‚ºï¼neg(æŒ‡å®šå€¤)
 			release_size = ax;
 			
 			_dx -= ax;
 			
-			// ¥ê¥ê¡¼¥¹³«»Ï°ÌÃÖ¤Ë(Á´ÂÎ¥µ¥¤¥º-»ØÄêÃÍ)¤ò²Ã»»
+			// ãƒªãƒªãƒ¼ã‚¹é–‹å§‹ä½ç½®ã«(å…¨ä½“ã‚µã‚¤ã‚º-æŒ‡å®šå€¤)ã‚’åŠ ç®—
 			release_ofs += _dx;
 		}
 	}
 	return true;
 }
-	
-	
+
+
 //-----------------------------------------------------------------------------
-//	P86 ºÆÀ¸
+//	P86 å†ç”Ÿ
 //-----------------------------------------------------------------------------
 bool P86DRV::Play(void)
 {
 	start_ofs = _start_ofs;
 	start_ofs_x = 0;
 	size = _size;
-
+	
 	play86_flag = true;
 	release_flag2 = false;
 	return true;
@@ -379,7 +398,7 @@ bool P86DRV::Play(void)
 
 
 //-----------------------------------------------------------------------------
-//	P86 Ää»ß
+//	P86 åœæ­¢
 //-----------------------------------------------------------------------------
 bool P86DRV::Stop(void)
 {
@@ -393,10 +412,10 @@ bool P86DRV::Stop(void)
 //-----------------------------------------------------------------------------
 bool P86DRV::Keyoff(void)
 {
-	if(release_flag1 == true) {		// ¥ê¥ê¡¼¥¹¤¬ÀßÄê¤µ¤ì¤Æ¤¤¤ë¤«?
+	if(release_flag1 == true) {		// ãƒªãƒªãƒ¼ã‚¹ãŒè¨­å®šã•ã‚Œã¦ã„ã‚‹ã‹?
 		start_ofs = release_ofs;
 		size = release_size;
-		release_flag2 = true;		// ¥ê¥ê¡¼¥¹¤·¤¿
+		release_flag2 = true;		// ãƒªãƒªãƒ¼ã‚¹ã—ãŸ
 	} else {
 		play86_flag = false;
 	}
@@ -405,18 +424,18 @@ bool P86DRV::Keyoff(void)
 
 
 //-----------------------------------------------------------------------------
-//	¹çÀ®
+//	åˆæˆ
 //-----------------------------------------------------------------------------
 void P86DRV::Mix(Sample* dest, int nsamples)
 {
 	if(play86_flag == false) return;
-	if(size <= 1) {		// °ì¼¡Êä´ÖÂĞºö
+	if(size <= 1) {		// ä¸€æ¬¡è£œé–“å¯¾ç­–
 		play86_flag = false;
-		return;	
+		return;
 	}
-
+	
 //	double_trans(dest, nsamples); return;		// @test
-
+	
 	if(interpolation) {
 		switch(pcm86_pan_flag) {
 			case 0 : double_trans_i(dest, nsamples); break;
@@ -444,19 +463,19 @@ void P86DRV::Mix(Sample* dest, int nsamples)
 
 
 //-----------------------------------------------------------------------------
-//	¿¿¤óÃæ¡Ê°ì¼¡Êä´Ö¤¢¤ê¡Ë
+//	çœŸã‚“ä¸­ï¼ˆä¸€æ¬¡è£œé–“ã‚ã‚Šï¼‰
 //-----------------------------------------------------------------------------
 void P86DRV::double_trans_i(Sample* dest, int nsamples)
 {
 	int		i;
 	Sample	data;
-
+	
 	for(i = 0; i < nsamples; i++) {
 		data = (VolumeTable[vol][*start_ofs] * (0x1000-start_ofs_x)
 				+ VolumeTable[vol][*(start_ofs+1)] * start_ofs_x) >> 12;
 		*dest++ += data;
 		*dest++ += data;
-
+		
 		if(add_address()) {
 			play86_flag = false;
 			return;
@@ -466,20 +485,19 @@ void P86DRV::double_trans_i(Sample* dest, int nsamples)
 
 
 //-----------------------------------------------------------------------------
-//	¿¿¤óÃæ¡ÊµÕÁê¡¢°ì¼¡Êä´Ö¤¢¤ê¡Ë
+//	çœŸã‚“ä¸­ï¼ˆé€†ç›¸ã€ä¸€æ¬¡è£œé–“ã‚ã‚Šï¼‰
 //-----------------------------------------------------------------------------
 void P86DRV::double_trans_g_i(Sample* dest, int nsamples)
 {
 	int		i;
 	Sample	data;
-
-
+	
 	for(i = 0; i < nsamples; i++) {
 		data = (VolumeTable[vol][*start_ofs] * (0x1000-start_ofs_x)
 				+ VolumeTable[vol][*(start_ofs+1)] * start_ofs_x) >> 12;
 		*dest++ += data;
 		*dest++ -= data;
-
+		
 		if(add_address()) {
 			play86_flag = false;
 			return;
@@ -489,20 +507,20 @@ void P86DRV::double_trans_g_i(Sample* dest, int nsamples)
 
 
 //-----------------------------------------------------------------------------
-//	º¸´ó¤ê¡Ê°ì¼¡Êä´Ö¤¢¤ê¡Ë
+//	å·¦å¯„ã‚Šï¼ˆä¸€æ¬¡è£œé–“ã‚ã‚Šï¼‰
 //-----------------------------------------------------------------------------
 void P86DRV::left_trans_i(Sample* dest, int nsamples)
 {
 	int		i;
 	Sample	data;
-
+	
 	for(i = 0; i < nsamples; i++) {
 		data = (VolumeTable[vol][*start_ofs] * (0x1000-start_ofs_x)
 				+ VolumeTable[vol][*(start_ofs+1)] * start_ofs_x) >> 12;
 		*dest++ += data;
 		data = data * pcm86_pan_dat / (256 / 2);
 		*dest++ += data;
-
+		
 		if(add_address()) {
 			play86_flag = false;
 			return;
@@ -512,20 +530,20 @@ void P86DRV::left_trans_i(Sample* dest, int nsamples)
 
 
 //-----------------------------------------------------------------------------
-//	º¸´ó¤ê¡ÊµÕÁê¡¢°ì¼¡Êä´Ö¤¢¤ê¡Ë
+//	å·¦å¯„ã‚Šï¼ˆé€†ç›¸ã€ä¸€æ¬¡è£œé–“ã‚ã‚Šï¼‰
 //-----------------------------------------------------------------------------
 void P86DRV::left_trans_g_i(Sample* dest, int nsamples)
 {
 	int		i;
 	Sample	data;
-
+	
 	for(i = 0; i < nsamples; i++) {
 		data = (VolumeTable[vol][*start_ofs] * (0x1000-start_ofs_x)
 				+ VolumeTable[vol][*(start_ofs+1)] * start_ofs_x) >> 12;
 		*dest++ += data;
 		data = data * pcm86_pan_dat / (256 / 2);
 		*dest++ -= data;
-
+		
 		if(add_address()) {
 			play86_flag = false;
 			return;
@@ -535,20 +553,20 @@ void P86DRV::left_trans_g_i(Sample* dest, int nsamples)
 
 
 //-----------------------------------------------------------------------------
-//	±¦´ó¤ê¡Ê°ì¼¡Êä´Ö¤¢¤ê¡Ë
+//	å³å¯„ã‚Šï¼ˆä¸€æ¬¡è£œé–“ã‚ã‚Šï¼‰
 //-----------------------------------------------------------------------------
 void P86DRV::right_trans_i(Sample* dest, int nsamples)
 {
 	int		i;
 	Sample	data, data2;
-
+	
 	for(i = 0; i < nsamples; i++) {
 		data = (VolumeTable[vol][*start_ofs] * (0x1000-start_ofs_x)
 				+ VolumeTable[vol][*(start_ofs+1)] * start_ofs_x) >> 12;
 		data2 = data * pcm86_pan_dat / (256 / 2);
 		*dest++ += data2;
 		*dest++ += data;
-
+		
 		if(add_address()) {
 			play86_flag = false;
 			return;
@@ -558,20 +576,20 @@ void P86DRV::right_trans_i(Sample* dest, int nsamples)
 
 
 //-----------------------------------------------------------------------------
-//	±¦´ó¤ê¡ÊµÕÁê¡¢°ì¼¡Êä´Ö¤¢¤ê¡Ë
+//	å³å¯„ã‚Šï¼ˆé€†ç›¸ã€ä¸€æ¬¡è£œé–“ã‚ã‚Šï¼‰
 //-----------------------------------------------------------------------------
 void P86DRV::right_trans_g_i(Sample* dest, int nsamples)
 {
 	int		i;
 	Sample	data, data2;
-
+	
 	for(i = 0; i < nsamples; i++) {
 		data = (VolumeTable[vol][*start_ofs] * (0x1000-start_ofs_x)
 				+ VolumeTable[vol][*(start_ofs+1)] * start_ofs_x) >> 12;
 		data2 = data * pcm86_pan_dat / (256 / 2);
 		*dest++ += data2;
 		*dest++ -= data;
-
+		
 		if(add_address()) {
 			play86_flag = false;
 			return;
@@ -581,18 +599,18 @@ void P86DRV::right_trans_g_i(Sample* dest, int nsamples)
 
 
 //-----------------------------------------------------------------------------
-//	¿¿¤óÃæ¡Ê°ì¼¡Êä´Ö¤Ê¤·¡Ë
+//	çœŸã‚“ä¸­ï¼ˆä¸€æ¬¡è£œé–“ãªã—ï¼‰
 //-----------------------------------------------------------------------------
 void P86DRV::double_trans(Sample* dest, int nsamples)
 {
 	int		i;
 	Sample	data;
-
+	
 	for(i = 0; i < nsamples; i++) {
 		data = VolumeTable[vol][*start_ofs];
 		*dest++ += data;
 		*dest++ += data;
-
+		
 		if(add_address()) {
 			play86_flag = false;
 			return;
@@ -602,19 +620,18 @@ void P86DRV::double_trans(Sample* dest, int nsamples)
 
 
 //-----------------------------------------------------------------------------
-//	¿¿¤óÃæ¡ÊµÕÁê¡¢°ì¼¡Êä´Ö¤Ê¤·¡Ë
+//	çœŸã‚“ä¸­ï¼ˆé€†ç›¸ã€ä¸€æ¬¡è£œé–“ãªã—ï¼‰
 //-----------------------------------------------------------------------------
 void P86DRV::double_trans_g(Sample* dest, int nsamples)
 {
 	int		i;
 	Sample	data;
-
-
+	
 	for(i = 0; i < nsamples; i++) {
 		data = VolumeTable[vol][*start_ofs];
 		*dest++ += data;
 		*dest++ -= data;
-
+		
 		if(add_address()) {
 			play86_flag = false;
 			return;
@@ -624,19 +641,19 @@ void P86DRV::double_trans_g(Sample* dest, int nsamples)
 
 
 //-----------------------------------------------------------------------------
-//	º¸´ó¤ê¡Ê°ì¼¡Êä´Ö¤Ê¤·¡Ë
+//	å·¦å¯„ã‚Šï¼ˆä¸€æ¬¡è£œé–“ãªã—ï¼‰
 //-----------------------------------------------------------------------------
 void P86DRV::left_trans(Sample* dest, int nsamples)
 {
 	int		i;
 	Sample	data;
-
+	
 	for(i = 0; i < nsamples; i++) {
 		data = VolumeTable[vol][*start_ofs];
 		*dest++ += data;
 		data = data * pcm86_pan_dat / (256 / 2);
 		*dest++ += data;
-
+		
 		if(add_address()) {
 			play86_flag = false;
 			return;
@@ -646,19 +663,19 @@ void P86DRV::left_trans(Sample* dest, int nsamples)
 
 
 //-----------------------------------------------------------------------------
-//	º¸´ó¤ê¡ÊµÕÁê¡¢°ì¼¡Êä´Ö¤Ê¤·¡Ë
+//	å·¦å¯„ã‚Šï¼ˆé€†ç›¸ã€ä¸€æ¬¡è£œé–“ãªã—ï¼‰
 //-----------------------------------------------------------------------------
 void P86DRV::left_trans_g(Sample* dest, int nsamples)
 {
 	int		i;
 	Sample	data;
-
+	
 	for(i = 0; i < nsamples; i++) {
 		data = VolumeTable[vol][*start_ofs];
 		*dest++ += data;
 		data = data * pcm86_pan_dat / (256 / 2);
 		*dest++ -= data;
-
+		
 		if(add_address()) {
 			play86_flag = false;
 			return;
@@ -668,19 +685,19 @@ void P86DRV::left_trans_g(Sample* dest, int nsamples)
 
 
 //-----------------------------------------------------------------------------
-//	±¦´ó¤ê¡Ê°ì¼¡Êä´Ö¤Ê¤·¡Ë
+//	å³å¯„ã‚Šï¼ˆä¸€æ¬¡è£œé–“ãªã—ï¼‰
 //-----------------------------------------------------------------------------
 void P86DRV::right_trans(Sample* dest, int nsamples)
 {
 	int		i;
 	Sample	data, data2;
-
+	
 	for(i = 0; i < nsamples; i++) {
 		data = VolumeTable[vol][*start_ofs];
 		data2 = data * pcm86_pan_dat / (256 / 2);
 		*dest++ += data2;
 		*dest++ += data;
-
+		
 		if(add_address()) {
 			play86_flag = false;
 			return;
@@ -690,19 +707,19 @@ void P86DRV::right_trans(Sample* dest, int nsamples)
 
 
 //-----------------------------------------------------------------------------
-//	±¦´ó¤ê¡ÊµÕÁê¡¢°ì¼¡Êä´Ö¤Ê¤·¡Ë
+//	å³å¯„ã‚Šï¼ˆé€†ç›¸ã€ä¸€æ¬¡è£œé–“ãªã—ï¼‰
 //-----------------------------------------------------------------------------
 void P86DRV::right_trans_g(Sample* dest, int nsamples)
 {
 	int		i;
 	Sample	data, data2;
-
+	
 	for(i = 0; i < nsamples; i++) {
 		data = VolumeTable[vol][*start_ofs];
 		data2 = data * pcm86_pan_dat / (256 / 2);
 		*dest++ += data2;
 		*dest++ -= data;
-
+		
 		if(add_address()) {
 			play86_flag = false;
 			return;
@@ -712,7 +729,7 @@ void P86DRV::right_trans_g(Sample* dest, int nsamples)
 
 
 //-----------------------------------------------------------------------------
-//	¥¢¥É¥ì¥¹²Ã»»
+//	ã‚¢ãƒ‰ãƒ¬ã‚¹åŠ ç®—
 //-----------------------------------------------------------------------------
 bool P86DRV::add_address(void)
 {
@@ -725,13 +742,13 @@ bool P86DRV::add_address(void)
 	start_ofs += addsize1;
 	size -= addsize1;
 	
-	if(size > 1) {		// °ì¼¡Êä´ÖÂĞºö
+	if(size > 1) {		// ä¸€æ¬¡è£œé–“å¯¾ç­–
 		return false;
 	} else if(repeat_flag == false || release_flag2) {
 		return true;
 	}
 	
 	size = repeat_size;
-	start_ofs = repeat_ofs;	
+	start_ofs = repeat_ofs;
 	return false;
 }

@@ -2,7 +2,7 @@
 //	PSG-like sound generator
 //	Copyright (C) cisc 1997, 1999.
 // ---------------------------------------------------------------------------
-//	$Id: psg.h,v 1.1 2001/04/23 22:25:35 kaoru-k Exp $
+//	$Id: psg.h,v 1.8 2003/04/22 13:12:53 cisc Exp $
 
 #ifndef PSG_H
 #define PSG_H
@@ -13,33 +13,33 @@
 
 // ---------------------------------------------------------------------------
 //	class PSG
-//	PSG ���ɤ����������������벻����˥å�
+//	PSG に良く似た音を生成する音源ユニット
 //	
 //	interface:
 //	bool SetClock(uint clock, uint rate)
-//		����������Υ��饹����Ѥ������ˤ��ʤ餺�Ƥ�Ǥ������ȡ�
-//		PSG �Υ����å��� PCM �졼�Ȥ����ꤹ��
+//		初期化．このクラスを使用する前にかならず呼んでおくこと．
+//		PSG のクロックや PCM レートを設定する
 //
-//		clock:	PSG ��ư����å�
-//		rate:	�������� PCM �Υ졼��
-//		retval	���������������� true
+//		clock:	PSG の動作クロック
+//		rate:	生成する PCM のレート
+//		retval	初期化に成功すれば true
 //
 //	void Mix(Sample* dest, int nsamples)
-//		PCM �� nsamples ʬ�������� dest �ǻϤޤ�����˲ä���(�û�����)
-//		�����ޤǲû��ʤΤǡ��ǽ������򥼥����ꥢ����ɬ�פ�����
+//		PCM を nsamples 分合成し， dest で始まる配列に加える(加算する)
+//		あくまで加算なので，最初に配列をゼロクリアする必要がある
 //	
 //	void Reset()
-//		�ꥻ�åȤ���
+//		リセットする
 //
 //	void SetReg(uint reg, uint8 data)
-//		�쥸���� reg �� data ��񤭹���
+//		レジスタ reg に data を書き込む
 //	
 //	uint GetReg(uint reg)
-//		�쥸���� reg �����Ƥ��ɤ߽Ф�
+//		レジスタ reg の内容を読み出す
 //	
 //	void SetVolume(int db)
-//		�Ʋ����β��̤�Ĵ�᤹��
-//		ñ�̤��� 1/2 dB
+//		各音源の音量を調節する
+//		単位は約 1/2 dB
 //
 class PSG
 {
@@ -48,11 +48,11 @@ public:
 	
 	enum
 	{
-		noisetablesize = 1 << 10,	// ����������̤򸺤餷�����ʤ鸺�餷��
+		noisetablesize = 1 << 11,	// ←メモリ使用量を減らしたいなら減らして
 		toneshift = 24,
 		envshift = 22,
 		noiseshift = 14,
-		oversampling = 2,		// �� �������®�٤�ͥ��ʤ鸺�餹�Ȥ�������
+		oversampling = 2,		// ← 音質より速度が優先なら減らすといいかも
 	};
 
 public:
@@ -75,7 +75,7 @@ protected:
 	static void StoreSample(Sample& dest, int32 data);
 	
 	uint8 reg[16];
-
+	
 	const uint* envelop;
 	uint olevel[3];
 	uint32 scount[3], speriod[3];
@@ -87,9 +87,9 @@ protected:
 	int volume;
 	int mask;
 
-	static uint enveloptable[16][64];
+	uint enveloptable[16][64];
 	static uint noisetable[noisetablesize];
-	static int EmitTable[32];
+	int EmitTable[32];
 };
 
 #endif // PSG_H

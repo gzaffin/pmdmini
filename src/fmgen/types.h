@@ -1,7 +1,9 @@
 #if !defined(win32_types_h)
 #define win32_types_h
 
-//  ¸ÇÄêÄ¹·¿¤È¤«
+#include "headers.h"
+
+//  å›ºå®šé•·å‹ã¨ã‹
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned int uint;
@@ -18,5 +20,28 @@ typedef signed int sint32;
 typedef signed char int8;
 typedef signed short int16;
 typedef signed int int32;
+
+
+#ifdef _WIN32
+	typedef _int64 int64;
+
+#else
+	#define _T(x)			x
+	typedef char			TCHAR;
+
+	typedef int64_t			int64;
+	typedef int64_t			_int64;
+
+	typedef unsigned char	BYTE;
+	typedef unsigned short	WORD;
+	typedef unsigned long	DWORD;
+	
+
+
+#endif
+
+
+
+
 
 #endif // win32_types_h

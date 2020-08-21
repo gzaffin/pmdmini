@@ -8,14 +8,16 @@ endif()
 
 
 if(MSVC)
-	set(CMAKE_CXX_FLAGS "/std:c++latest /Ox /W3 /wd4996")
+	set(CMAKE_CXX_STANDARD 11)
+	set(CMAKE_CXX_STANDARD_REQUIRED YES)
 endif()
 if(UNIX OR MINGW)
-	set(CMAKE_CXX_FLAGS "-std=c++11 -O3 -Wall")
+	set(CMAKE_CXX_STANDARD 11)
+	set(CMAKE_CXX_STANDARD_REQUIRED YES)
 endif()
 
 include_directories(./.. fmgen pmdwin)
 
-file(GLOB SOURCES *.c fmgen/*.cpp pmdwin/*.cpp)
+file(GLOB SOURCES *.cpp fmgen/*.cpp pmdwin/*.cpp)
 
 add_library(pmdmini STATIC ${SOURCES})

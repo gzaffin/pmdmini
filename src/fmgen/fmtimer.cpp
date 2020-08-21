@@ -2,26 +2,44 @@
 //	FM sound generator common timer module
 //	Copyright (C) cisc 1998, 2000.
 // ---------------------------------------------------------------------------
-//	$Id: fmtimer.cpp,v 1.1 2001/04/23 22:25:34 kaoru-k Exp $
+//	$Id: fmtimer.cpp,v 1.1 2000/09/08 13:45:56 cisc Exp $
 
 #include "headers.h"
 #include "fmtimer.h"
 
 using namespace FM;
 
+
+
+Timer::Timer()
+{
+	status = 0;
+	regtc = 0;
+	regta[0] = regta[1] = 0;;
+	timera = timera_count = 0;
+	timerb = timerb_count = 0;
+	timer_step = 0;
+}
+
+
+Timer::~Timer()
+{
+}
+
+
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Ş¡¼À©¸æ
+//	ã‚¿ã‚¤ãƒãƒ¼åˆ¶å¾¡
 //
 void Timer::SetTimerControl(uint data)
 {
 	uint tmp = regtc ^ data;
 	regtc = uint8(data);
 	
-	if (data & 0x10) 
+	if (data & 0x10)
 		ResetStatus(1);
-	if (data & 0x20) 
+	if (data & 0x20)
 		ResetStatus(2);
-
+	
 	if (tmp & 0x01)
 		timera_count = (data & 1) ? timera : 0;
 	if (tmp & 0x02)
@@ -31,7 +49,7 @@ void Timer::SetTimerControl(uint data)
 #if 1
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Ş¡¼A ¼ş´üÀßÄê
+//	ã‚¿ã‚¤ãƒãƒ¼A å‘¨æœŸè¨­å®š
 //
 void Timer::SetTimerA(uint addr, uint data)
 {
@@ -43,7 +61,7 @@ void Timer::SetTimerA(uint addr, uint data)
 }
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Ş¡¼B ¼ş´üÀßÄê
+//	ã‚¿ã‚¤ãƒãƒ¼B å‘¨æœŸè¨­å®š
 //
 void Timer::SetTimerB(uint data)
 {
@@ -52,12 +70,12 @@ void Timer::SetTimerB(uint data)
 }
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Ş¡¼»ş´Ö½èÍı
+//	ã‚¿ã‚¤ãƒãƒ¼æ™‚é–“å‡¦ç†
 //
 bool Timer::Count(int32 us)
 {
 	bool event = false;
-
+	
 	if (timera_count)
 	{
 		timera_count -= us << 16;
@@ -65,7 +83,7 @@ bool Timer::Count(int32 us)
 		{
 			event = true;
 			TimerA();
-
+			
 			while (timera_count <= 0)
 				timera_count += timera;
 			
@@ -90,7 +108,7 @@ bool Timer::Count(int32 us)
 }
 
 // ---------------------------------------------------------------------------
-//	¼¡¤Ë¥¿¥¤¥Ş¡¼¤¬È¯À¸¤¹¤ë¤Ş¤Ç¤Î»ş´Ö¤òµá¤á¤ë
+//	æ¬¡ã«ã‚¿ã‚¤ãƒãƒ¼ãŒç™ºç”Ÿã™ã‚‹ã¾ã§ã®æ™‚é–“ã‚’æ±‚ã‚ã‚‹
 //
 int32 Timer::GetNextEvent()
 {
@@ -100,7 +118,7 @@ int32 Timer::GetNextEvent()
 }
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Ş¡¼´ğ½àÃÍÀßÄê
+//	ã‚¿ã‚¤ãƒãƒ¼åŸºæº–å€¤è¨­å®š
 //
 void Timer::SetTimerBase(uint clock)
 {
@@ -110,7 +128,7 @@ void Timer::SetTimerBase(uint clock)
 #else
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Ş¡¼A ¼ş´üÀßÄê
+//	ã‚¿ã‚¤ãƒãƒ¼A å‘¨æœŸè¨­å®š
 //
 void Timer::SetTimerA(uint addr, uint data)
 {
@@ -119,7 +137,7 @@ void Timer::SetTimerA(uint addr, uint data)
 }
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Ş¡¼B ¼ş´üÀßÄê
+//	ã‚¿ã‚¤ãƒãƒ¼B å‘¨æœŸè¨­å®š
 //
 void Timer::SetTimerB(uint data)
 {
@@ -127,14 +145,14 @@ void Timer::SetTimerB(uint data)
 }
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Ş¡¼»ş´Ö½èÍı
+//	ã‚¿ã‚¤ãƒãƒ¼æ™‚é–“å‡¦ç†
 //
 bool Timer::Count(int32 us)
 {
 	bool event = false;
-
+	
 	int tick = us * timer_step;
-
+	
 	if (timera_count)
 	{
 		timera_count -= tick;
@@ -142,7 +160,7 @@ bool Timer::Count(int32 us)
 		{
 			event = true;
 			TimerA();
-
+			
 			while (timera_count <= 0)
 				timera_count += timera;
 			
@@ -167,19 +185,19 @@ bool Timer::Count(int32 us)
 }
 
 // ---------------------------------------------------------------------------
-//	¼¡¤Ë¥¿¥¤¥Ş¡¼¤¬È¯À¸¤¹¤ë¤Ş¤Ç¤Î»ş´Ö¤òµá¤á¤ë
+//	æ¬¡ã«ã‚¿ã‚¤ãƒãƒ¼ãŒç™ºç”Ÿã™ã‚‹ã¾ã§ã®æ™‚é–“ã‚’æ±‚ã‚ã‚‹
 //
 int32 Timer::GetNextEvent()
 {
 	uint32 ta = timera_count - 1;
 	uint32 tb = timerb_count - 1;
 	uint32 t = (ta < tb ? ta : tb) + 1;
-
+	
 	return (t+timer_step-1) / timer_step;
 }
 
 // ---------------------------------------------------------------------------
-//	¥¿¥¤¥Ş¡¼´ğ½àÃÍÀßÄê
+//	ã‚¿ã‚¤ãƒãƒ¼åŸºæº–å€¤è¨­å®š
 //
 void Timer::SetTimerBase(uint clock)
 {
