@@ -77,7 +77,7 @@ C:\>cd pmdmini
 C:\pmdmini>mkdir build
 C:\pmdmini>cd build
 C:\pmdmini\build>cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake ..
-C:\pmdmini\build>ninja
+C:\pmdmini\build>ninja pmdplay
 ```
 
 For the case that Visual Studio can be used
