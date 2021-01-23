@@ -4,7 +4,6 @@
 //=============================================================================
 
 #include	<stdlib.h>
-#include	<malloc.h>
 #include	<string.h>
 #include	<ctype.h>
 #if defined _WIN32
