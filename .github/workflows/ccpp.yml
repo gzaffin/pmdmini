@@ -1,20 +1,40 @@
 name: C/C++ CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
 
-    runs-on: ubuntu-latest
-    
     steps:
     - name: CheckOut
       uses: actions/checkout@v1
-    - name: install_dependencies
-      run: sudo apt-get install cmake ninja-build libsdl2-dev
-    - name: configure
-      run: mkdir build && cd build && cmake ..
-    - name: make build
-      run: cd build && cmake --build . --config Release --target pmdplay
-    - name: make check
-      run: cd build && ./pmdplay ../PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav
+
+    - name: Install Dependencies [Linux]
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install cmake libsdl2-dev
+    - name: Install Dependencies [Darwin]
+      if: matrix.os == 'macos-latest'
+      run: |
+        export HOMEBREW_NO_INSTALL_CLEANUP=1
+        brew update
+        # cmake is preinstalled, trying to install it again will error out
+        brew install sdl2
+
+    - name: Configure
+      run: |
+        mkdir build && cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+    - name: Build
+      run: |
+        make -C build -j2
+    - name: Check
+      run: |
+        cd build
+        echo "Checking if pmdplay works: ./pmdplay ../PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav"
+        ./pmdplay ../PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav
