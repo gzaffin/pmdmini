@@ -37,7 +37,7 @@ if(MSVC)
 endif()
 
 if(UNIX OR MINGW)
-	target_link_libraries(pmdplay PRIVATE pmdmini ${SDL2_LINK_LIBRARIES} m)
+	target_link_libraries(pmdplay PRIVATE pmdmini ${SDL2_LDFLAGS} m)
 	target_include_directories(pmdplay PUBLIC ${SDL2_INCLUDE_DIRS})
 	target_compile_options(pmdplay PUBLIC ${SDL2_FLAGS} ${SDL2_FLAGS_OTHERS})
 endif()
