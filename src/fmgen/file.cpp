@@ -822,19 +822,17 @@ void FilePath::Splitpath(const TCHAR *path, TCHAR *drive, TCHAR *dir, TCHAR *fna
 	
 	const TCHAR* p1 = Strrchr(path, '/');
 	const TCHAR* p2 = Strrchr(path, '.');
-	TCHAR* p1second = const_cast<TCHAR*>(p1);
-	TCHAR* p2second = const_cast<TCHAR*>(p2);
 	
 	if(p1 != NULL && p2 != NULL && p1 > p2) {
-		p2second = const_cast<TCHAR*>(path) + Strlen(path);
+		p2--;
 	}
 	
 	if(p1 == NULL) {
-		p1second = const_cast<TCHAR*>(path) - 1;
+		p1 = const_cast<TCHAR*>(path);
 	}
 	
 	if(p2 == NULL) {
-		p2second = const_cast<TCHAR*>(path) + Strlen(path);
+		p2 = const_cast<TCHAR*>(path) + Strlen(path);
 	}
 	
 	if(drive != NULL) {
@@ -842,8 +840,8 @@ void FilePath::Splitpath(const TCHAR *path, TCHAR *drive, TCHAR *dir, TCHAR *fna
 	}
 	
 	if(dir != NULL) {
-		Strncpy(dir, path, p1 - path + 1);
-		dir[p1 - path + 1] = EmptyChar;
+		Strncpy(dir, path, p1 - path);
+		dir[p1 - path] = EmptyChar;
 	}
 	
 	if(fname != NULL) {
@@ -865,9 +863,9 @@ void FilePath::Makepath(TCHAR *path, const TCHAR *drive, const TCHAR *dir, const
 	// driveは無視
 	
 	if(dir == NULL) {
-		*path = EmptyChar;
+		if (path != NULL) { *path = EmptyChar; }
 	} else {
-		std::strcpy(path, dir);
+		if (0 != std::strncmp(path, dir, std::strlen(dir))) { std::strcpy(path, dir); }
 		if(std::strlen(path) >= 1) {
 			if(path[std::strlen(path)-1] != '/') {
 				strcat(path, "/");
@@ -1209,7 +1207,7 @@ bool FileIO::SetEndOfFile()
 {
 	if (!(GetFlags() & open))
 		return false;
-	ftruncate(fileno(fp), Tellp());
+	return ftruncate(fileno(fp), Tellp());
 }
 
 
