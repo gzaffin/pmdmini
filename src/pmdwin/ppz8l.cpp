@@ -286,16 +286,16 @@ int PPZ8::Load(TCHAR *filename, int bufnum)
 				) << (5+1));
 			size2 += pziheader.pcmnum[i].size;
 			
-			pziheader.pcmnum[i].loop_start = 0xffff;
-			pziheader.pcmnum[i].loop_end = 0xffff;
+			pziheader.pcmnum[i].loop_start = 0xffffffff;
+			pziheader.pcmnum[i].loop_end = 0xffffffff;
 			pziheader.pcmnum[i].rate  = 16000;	// 16kHz
 		}
 		
 		for(i = pviheader.pvinum; i < 128; i++) {
 			pziheader.pcmnum[i].startaddress = 0;
 			pziheader.pcmnum[i].size = 0;
-			pziheader.pcmnum[i].loop_start = 0xffff;
-			pziheader.pcmnum[i].loop_end = 0xffff;
+			pziheader.pcmnum[i].loop_start = 0xffffffff;
+			pziheader.pcmnum[i].loop_end = 0xffffffff;
 			pziheader.pcmnum[i].rate  = 16000;	// 16kHz
 		}
 		

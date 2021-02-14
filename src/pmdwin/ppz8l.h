@@ -62,7 +62,6 @@ typedef struct channelworktag
 #if defined _WIN32
 #pragma pack( push, enter_include1 )
 #pragma pack(1)
-#endif
 
 typedef struct pziheadertag
 {
@@ -91,10 +90,38 @@ typedef struct pviheadertag
 	} pcmnum[128];
 } PVIHEADER;
 
-#if defined _WIN32
 #pragma pack( pop, enter_include1 )
-#endif
 
+#else
+
+typedef struct pziheadertag
+{
+	char	header[4] __attribute__((packed));				// 'PZI1'
+	char	dummy1[0x0b-4] __attribute__((packed));			// 予備１
+	uchar	pzinum __attribute__((packed));					// PZIデータの定義数
+	char	dummy2[0x20-0x0b-1] __attribute__((packed));	// 予備２
+	struct	{
+		DWORD	startaddress __attribute__((packed));		// 先頭アドレス
+		DWORD	size __attribute__((packed));				// データ量
+		DWORD	loop_start __attribute__((packed));			// ループ開始ポインタ
+		DWORD	loop_end __attribute__((packed));			// ループ終了ポインタ
+		WORD	rate __attribute__((packed));				// 再生周波数
+	} pcmnum[128] __attribute__((packed));
+} PZIHEADER __attribute__((packed));
+
+typedef struct pviheadertag
+{
+	char	header[4] __attribute__((packed));				// 'PVI2'
+	char	dummy1[0x0b-4] __attribute__((packed));			// 予備１
+	uchar	pvinum __attribute__((packed));					// PVIデータの定義数
+	char	dummy2[0x10-0x0b-1] __attribute__((packed));	// 予備２
+	struct	{
+		WORD	startaddress __attribute__((packed));		// 先頭アドレス
+		WORD	endaddress __attribute__((packed));			// データ量
+	} pcmnum[128] __attribute__((packed));
+} PVIHEADER __attribute__((packed));
+
+#endif
 
 /// <summary>
 /// PPZ8 インターフェース
