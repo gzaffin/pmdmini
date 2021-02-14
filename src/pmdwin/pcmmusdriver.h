@@ -10,16 +10,17 @@
 #include <tchar.h>
 #else
 #include "file.h"
+typedef unsigned char BYTE;
+typedef unsigned short WORD;
+//typedef unsigned long DWORD;
+typedef unsigned DWORD;
 #endif
 
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned int uint;
 typedef unsigned long ulong;
-typedef unsigned char BYTE;
-typedef unsigned short WORD;
-//typedef unsigned long DWORD;
-typedef unsigned DWORD;
+
 #ifndef __cplusplus
 typedef unsigned char bool;
 #endif
