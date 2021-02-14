@@ -365,9 +365,6 @@ int main ( int argc, char *argv[] )
         }
     }
 
-    pmd_init();
-
-
     char buf[1024];
     char *pcmdir = std::getenv( "HOME" );
 
@@ -380,6 +377,8 @@ int main ( int argc, char *argv[] )
     {
         buf[0] = 0;
     }
+
+    pmd_init( buf );
 
     if ( pmd_play( argv[1] , buf ) )
     {

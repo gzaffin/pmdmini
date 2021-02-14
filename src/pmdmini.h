@@ -6,7 +6,7 @@ extern "C" {
 #define __PMDMINI_H__
 
 
-void pmd_init(void);
+void pmd_init( char *pcmdir );
 void pmd_setrate( int freq );
 int pmd_is_pmd( const char *file );
 int pmd_play ( const char *file , char *pcmdir );

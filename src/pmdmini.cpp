@@ -38,15 +38,18 @@ static int pmd_split_dir( const char *file , char *dir )
 // 初期化
 //
 
-void pmd_init(void)
+void pmd_init( char *pcmdir )
 {
 	char *current_dir = (char *)("./");
-	
+	if (0 != pcmdir[0])
+	{
+		current_dir = pcmdir;
+	}
 	pmdwininit( current_dir );
 	setpcmrate( SOUND_55K );
-	
+
 	pmdwork = NULL;
-	
+
 	pmd_length = 0;
 	pmd_loop = 0;
 }
