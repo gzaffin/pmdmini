@@ -40,7 +40,6 @@ typedef	unsigned int	uint;
 #if defined _WIN32
 #pragma pack( push, enter_include1 )
 #pragma pack(1)
-#endif
 
 typedef struct ppsheadertag
 {
@@ -52,9 +51,20 @@ typedef struct ppsheadertag
 	} pcmnum[MAX_PPS];
 } PPSHEADER;
 
-
-#if defined _WIN32
 #pragma pack( pop, enter_include1 )
+
+#else
+
+typedef struct ppsheadertag
+{
+	struct {
+		WORD	address __attribute__((packed));				// 先頭アドレス
+		WORD	leng __attribute__((packed));					// データ量
+		BYTE	toneofs __attribute__((packed));				// 音階
+		BYTE	volumeofs __attribute__((packed));				// 音量
+	} pcmnum[MAX_PPS] __attribute__((packed));
+} PPSHEADER __attribute__((packed));
+
 #endif
 
 

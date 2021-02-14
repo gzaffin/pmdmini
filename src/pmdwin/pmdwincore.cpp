@@ -7130,20 +7130,20 @@ int PMDWIN::ppc_load3(uchar *pcmdata, int size)
 	ushort	pcmstart, pcmstop;
 	int		bx = 0;
 	bool	pvi_flag;
-	
+
 	if(size < 0x10) {
 		filepath.Clear(open_work.ppcfilename, sizeof(open_work.ppcfilename)/sizeof(TCHAR));
 		return ERR_WRONG_PPC_FILE;	// PPC / PVI ではない
 	}
-	
+
 	if(strncmp((char *)pcmdata, PVIHeader, sizeof(PVIHeader)-1) == 0 &&
 		pcmdata[10] == 2) {	// PVI, x8
 		pvi_flag = true;
-		
+
 		//--------------------------------------------------------------------
 		//	pviの音色情報からpmdへ転送
 		//--------------------------------------------------------------------
-		
+
 		 for(i = 0; i < 128; i++) {
 			if(*((ushort *)&pcmdata[18+i*4]) == 0) {
 				pcmends.pcmadrs[i][0] = pcmdata[16+i*4];
@@ -7152,18 +7152,18 @@ int PMDWIN::ppc_load3(uchar *pcmdata, int size)
 				pcmends.pcmadrs[i][0] = *(ushort *)&pcmdata[16+i*4]+0x26;
 				pcmends.pcmadrs[i][1] = *(ushort *)&pcmdata[18+i*4]+0x26;
 			}
-			
+
 			if(bx < pcmends.pcmadrs[i][1]) {
 				bx = pcmends.pcmadrs[i][1] + 1;
 			}
 		}
-		
+
 		for(i = 128; i < 256; i++) {		// 残り128個は未定義
 			pcmends.pcmadrs[i][0] = 0;
 			pcmends.pcmadrs[i][1] = 0;
 		}
 		pcmends.pcmends = bx;
-		
+
 	} else if(strncmp((char *)pcmdata, PPCHeader, sizeof(PPCHeader)-1) == 0) {	// PPC
 		pvi_flag = false;
 		pcmdata2 = (ushort *)pcmdata + 30 / 2;
@@ -7171,7 +7171,7 @@ int PMDWIN::ppc_load3(uchar *pcmdata, int size)
 			filepath.Clear(open_work.ppcfilename, sizeof(open_work.ppcfilename)/sizeof(TCHAR));
 			return ERR_WRONG_PPC_FILE;	// PPC / PVI ではない
 		}
-		
+
 		pcmends.pcmends = *pcmdata2++;
 		for(i = 0; i < 256; i++) {
 			pcmends.pcmadrs[i][0] = *pcmdata2++;
@@ -7181,31 +7181,33 @@ int PMDWIN::ppc_load3(uchar *pcmdata, int size)
 		filepath.Clear(open_work.ppcfilename, sizeof(open_work.ppcfilename)/sizeof(TCHAR));
 		return ERR_WRONG_PPC_FILE;	// PPC / PVI ではない
 	}
-	
+
 	//------------------------------------------------------------------------
 	//	PMDのワークとPCMRAMのヘッダを比較
 	//------------------------------------------------------------------------
-	
+
 	pcmread(0, 0x25, tempbuf);
 	// "ADPCM～"ヘッダを飛ばす
 	//	ファイル名無視(PMDWin 仕様)
 	if(memcmp(&tempbuf[30], &pcmends, sizeof(pcmends)) == 0) {
 		return WARNING_PPC_ALREADY_LOAD;		// 一致した
 	}
-	
+
 	//------------------------------------------------------------------------
 	//	PMDのワークをPCMRAM頭に書き込む
 	//------------------------------------------------------------------------
-	
-	memcpy(tempbuf2, PPCHeader, sizeof(PPCHeader)-1);
-	memcpy(&tempbuf2[sizeof(PPCHeader)-1], &pcmends.pcmends, 
-								sizeof(tempbuf2)-(sizeof(PPCHeader)-1));
+
+	size_t first_cpy_size = sizeof(PPCHeader)-1;
+	memcpy(tempbuf2, PPCHeader, first_cpy_size);
+	first_cpy_size = sizeof(tempbuf2) - first_cpy_size;
+	size_t second_cpy_size = sizeof(pcmends);
+	memcpy(&tempbuf2[sizeof(PPCHeader)-1], &pcmends.pcmends, ( second_cpy_size <= first_cpy_size ) ? second_cpy_size : first_cpy_size );
 	pcmstore(0, 0x25, tempbuf2);
-	
+
 	//------------------------------------------------------------------------
 	//	PCMDATAをPCMRAMに書き込む
 	//------------------------------------------------------------------------
-	
+
 	if(pvi_flag) {
 		pcmdata2 = (ushort *)(pcmdata + 0x10 + sizeof(ushort) * 2 * 128);
 		if(size < (int)(pcmends.pcmends - (0x10 + sizeof(ushort) * 2 * 128)) * 32) {
@@ -7221,11 +7223,11 @@ int PMDWIN::ppc_load3(uchar *pcmdata, int size)
 			return ERR_WRONG_PPC_FILE;
 		}
 	}
-	
+
 	pcmstart =  0x26;
 	pcmstop  = pcmends.pcmends;
 	pcmstore(pcmstart, pcmstop, (uchar *)pcmdata2);
-	
+
 	return PMDWIN_OK;
 }
 
@@ -7747,24 +7749,24 @@ void WINAPI PMDWIN::getpcmdata(short *buf, int nsamples)
 			buf += (us2 * 2);
 			copysamples += us2;
 			pos2 = (char *)wavbuf2;
-			
+
 			if(opna.ReadStatus() & 0x01) {
 				TimerA_main();
 			}
-			
+
 			if(opna.ReadStatus() & 0x02) {
 				TimerB_main();
 			}
-			
+
 			opna.SetReg(0x27, open_work.ch3mode | 0x30);	// TIMER RESET(timerA,Bとも)
-			
-			
+
+
 			us = opna.GetNextEvent();
 			us2 = (int)((double)us * open_work.rate / 1000000.0);
 			opna.Count(us);
-			
+
 			memset(wavbuf, 0x0, us2 * sizeof(Sample) * 2);
-			
+
 			if(open_work.rate == open_work.ppzrate) {
 				ppz8.Mix((Sample *)wavbuf, us2);
 			} else {
@@ -7773,7 +7775,7 @@ void WINAPI PMDWIN::getpcmdata(short *buf, int nsamples)
 				delta = 8192 * open_work.ppzrate / open_work.rate;
 				memset(wavbuf_conv, 0x0, ppzsample * sizeof(Sample) * 2);
 				ppz8.Mix((Sample *)wavbuf_conv, ppzsample);
-				
+
 				carry = 0;
 				for(i = 0; i < us2; i++) {		// 周波数変換(1 << 13 = 8192)
 					wavbuf[i].left  = wavbuf_conv[(carry >> 13)].left;
@@ -7781,7 +7783,7 @@ void WINAPI PMDWIN::getpcmdata(short *buf, int nsamples)
 					carry += delta;
 				}
 			}
-			
+
 			opna.Mix((Sample *)wavbuf, us2);
 			if(pmdwork.ppsdrv_flag) {
 				ppsdrv.Mix((Sample *)wavbuf, us2);
@@ -7789,16 +7791,16 @@ void WINAPI PMDWIN::getpcmdata(short *buf, int nsamples)
 			if(open_work.use_p86) {
 				p86drv.Mix((Sample *)wavbuf, us2);
 			}
-			
+
 			upos += us;
-			
+
 			if(open_work.fadeout2_speed > 0) {
 				if(open_work.status2 == -1) {
 					ftemp = 0;
 				} else {
 					ftemp = (int)((1 << 10) * pow(512, -(double)(upos - fpos) / 1000 / open_work.fadeout2_speed));
 				}
-				
+
 				for(i = 0; i < us2; i++) {
 					wavbuf2[i].left = Limit(wavbuf[i].left * ftemp >> 10, 32767, -32768);
 					wavbuf2[i].right = Limit(wavbuf[i].right * ftemp >> 10, 32767, -32768);

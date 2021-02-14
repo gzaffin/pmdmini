@@ -38,7 +38,6 @@ typedef	unsigned int	uint;
 #if defined _WIN32
 #pragma pack( push, enter_include1 )
 #pragma pack(1)
-#endif
 
 typedef struct p86headertag		// header(original)
 {
@@ -51,9 +50,7 @@ typedef struct p86headertag		// header(original)
 	} pcmnum[MAX_P86];
 } P86HEADER;
 
-#if defined _WIN32
 #pragma pack( pop, enter_include1 )
-#endif
 
 typedef struct p86headertag2	// header(for PMDWin, int alignment)
 {
@@ -65,6 +62,33 @@ typedef struct p86headertag2	// header(for PMDWin, int alignment)
 		int		size;
 	} pcmnum[MAX_P86];
 } P86HEADER2;
+
+#else
+
+typedef struct p86headertag		// header(original)
+{
+	char	header[12] __attribute__((packed));			// "PCM86 DATA",0,0
+	uchar	Version __attribute__((packed));
+	char	All_Size[3] __attribute__((packed));
+	struct {
+		uchar	start[3] __attribute__((packed));
+		uchar	size[3] __attribute__((packed));
+	} pcmnum[MAX_P86] __attribute__((packed));
+} P86HEADER;
+
+
+typedef struct p86headertag2	// header(for PMDWin, int alignment)
+{
+	char	header[12] __attribute__((aligned(4)));			// "PCM86 DATA",0,0
+	int		Version __attribute__((aligned(4)));
+	int		All_Size __attribute__((aligned(4)));
+	struct {
+		int		start __attribute__((aligned(4)));
+		int		size __attribute__((aligned(4)));
+	} pcmnum[MAX_P86] __attribute__((aligned(4)));
+} P86HEADER2;
+
+#endif
 
 
 const int ratetable[] = {

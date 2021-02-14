@@ -22,16 +22,17 @@ typedef std::int64_t _int64;
 
 typedef int Sample;
 
+#if defined _WIN32
+
 typedef struct stereosampletag
 {
 	Sample left;
 	Sample right;
 } StereoSample;
 
-#if defined _WIN32
+
 #pragma pack( push, enter_include1 )
 #pragma pack(2)
-#endif
 
 typedef struct stereo16bittag
 {
@@ -45,8 +46,29 @@ typedef struct pcmendstag
 	ushort pcmadrs[256][2];
 } PCMEnds;
 
-#if defined _WIN32
 #pragma pack( pop, enter_include1 )
+
+#else
+
+typedef struct stereosampletag
+{
+	Sample left __attribute__((aligned(4)));
+	Sample right __attribute__((aligned(4)));
+} StereoSample __attribute__((aligned(4)));
+
+
+typedef struct stereo16bittag
+{
+	short left __attribute__((aligned(2)));
+	short right __attribute__((aligned(2)));
+} Stereo16bit __attribute__((aligned(2)));
+
+typedef struct pcmendstag
+{
+	ushort pcmends __attribute__((aligned(2)));
+	ushort pcmadrs[256][2] __attribute__((aligned(2)));
+} PCMEnds;
+
 #endif
 
 
