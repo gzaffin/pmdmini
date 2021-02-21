@@ -29,10 +29,10 @@ jobs:
     - name: Configure
       run: |
         mkdir build && cd build
-        cmake .. -DCMAKE_BUILD_TYPE=Release
+        cmake -D CMAKE_BUILD_TYPE=Release ..
     - name: Build
       run: |
-        make -C build -j2
+        make -C build -j2 pmdplay
     - name: Check
       run: |
         cd build

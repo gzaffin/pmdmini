@@ -366,12 +366,20 @@ int main ( int argc, char *argv[] )
     }
 
     char buf[1024];
-    char *pcmdir = std::getenv( "HOME" );
+#ifdef _MSC_VER
+    char* pcmdir = std::getenv("USERPROFILE");
+#else
+    char* pcmdir = std::getenv("HOME");
+#endif
 
     if (pcmdir)
     {
         std::strcpy(buf,pcmdir);
+#ifdef _MSC_VER
+        strcat(buf, "\\.pmdplay\\");
+#else
         strcat(buf,"/.pmdplay/");
+#endif
     }
     else
     {

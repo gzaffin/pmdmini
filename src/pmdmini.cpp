@@ -22,7 +22,11 @@ static int pmd_split_dir( const char *file , char *dir )
 	char *p;
 	int len = 0;
 
-	p = strrchr( (char *)file , '/' );
+#ifdef _MSC_VER
+	p = strrchr((char*)file, '\\');
+#else
+	p = strrchr((char*)file, '/');
+#endif
 
 	if ( p )
 	{
@@ -40,7 +44,11 @@ static int pmd_split_dir( const char *file , char *dir )
 
 void pmd_init( char *pcmdir )
 {
-	char *current_dir = (char *)("./");
+#ifdef _MSC_VER
+	char* current_dir = (char*)(".\\");
+#else
+	char* current_dir = (char*)("./");
+#endif
 	if (0 != pcmdir[0])
 	{
 		current_dir = pcmdir;
@@ -109,7 +117,11 @@ int pmd_play ( const char *file , char *pcmdir )
 	char dir[2048];
 
 	char *path[4];
-	char *current_dir = (char *)"./";
+#ifdef _MSC_VER
+	char* current_dir = (char*)(".\\");
+#else
+	char* current_dir = (char*)"./";
+#endif
 	
 	if ( ! pmd_is_pmd ( file ) )
 		return 1;
@@ -145,6 +157,7 @@ int pmd_play ( const char *file , char *pcmdir )
 	fgetmemo3( pmd_title , pmd_file , 1 );
 	fgetmemo3( pmd_compo , pmd_file , 2 );
 
+	setrhythmwithssgeffect(true); // true == SSG+RHY, false == SSG
 
 	music_load( pmd_file );
 	music_start();
