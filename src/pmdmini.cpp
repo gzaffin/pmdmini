@@ -158,6 +158,7 @@ int pmd_play ( const char *file , char *pcmdir )
 	fgetmemo3( pmd_compo , pmd_file , 2 );
 
 	setrhythmwithssgeffect(true); // true == SSG+RHY, false == SSG
+	setppsuse(true); // true == use PSS, false == do not use PPS
 
 	music_load( pmd_file );
 	music_start();
