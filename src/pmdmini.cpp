@@ -115,6 +115,8 @@ int pmd_is_pmd( const char *file )
 int pmd_play ( const char *file , char *pcmdir )
 {
 	char dir[2048];
+	TCHAR pps_file[1024];
+	TCHAR * pps_file_ptr;
 
 	char *path[4];
 #ifdef _MSC_VER
@@ -122,7 +124,7 @@ int pmd_play ( const char *file , char *pcmdir )
 #else
 	char* current_dir = (char*)"./";
 #endif
-	
+
 	if ( ! pmd_is_pmd ( file ) )
 		return 1;
 
@@ -153,14 +155,25 @@ int pmd_play ( const char *file , char *pcmdir )
 
 	pmd_title[0] = 0;
 	pmd_compo[0] = 0;
-
-	fgetmemo3( pmd_title , pmd_file , 1 );
-	fgetmemo3( pmd_compo , pmd_file , 2 );
-
-	setrhythmwithssgeffect(true); // true == SSG+RHY, false == SSG
-	setppsuse(true); // true == use PSS, false == do not use PPS
+	pps_file[0] = 0;
 
 	music_load( pmd_file );
+
+	pps_file_ptr = getppsfilename( pps_file );
+
+	fgetmemo3( pmd_title, pmd_file, 1 );
+	fgetmemo3( pmd_compo, pmd_file, 2 );
+
+	setrhythmwithssgeffect( true ); // true == SSG+RHY, false == SSG
+
+	if ( nullptr != pps_file_ptr )
+	{
+		if ( 0 != pps_file_ptr[0] )
+		{
+			setppsuse( true ); // PSSDRV FLAG set false at init. true == use PPS, false == do not use PPS
+		}
+	}
+
 	music_start();
 
 	pmdwork = getopenwork();
