@@ -23,9 +23,9 @@ static int pmd_split_dir( const char *file , char *dir )
 	int len = 0;
 
 #ifdef _MSC_VER
-	p = strrchr((char*)file, '\\');
+	p = std::strrchr ((char*)file, '\\');
 #else
-	p = strrchr((char*)file, '/');
+	p = std::strrchr ((char*)file, '/');
 #endif
 
 	if ( p )
@@ -112,36 +112,39 @@ int pmd_is_pmd( const char *file )
 // エラーであれば0以外を返す
 //
 
-int pmd_play ( const char *file , char *pcmdir )
+int pmd_play ( char *argv[] , char *pcmdir )
 {
 	char dir[2048];
 	TCHAR pps_file[1024];
-	TCHAR * pps_file_ptr;
+	TCHAR *pps_file_ptr;
 
 	char *path[4];
 #ifdef _MSC_VER
-	char* current_dir = (char*)(".\\");
+	char *current_dir = (char *)(".\\");
 #else
-	char* current_dir = (char*)"./";
+	char *current_dir = (char *)"./";
 #endif
 
+	char *file = argv[1];
 	if ( ! pmd_is_pmd ( file ) )
 		return 1;
 
 	std::strcpy ( pmd_file , file );
 
+	dir[0] = 0;
 	if ( pmd_split_dir( file , dir ) > 0 )
 	{
 		path[0] = dir;
 		path[1] = pcmdir;
 		path[2] = current_dir;
-		path[3] = NULL;
+		path[3] = nullptr;
 	}
 	else
 	{
 		path[0] = current_dir;
 		path[1] = pcmdir;
-		path[2] = NULL;
+		path[2] = nullptr;
+		path[3] = nullptr;
 	}
 
 	setpcmdir( path );
@@ -160,6 +163,43 @@ int pmd_play ( const char *file , char *pcmdir )
 	music_load( pmd_file );
 
 	pps_file_ptr = getppsfilename( pps_file );
+
+	if ( ( nullptr != pps_file_ptr ) && ( 0 == pps_file_ptr[0]) && \
+		( nullptr != argv[3] ) && (45 /* minus sign */ != argv[3][0]) && (45 /* minus sign */ != argv[3][1]) )
+	{
+		char *p;
+
+#ifdef _MSC_VER
+		p = strrchr( argv[3], ':' );
+#else
+		p = ('/' == argv[3][0] ) ? argv[3] : nullptr;
+#endif
+		if ( nullptr == p )
+		{
+			p = ('.' == argv[3][0]) ? argv[3] : nullptr;
+		}
+
+		if ( nullptr != p )
+		{
+			if ( PMDWIN_OK == ppc_load( argv[3] ) )
+			{
+				pps_file_ptr = argv[3];
+			}
+		}
+		else
+		{
+			pps_file[0] = 0;
+			int len = std::strlen ( dir );
+			p = std::strcpy ( pps_file, dir);
+			p = std::strcpy(&pps_file[len], &current_dir[1]);
+			p = std::strcpy(&pps_file[len + 1], argv[3]);
+
+			if ( PMDWIN_OK == ppc_load( pps_file ) )
+			{
+				pps_file_ptr = pps_file;
+			}
+		}
+	}
 
 	fgetmemo3( pmd_title, pmd_file, 1 );
 	fgetmemo3( pmd_compo, pmd_file, 2 );

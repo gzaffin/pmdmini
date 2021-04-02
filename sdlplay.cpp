@@ -346,18 +346,21 @@ int main ( int argc, char *argv[] )
 
     if ( argc < 2 )
     {
-        printf("Usage pmdplay <file>\n");
-        printf("or    pmdplay <file> <output.wav>\n");
+        printf("Usage pmdplay <PMDfile>\n");
+        printf("or    pmdplay <PMDfile> <output.wav>\n");
+        printf("or    pmdplay <PMDfile> <output.wav> <ADPCMfile>\n");
+        printf("or    pmdplay <PMDfile> --           <ADPCMfile>\n");
+        printf("or    pmdplay <PMDfile> --           --\n");
         return 1;
     }
-    else if ( argc == 3 )
+
+    if ( ( nullptr != argv[2] ) && ( 45 /* minus sign */ != argv[2][0] ) && ( 45 /* minus sign */ != argv[2][1] ) )
     {
         printf("pmdplay ouput WAV file format %s\n", argv[2]);
 
         memset(buffer,0,sizeof(buffer));
     }
-
-    if ( argc == 2 )
+    else
     {
         if ( init_audio() )
         {
@@ -367,9 +370,9 @@ int main ( int argc, char *argv[] )
 
     char buf[1024];
 #ifdef _MSC_VER
-    char* pcmdir = std::getenv("USERPROFILE");
+    char *pcmdir = std::getenv("USERPROFILE");
 #else
-    char* pcmdir = std::getenv("HOME");
+    char *pcmdir = std::getenv("HOME");
 #endif
 
     if (pcmdir)
@@ -388,7 +391,7 @@ int main ( int argc, char *argv[] )
 
     pmd_init( buf );
 
-    if ( pmd_play( argv[1] , buf ) )
+    if ( pmd_play( argv , buf ) )
     {
         printf("File open error\n");
         free_audio();
@@ -396,7 +399,7 @@ int main ( int argc, char *argv[] )
     }
     audio_on = 1;
 
-    if ( argc == 2 )
+    if ( ( argc == 2 ) || ( ( argv[2] != nullptr ) && ( argv[2][0] == 45 /* minus sign */ ) && ( argv[2][1] == 45 /* minus sign */ ) ) )
     {
         player_loop( pmd_length_sec() );
 
