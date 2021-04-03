@@ -164,39 +164,41 @@ int pmd_play ( char *argv[] , char *pcmdir )
 
 	pps_file_ptr = getppsfilename( pps_file );
 
-	if ( ( nullptr != pps_file_ptr ) && ( 0 == pps_file_ptr[0]) && \
-		( nullptr != argv[3] ) && (45 /* minus sign */ != argv[3][0]) && (45 /* minus sign */ != argv[3][1]) )
+	if ( ( nullptr != pps_file_ptr ) && ( 0 == pps_file_ptr[0] ) && ( nullptr != argv[2] ) )
 	{
-		char *p;
+		if ( ( nullptr != argv[3] ) && (45 /* minus sign */ != argv[3][0] ) && (45 /* minus sign */ != argv[3][1] ) )
+		{
+			char *p;
 
 #ifdef _MSC_VER
-		p = strrchr( argv[3], ':' );
+			p = strrchr( argv[3], ':' );
 #else
-		p = ('/' == argv[3][0] ) ? argv[3] : nullptr;
+			p = ('/' == argv[3][0] ) ? argv[3] : nullptr;
 #endif
-		if ( nullptr == p )
-		{
-			p = ('.' == argv[3][0]) ? argv[3] : nullptr;
-		}
-
-		if ( nullptr != p )
-		{
-			if ( PMDWIN_OK == ppc_load( argv[3] ) )
+			if ( nullptr == p )
 			{
-				pps_file_ptr = argv[3];
+				p = ('.' == argv[3][0]) ? argv[3] : nullptr;
 			}
-		}
-		else
-		{
-			pps_file[0] = 0;
-			int len = std::strlen ( dir );
-			p = std::strcpy ( pps_file, dir);
-			p = std::strcpy(&pps_file[len], &current_dir[1]);
-			p = std::strcpy(&pps_file[len + 1], argv[3]);
 
-			if ( PMDWIN_OK == ppc_load( pps_file ) )
+			if ( nullptr != p )
 			{
-				pps_file_ptr = pps_file;
+				if ( PMDWIN_OK == ppc_load( argv[3] ) )
+				{
+					pps_file_ptr = argv[3];
+				}
+			}
+			else
+			{
+				pps_file[0] = 0;
+				int len = std::strlen ( dir );
+				p = std::strcpy ( pps_file, dir);
+				p = std::strcpy(&pps_file[len], &current_dir[1]);
+				p = std::strcpy(&pps_file[len + 1], argv[3]);
+
+				if ( PMDWIN_OK == ppc_load( pps_file ) )
+				{
+					pps_file_ptr = pps_file;
+				}
 			}
 		}
 	}

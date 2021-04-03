@@ -399,7 +399,8 @@ int main ( int argc, char *argv[] )
     }
     audio_on = 1;
 
-    if ( ( argc == 2 ) || ( ( argv[2] != nullptr ) && ( argv[2][0] == 45 /* minus sign */ ) && ( argv[2][1] == 45 /* minus sign */ ) ) )
+    if ( ( nullptr == argv[2] ) || \
+            ( (  nullptr != argv[2] ) && ( 45 /* minus sign */ == argv[2][0] ) && ( 45 /* minus sign */ == argv[2][1] ) ) )
     {
         player_loop( pmd_length_sec() );
 
