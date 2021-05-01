@@ -34,7 +34,7 @@ static int pmd_split_dir( const char *file , char *dir )
 		std::strncpy ( dir , file , len );
 	}
 	dir[ len ] = 0;
-	
+
 	return len;
 }
 
@@ -61,7 +61,6 @@ void pmd_init( char *pcmdir )
 	pmd_length = 0;
 	pmd_loop = 0;
 }
-
 
 //
 //　周波数設定
@@ -91,7 +90,6 @@ int pmd_is_pmd( const char *file )
 	size = (int)std::fread(header,1,3,fp);
 	
 	std::fclose(fp);
-
 
 	if (size != 3)
 		return 0;
@@ -164,40 +162,46 @@ int pmd_play ( char *argv[] , char *pcmdir )
 
 	pps_file_ptr = getppsfilename( pps_file );
 
-	if ( ( nullptr != pps_file_ptr ) && ( 0 == pps_file_ptr[0] ) && ( nullptr != argv[2] ) )
+	if (nullptr != pps_file_ptr)
 	{
-		if ( ( nullptr != argv[3] ) && (45 /* minus sign */ != argv[3][0] ) && (45 /* minus sign */ != argv[3][1] ) )
+		if ( (nullptr != argv[2]) && (0 == pps_file_ptr[0]) )
 		{
-			char *p;
+			if (nullptr != argv[3])
+			{
+				if ( (45 /* minus sign */ != argv[3][0]) && (45 /* minus sign */ != argv[3][1]) )
+				{
+					char *p;
 
 #ifdef _MSC_VER
-			p = strrchr( argv[3], ':' );
+					p = strrchr( argv[3], ':' );
 #else
-			p = ('/' == argv[3][0] ) ? argv[3] : nullptr;
+					p = ('/' == argv[3][0] ) ? argv[3] : nullptr;
 #endif
-			if ( nullptr == p )
-			{
-				p = ('.' == argv[3][0]) ? argv[3] : nullptr;
-			}
+					if ( nullptr == p )
+					{
+						p = ('.' == argv[3][0]) ? argv[3] : nullptr;
+					}
 
-			if ( nullptr != p )
-			{
-				if ( PMDWIN_OK == ppc_load( argv[3] ) )
-				{
-					pps_file_ptr = argv[3];
-				}
-			}
-			else
-			{
-				pps_file[0] = 0;
-				int len = std::strlen( dir );
-				p = std::strcpy( pps_file, dir);
-				p = std::strcpy( &pps_file[len], &current_dir[1] );
-				p = std::strcpy( &pps_file[len + 1], argv[3] );
+					if ( nullptr != p )
+					{
+						if ( PMDWIN_OK == ppc_load( argv[3] ) )
+						{
+							pps_file_ptr = argv[3];
+						}
+					}
+					else
+					{
+						pps_file[0] = 0;
+						int len = std::strlen( dir );
+						p = std::strcpy( pps_file, dir);
+						p = std::strcpy( &pps_file[len], &current_dir[1] );
+						p = std::strcpy( &pps_file[len + 1], argv[3] );
 
-				if ( PMDWIN_OK == ppc_load( pps_file ) )
-				{
-					pps_file_ptr = pps_file;
+						if ( PMDWIN_OK == ppc_load( pps_file ) )
+						{
+							pps_file_ptr = pps_file;
+						}
+					}
 				}
 			}
 		}
@@ -231,7 +235,6 @@ int pmd_get_tracks( void )
 	return NumOfAllPart;
 }
 
-
 //
 // 現在のノート
 //
@@ -255,7 +258,6 @@ void pmd_get_current_notes ( int *notes , int len )
 	}
 }
 
-
 int pmd_length_sec ( void )
 {
 	return pmd_length / 1000;
@@ -275,7 +277,6 @@ void pmd_stop ( void )
 {
 	music_stop();
 	pmdwork = NULL;
-
 }
 
 void pmd_get_title( char *dest )

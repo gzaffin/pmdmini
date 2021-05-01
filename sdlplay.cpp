@@ -360,11 +360,21 @@ int main ( int argc, char *argv[] )
         return 1;
     }
 
-    if ( ( nullptr != argv[2] ) && ( 45 /* minus sign */ != argv[2][0] ) && ( 45 /* minus sign */ != argv[2][1] ) )
+    if (nullptr != argv[2])
     {
-        printf("pmdplay ouput WAV file format %s\n", argv[2]);
+        if ( (45 /* minus sign */ != argv[2][0]) && (45 /* minus sign */ != argv[2][1]) )
+        {
+            printf("pmdplay ouput WAV file format %s\n", argv[2]);
 
-        memset(buffer,0,sizeof(buffer));
+            memset(buffer, 0, sizeof(buffer));
+        }
+        else
+        {
+            if (init_audio())
+            {
+                return 1;
+            }
+        }
     }
     else
     {
@@ -410,28 +420,37 @@ int main ( int argc, char *argv[] )
     int sum_length_sec = song_length_sec;
     int loop_count = 1;
 
-    if ( ( nullptr != argv[4] ) && ( 45 /* minus sign */ != argv[4][0] ) && ( 45 /* minus sign */ != argv[4][1] ) )
+    if (nullptr != argv[2])
     {
-        loop_count = atoi( argv[4] );
-        if ( loop_count > 99 )
+        if (nullptr != argv[3])
         {
-            loop_count = 99;
-        }
+            if (nullptr != argv[4])
+            {
+                if ((45 /* minus sign */ != argv[4][0]) && (45 /* minus sign */ != argv[4][1]))
+                {
+                    loop_count = atoi(argv[4]);
+                    if (loop_count > 99)
+                    {
+                        loop_count = 99;
+                    }
 
-        if ( ( 0 != loop_count ) && ( loop_count > 0 ) )
-        {
-            if ( 0 != song_loop_length_sec )
-            {
-                sum_length_sec = song_length_sec + ( ( loop_count - 1 ) * song_loop_length_sec );
+                    if ((0 != loop_count) && (loop_count > 0))
+                    {
+                        if (0 != song_loop_length_sec)
+                        {
+                            sum_length_sec = song_length_sec + ((loop_count - 1) * song_loop_length_sec);
+                        }
+                        else
+                        {
+                            sum_length_sec = song_length_sec * loop_count;
+                        }
+                    }
+                    else if (0 == loop_count)
+                    {
+                        sum_length_sec = INT_MAX - PHASE_OUT_TIME_SECONDS;
+                    }
+                }
             }
-            else
-            {
-                sum_length_sec = song_length_sec * loop_count;
-            }
-        }
-        else if ( 0 == loop_count )
-        {
-            sum_length_sec = INT_MAX - PHASE_OUT_TIME_SECONDS;
         }
     }
 
@@ -476,16 +495,24 @@ int main ( int argc, char *argv[] )
         return 1;
     }
 
-    if ( ( nullptr == argv[2] ) || \
-            ( (  nullptr != argv[2] ) && ( 45 /* minus sign */ == argv[2][0] ) && ( 45 /* minus sign */ == argv[2][1] ) ) )
+    if (nullptr != argv[2])
     {
-        player_loop( sum_length_sec );
+        if ( (45 /* minus sign */ == argv[2][0]) && (45 /* minus sign */ == argv[2][1]) )
+        {
+            player_loop(sum_length_sec);
 
-        free_audio();
+            free_audio();
+        }
+        else
+        {
+            audio_loop_file( argv[2], ( sum_length_sec < 3600 ) ? sum_length_sec : 3600 );
+        }
     }
     else
     {
-        audio_loop_file( argv[2], ( sum_length_sec < 3600 ) ? sum_length_sec : 3600 );
+        player_loop(sum_length_sec);
+
+        free_audio();
     }
 
     pmd_stop();
