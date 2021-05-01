@@ -129,7 +129,7 @@ int pmd_play ( char *argv[] , char *pcmdir )
 	if ( ! pmd_is_pmd ( file ) )
 		return 1;
 
-	std::strcpy ( pmd_file , file );
+	std::strcpy( pmd_file , file );
 
 	dir[0] = 0;
 	if ( pmd_split_dir( file , dir ) > 0 )
@@ -150,7 +150,7 @@ int pmd_play ( char *argv[] , char *pcmdir )
 	setpcmdir( path );
 
 	// get song length in sec
-	if (!getlength( pmd_file , &pmd_length , &pmd_loop ))
+	if ( !getlength( pmd_file , &pmd_length , &pmd_loop ) )
 	{
 		pmd_length = 0;
 		pmd_loop = 0;
@@ -190,10 +190,10 @@ int pmd_play ( char *argv[] , char *pcmdir )
 			else
 			{
 				pps_file[0] = 0;
-				int len = std::strlen ( dir );
-				p = std::strcpy ( pps_file, dir);
-				p = std::strcpy(&pps_file[len], &current_dir[1]);
-				p = std::strcpy(&pps_file[len + 1], argv[3]);
+				int len = std::strlen( dir );
+				p = std::strcpy( pps_file, dir);
+				p = std::strcpy( &pps_file[len], &current_dir[1] );
+				p = std::strcpy( &pps_file[len + 1], argv[3] );
 
 				if ( PMDWIN_OK == ppc_load( pps_file ) )
 				{

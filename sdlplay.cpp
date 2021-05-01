@@ -1,6 +1,7 @@
-#include <cstdlib>
+#include <cstdlib> /* for atoi() */
 #include <cstring> /* for memset(), memcpy() */
-#include <stdint.h>
+#include <cstdint>
+#include <climits> /* for INT_MAX */
 #ifdef _MSC_VER
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -21,6 +22,8 @@ int audio_on = 0;
 #define PCM_BYTE_PER_SAMPLE 2
 #define PCM_CH  2
 #define PCM_NUM_BLOCKS 4
+
+#define PHASE_OUT_TIME_SECONDS (5)
 
 //
 // buffer size definitions
@@ -302,8 +305,7 @@ static void player_loop( const int len )
             }
 
             player_screen();
-            printf("Time : %02d:%02d / %02d:%02d\r\r", \
-                sec / 60 , sec % 60 , len / 60,len % 60);
+            printf("Time : %02d:%02d / %02d:%02d\r\r", sec / 60, sec % 60, (len % 3600) / 60, (len % 3600) % 60);
             fflush(stdout);
         }
         else
@@ -311,7 +313,7 @@ static void player_loop( const int len )
             SDL_Delay(1);
         }
 
-    } while(sec < (len + 5));
+    } while (sec < (len + PHASE_OUT_TIME_SECONDS));
 
 }
 
@@ -351,6 +353,10 @@ int main ( int argc, char *argv[] )
         printf("or    pmdplay <PMDfile> <output.wav> <ADPCMfile>\n");
         printf("or    pmdplay <PMDfile> --           <ADPCMfile>\n");
         printf("or    pmdplay <PMDfile> --           --\n");
+        printf("or    pmdplay <PMDfile> --           --          <repetitions::default=1::max=99::forever=0>\n");
+        printf("or    pmdplay <PMDfile> <output.wav> --          <repetitions::default=1::max=99::forever=0>\n");
+        printf("or    pmdplay <PMDfile> --           <ADPCMfile> <repetitions::default=1::max=99::forever=0>\n");
+        printf("or    pmdplay <PMDfile> <output.wav> <ADPCMfile> <repetitions::default=1::max=99::forever=0>\n");
         return 1;
     }
 
@@ -399,19 +405,91 @@ int main ( int argc, char *argv[] )
     }
     audio_on = 1;
 
+    int song_length_sec = pmd_length_sec();
+    int song_loop_length_sec = pmd_loop_sec();
+    int sum_length_sec = song_length_sec;
+    int loop_count = 1;
+
+    if ( ( nullptr != argv[4] ) && ( 45 /* minus sign */ != argv[4][0] ) && ( 45 /* minus sign */ != argv[4][1] ) )
+    {
+        loop_count = atoi( argv[4] );
+        if ( loop_count > 99 )
+        {
+            loop_count = 99;
+        }
+
+        if ( ( 0 != loop_count ) && ( loop_count > 0 ) )
+        {
+            if ( 0 != song_loop_length_sec )
+            {
+                sum_length_sec = song_length_sec + ( ( loop_count - 1 ) * song_loop_length_sec );
+            }
+            else
+            {
+                sum_length_sec = song_length_sec * loop_count;
+            }
+        }
+        else if ( 0 == loop_count )
+        {
+            sum_length_sec = INT_MAX - PHASE_OUT_TIME_SECONDS;
+        }
+    }
+
+    if ( 0 != song_length_sec )
+    {
+        if ( 0 == loop_count )
+        {
+            if ( 0 != song_loop_length_sec )
+            {
+                printf(" %s plays %d sec, loop plays %d sec, however pmdplay is going to play forever\n", argv[1], song_length_sec, song_loop_length_sec );
+            }
+            else
+            {
+                printf(" %s plays %d sec, however pmdplay is going to play forever\n", argv[1], song_length_sec );
+            }
+        }
+        else if ( 1 != loop_count )
+        {
+            if ( 0 != song_loop_length_sec )
+            {
+                printf(" %s plays %d sec, loop plays %d sec, pmdplay is going to play %d additional loop%s\n", argv[1], song_length_sec, song_loop_length_sec, ( loop_count - 1 ), ( loop_count > 2 ) ? "s" : "" );
+            }
+            else
+            {
+                printf(" %s plays %d sec, pmdplay is going to play it %d times\n", argv[1], song_length_sec, loop_count );
+            }
+        }
+        else
+        {
+            if ( 0 != song_loop_length_sec )
+            {
+                printf(" %s plays %d sec, loop plays %d sec\n", argv[1], song_length_sec, song_loop_length_sec);
+            }
+            else
+            {
+                printf(" %s plays %d sec\n", argv[1], song_length_sec);
+            }
+        }
+    }
+    else
+    {
+        return 1;
+    }
+
     if ( ( nullptr == argv[2] ) || \
             ( (  nullptr != argv[2] ) && ( 45 /* minus sign */ == argv[2][0] ) && ( 45 /* minus sign */ == argv[2][1] ) ) )
     {
-        player_loop( pmd_length_sec() );
+        player_loop( sum_length_sec );
 
         free_audio();
     }
     else
     {
-        audio_loop_file( argv[2], pmd_length_sec() );
+        audio_loop_file( argv[2], ( sum_length_sec < 3600 ) ? sum_length_sec : 3600 );
     }
 
     pmd_stop();
 
     return 0;
 }
+
