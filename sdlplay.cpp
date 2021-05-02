@@ -492,7 +492,15 @@ int main ( int argc, char *argv[] )
     }
     else
     {
-        return 1;
+        if ( 0 != song_loop_length_sec )
+        {
+            printf(" %s plays %d sec, loop plays %d sec, however pmdplay is going to play forever\n", argv[1], song_length_sec, song_loop_length_sec );
+        }
+        else
+        {
+            printf(" %s plays %d sec, however pmdplay is going to play forever\n", argv[1], song_length_sec );
+        }
+        sum_length_sec = INT_MAX - PHASE_OUT_TIME_SECONDS;
     }
 
     if (nullptr != argv[2])
