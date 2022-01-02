@@ -15,7 +15,6 @@
 	#include <fcntl.h>
 	#include <linux/stat.h>
 	#include <sys/stat.h>
-	#include <jni.h>
 #endif
 
 #include "portability_fmpmd.h"

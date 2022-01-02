@@ -647,7 +647,7 @@ FilePath::FilePath() : EmptyChar('\0')
 
 TCHAR* FilePath::Clear(TCHAR* dest, size_t size)
 {
-	return (TCHAR*)std::memset(reinterpret_cast<void *>dest, 0, size * sizeof(TCHAR));
+	return (TCHAR*)std::memset(reinterpret_cast<void *>(dest), 0, size * sizeof(TCHAR));
 }
 
 // ---------------------------------------------------------------------------
@@ -758,6 +758,11 @@ const TCHAR* FilePath::Strchr(const TCHAR *str, TCHAR c)
 	return (const TCHAR*)std::strchr(reinterpret_cast<const char *>(str), (int)c);
 }
 
+TCHAR* FilePath::Strchr(TCHAR *str, TCHAR c)
+{
+	return (TCHAR *)std::strchr(reinterpret_cast<char *>(str), (int)c);
+}
+
 // ---------------------------------------------------------------------------
 //	指定された文字の最後の出現箇所を検索
 // ---------------------------------------------------------------------------
@@ -765,6 +770,11 @@ const TCHAR* FilePath::Strchr(const TCHAR *str, TCHAR c)
 const TCHAR* FilePath::Strrchr(const TCHAR *str, TCHAR c)
 {
 	return (const TCHAR*)std::strrchr(reinterpret_cast<const char*>(str), (int)c);
+}
+
+TCHAR* FilePath::Strrchr(TCHAR *str, TCHAR c)
+{
+	return (TCHAR *)std::strrchr(reinterpret_cast<char *>(str), (int)c);
 }
 
 // ---------------------------------------------------------------------------
