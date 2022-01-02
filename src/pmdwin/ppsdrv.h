@@ -8,11 +8,8 @@
 #ifndef PPSDRV_H
 #define PPSDRV_H
 
-#if defined _WIN32
-#include <windows.h>
-#endif
-#include "file.h"
-//#include "types.h"
+#include "portability_fmpmdcore.h"
+#include "file_fmgen.h"
 //#include "psg.h"
 
 //	DLL の 戻り値
@@ -32,22 +29,21 @@
 //#define date		"1994/06/08"
 
 
-typedef int				Sample;
-typedef	unsigned char	uchar;
-typedef	unsigned int	uint;
+typedef int32_t				Sample;
 
 
 #if defined _WIN32
+
 #pragma pack( push, enter_include1 )
 #pragma pack(1)
 
 typedef struct ppsheadertag
 {
 	struct {
-		WORD	address;				// 先頭アドレス
-		WORD	leng;					// データ量
-		BYTE	toneofs;				// 音階
-		BYTE	volumeofs;				// 音量
+		uint16_t	address;				// 先頭アドレス
+		uint16_t	leng;					// データ量
+		uint8_t		toneofs;				// 音階
+		uint8_t		volumeofs;				// 音量
 	} pcmnum[MAX_PPS];
 } PPSHEADER;
 
@@ -58,42 +54,46 @@ typedef struct ppsheadertag
 typedef struct ppsheadertag
 {
 	struct {
-		WORD	address __attribute__((packed));				// 先頭アドレス
-		WORD	leng __attribute__((packed));					// データ量
-		BYTE	toneofs __attribute__((packed));				// 音階
-		BYTE	volumeofs __attribute__((packed));				// 音量
+		uint16_t	address __attribute__((packed));				// 先頭アドレス
+		uint16_t	leng __attribute__((packed));					// データ量
+		uint8_t	toneofs __attribute__((packed));				// 音階
+		uint8_t	volumeofs __attribute__((packed));				// 音量
 	} pcmnum[MAX_PPS] __attribute__((packed));
 } PPSHEADER __attribute__((packed));
 
 #endif
 
 
+const size_t PPSHEADERSIZE = (sizeof(uint16_t) * 2 + sizeof(uint8_t) * 2) * MAX_PPS;
+
 class PPSDRV
 {
 public:
-	PPSDRV();
-	~PPSDRV();
+	PPSDRV(IFILEIO* pfileio);
+	virtual ~PPSDRV();
+	void	setfileio(IFILEIO* pfileio);
 	
-	bool	Init(uint r, bool ip);					//     初期化
+	bool	Init(uint32_t r, bool ip);					//     初期化
 	bool	Stop(void);								// 00H PDR 停止
-	bool	Play(int num, int shift, int volshift);	// 01H PDR 再生
+	bool	Play(int32_t num, int32_t shift, int32_t volshift);	// 01H PDR 再生
 	bool	Check(void);							// 02H 再生中かどうかcheck
-	bool	SetParam(int paramno, bool data);		// 05H PDRパラメータの設定
-	bool	GetParam(int paramno);					// 06H PDRパラメータの取得
+	bool	SetParam(int32_t paramno, bool data);		// 05H PDRパラメータの設定
+	bool	GetParam(int32_t paramno);					// 06H PDRパラメータの取得
 	
-	int		Load(TCHAR *filename);					// PPS 読み込み
-	bool	SetRate(uint r, bool ip);				// レート設定
-	void	SetVolume(int vol);						// 音量設定
-	void	Mix(Sample* dest, int nsamples);		// 合成
+	int32_t		Load(TCHAR *filename);					// PPS 読み込み
+	bool	SetRate(uint32_t r, bool ip);				// レート設定
+	void	SetVolume(int32_t vol);						// 音量設定
+	void	Mix(Sample* dest, int32_t nsamples);		// 合成
 	
 	PPSHEADER	ppsheader;							// PCMの音色ヘッダー
 	TCHAR	pps_file[_MAX_PATH];					// ファイル名
 	
 private:
 	FilePath	filepath;							// ファイルパス関連のクラスライブラリ
+	IFILEIO*	pfileio;							// ファイルアクセス関連のクラスライブラリ
 	
 	bool	interpolation;							// 補完するか？
-	int		rate;
+	int32_t		rate;
 	Sample	*dataarea1;								// PPS 保存用メモリポインタ
 	bool	single_flag;							// 単音モードか？
 	bool	low_cpu_check_flag;						// 周波数半分で再生か？
@@ -101,20 +101,21 @@ private:
 	Sample	EmitTable[16];
 	Sample	*data_offset1;
 	Sample	*data_offset2;
-	int		data_xor1;								// 現在の位置(小数部)
-	int		data_xor2;								// 現在の位置(小数部)
-	int		tick1;
-	int		tick2;
-	int		tick_xor1;
-	int		tick_xor2;
-	int		data_size1;
-	int		data_size2;
-	int		volume1;
-	int		volume2;
+	int32_t		data_xor1;								// 現在の位置(小数部)
+	int32_t		data_xor2;								// 現在の位置(小数部)
+	int32_t		tick1;
+	int32_t		tick2;
+	int32_t		tick_xor1;
+	int32_t		tick_xor2;
+	int32_t		data_size1;
+	int32_t		data_size2;
+	int32_t		volume1;
+	int32_t		volume2;
 	Sample	keyoff_vol;
 //	PSG		psg;									// @暫定
 	
 	void	_Init(void);
+	void 	ReadHeader(IFILEIO* file, PPSHEADER &ppsheader);
 };
 
 #endif	// PPSDRV_H

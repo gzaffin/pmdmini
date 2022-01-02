@@ -3,23 +3,32 @@
 //				Programmed by C60
 //=============================================================================
 
-#include	<stdlib.h>
-#include	<string.h>
-#include	<ctype.h>
-#if defined _WIN32
-#include	<mbstring.h>	// for _ismbblead
-#else
-#include	<cwchar>		// for mbrlen
-#endif
-#include	"util.h"
+#include <ctype.h>
+#include <malloc.h>
+#include <string.h>
+#include "portability_fmpmdcore.h"
+#include "util.h"
+
+
+//=============================================================================
+//	cがマルチバイト文字の第 1 バイトであれば 0 以外を返す
+//=============================================================================
+int32_t ismbblead(uint32_t c)
+{
+	if((c >= 0x81 && c <= 0x9f) || (c >= 0xe0 && c <= 0xfc)) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
 
 
 //=============================================================================
 //	TAB を SPACE に変換(tabcolumn カラム毎 / ESCシーケンス不可)
 //=============================================================================
-char *tab2spc(char *dest, const char *src, int tabcolumn)
+char *tab2spc(char *dest, const char *src, int32_t tabcolumn)
 {
-	int		column = 0;
+	int32_t		column = 0;
 	char	*dest2;
 	
 	dest2 = dest;
@@ -27,13 +36,18 @@ char *tab2spc(char *dest, const char *src, int tabcolumn)
 		if(*src == '\t') {							// TAB
 			src++;
 			do {
-				*dest++ = ' ';
+				*dest = ' ';
+				dest++;
 			}while(++column % tabcolumn);
 		} else if(*src == 0x0d || *src == 0x0a) {	// 改行
 			column = 0;
-			*dest++ = *src++;
+			*dest = *src;
+			dest++;
+			src++;
 		} else {
-			*dest++ = *src++;
+			*dest = *src;
+			dest++;
+			src++;
 			column++;
 		}
 	}
@@ -49,11 +63,11 @@ char *tab2spc(char *dest, const char *src, int tabcolumn)
 char *delesc(char *dest, const char *src)
 {
 	char	*dest2;
-	uchar	*src2;
-	uchar	*src3;
+	uint8_t	*src2;
+	uint8_t	*src3;
 	size_t	i;
 	
-	if((src2 = src3 = (uchar *)malloc(strlen(src) + 32)) == NULL) {
+	if((src2 = src3 = (uint8_t *)malloc(strlen(src) + 32)) == NULL) {
 		return NULL;
 	};
 	
@@ -71,12 +85,7 @@ char *delesc(char *dest, const char *src)
 			if(*(src2 + 1) == '[') {
 				src2 += 2;
 				while(*src2 && (toupper(*src2) < 'A' || toupper(*src2) > 'Z')) {
-#if defined _WIN32
-					if(_ismbblead(*src2)) {
-#else
-					std::mbstate_t mb = std::mbstate_t();
-					if(-2 == std::mbrlen((const char *)src2, 1, &mb)) {
-#endif
+					if(ismbblead(*src2)) {
 						src2 += 2;
 						continue;
 					}
@@ -91,7 +100,9 @@ char *delesc(char *dest, const char *src)
 				src2 += 2;
 			}
 		} else {
-			*dest++ = *src2++;
+			*dest = *src2;
+			dest++;
+			src2++;
 		}
 	}
 	
@@ -109,7 +120,7 @@ char *zen2tohan(char *dest, const char *src)
 	char *src2;
 	char *src3;
 	char *dest2;
-	int	len;
+	int32_t	len;
 	static const char *codetable[] = {
 		"!",		/*	8540 	*/
 		"\"",		/*	8541 	*/
@@ -311,24 +322,26 @@ char *zen2tohan(char *dest, const char *src)
 	
 	dest2 = dest;
 	do {
-#if defined _WIN32
-		if(_ismbblead(*src2)) {		// 漢字１バイト目
-#else
-		std::mbstate_t mb = std::mbstate_t();
-		if(-2 == std::mbrlen((const char *)src2, 1, &mb)) {
-#endif
-			if(*(uchar *)src2 == 0x85 &&
-					*(uchar *)(src2+1) >= 0x40 && *(uchar *)(src2+1) <= 0xfc) {	// 2バイト半角
-				len = strlen(codetable[*(uchar *)(src2+1) - 0x40]);
-				strncpy(dest, codetable[*(uchar *)(src2+1) - 0x40], len);
+		if(ismbblead(*src2)) {		// 漢字１バイト目
+			if(*(uint8_t *)src2 == 0x85 &&
+					*(uint8_t *)(src2+1) >= 0x40 && *(uint8_t *)(src2+1) <= 0xfc) {	// 2バイト半角
+				len = (int32_t)strlen(codetable[*(uint8_t *)(src2+1) - 0x40]);
+				strncpy(dest, codetable[*(uint8_t *)(src2+1) - 0x40], len);
 				src2 += 2;
 				dest += len;
 			} else {
-				*dest++ = *src2++;
-				*dest++ = *src2++;
+				*dest = *src2;
+				dest++;
+				src2++;
+
+				*dest = *src2;
+				dest++;
+				src2++;
 			}
 		} else {
-			*dest++ = *src2++;
+			*dest = *src2;
+			dest++;
+			src2++;
 		}
 	}while(*src2 != '\0');
 	

@@ -1,24 +1,13 @@
 //=============================================================================
 //		opnaw : OPNA unit with wait
-//			ver 0.04
+//			ver 0.05
 //=============================================================================
 
-#if defined _WIN32
-#include	<windows.h>
-#else
-#include	<cstdint>
-typedef std::int64_t _int64;
-#endif
-#include	<stdio.h>
-#include	<string.h>
-#include	<math.h>
-#include	"opnaw.h"
-#include	"ppz8l.h"
-#include	"util.h"
-#include	"misc.h"
+#include <cmath>
+#include <algorithm>
+#include "opnaw.h"
 
 #define		M_PI	3.14159265358979323846
-
 
 
 //-----------------------------------------------------------------------------
@@ -33,7 +22,7 @@ namespace FM {
 //-----------------------------------------------------------------------------
 //	コンストラクタ・デストラクタ
 //-----------------------------------------------------------------------------
-OPNAW::OPNAW()
+OPNAW::OPNAW(IFILEIO* pfileio) : FM::OPNA(pfileio)
 {
 	_Init();
 }
@@ -45,9 +34,17 @@ OPNAW::~OPNAW()
 
 
 //-----------------------------------------------------------------------------
+//	File Stream 設定
+//-----------------------------------------------------------------------------
+void OPNAW::setfileio(IFILEIO* pfileio) {
+	OPNA::setfileio(pfileio);
+}
+
+
+//-----------------------------------------------------------------------------
 //	初期化
 //-----------------------------------------------------------------------------
-bool OPNAW::Init(uint c, uint r, bool ipflag, const TCHAR* path)
+bool OPNAW::Init(uint32_t c, uint32_t r, bool ipflag, const TCHAR* path)
 {
 	_Init();
 	rate2 = r;
@@ -89,14 +86,22 @@ void OPNAW::_Init()
 	rate2 = 0;
 	interpolation2 = false;
 	delta = 0;
+	delta_double = 0.0;
+	
+	//@ 標本化定理及びLPFの仮設定
+	ffirst = true;
+	rest = 0.0;
+	write_pos_ip = NUMOFINTERPOLATION;
 }
 
 
 //-----------------------------------------------------------------------------
 //	サンプリングレート変更
 //-----------------------------------------------------------------------------
-bool OPNAW::SetRate(uint c, uint r, bool ipflag)
+bool OPNAW::SetRate(uint32_t c, uint32_t r, bool ipflag)
 {
+	bool result;
+	
 	SetFMWait(fmwait);
 	SetSSGWait(ssgwait);
 	SetRhythmWait(rhythmwait);
@@ -105,44 +110,52 @@ bool OPNAW::SetRate(uint c, uint r, bool ipflag)
 	interpolation2 = ipflag;
 	rate2 = r;
 	
+	//@ 標本化定理及びLPFの仮設定
+	ffirst = true;
+	//@ rest = IP_PCM_BUFFER_SIZE - NUMOFINTERPOLATION;
+	//@ rest = 0.0;
+	
 #ifdef INTERPOLATION_IN_THIS_UNIT
 	if(ipflag) {
-		return OPNA::SetRate(c, SOUND_55K_2, false);
+		result = OPNA::SetRate(c, SOUND_55K_2, false);
 	} else {
-		return OPNA::SetRate(c, r, false);
+		result = OPNA::SetRate(c, r, false);
 	}
 #else
-	return OPNA::SetRate(c, r, ipflag);
+	result = OPNA::SetRate(c, r, ipflag);
 #endif
+	
 	fmwaitcount = fmwait * rate / 1000000;
 	ssgwaitcount = ssgwait * rate / 1000000;
 	rhythmwaitcount = rhythmwait * rate / 1000000;
 	adpcmwaitcount = adpcmwait * rate / 1000000;
+	
+	return result;
 }
 
 
 //-----------------------------------------------------------------------------
 //	Wait 設定
 //-----------------------------------------------------------------------------
-void OPNAW::SetFMWait(int nsec)
+void OPNAW::SetFMWait(int32_t nsec)
 {
 	fmwait = nsec;
 	fmwaitcount = nsec * rate / 1000000;
 }
 
-void OPNAW::SetSSGWait(int nsec)
+void OPNAW::SetSSGWait(int32_t nsec)
 {
 	ssgwait = nsec;
 	ssgwaitcount = nsec * rate / 1000000;
 }
 
-void OPNAW::SetRhythmWait(int nsec)
+void OPNAW::SetRhythmWait(int32_t nsec)
 {
 	rhythmwait = nsec;
 	rhythmwaitcount = nsec * rate / 1000000;
 }
 
-void OPNAW::SetADPCMWait(int nsec)
+void OPNAW::SetADPCMWait(int32_t nsec)
 {
 	adpcmwait = nsec;
 	adpcmwaitcount = nsec * rate / 1000000;
@@ -152,22 +165,22 @@ void OPNAW::SetADPCMWait(int nsec)
 //-----------------------------------------------------------------------------
 //	Wait 取得
 //-----------------------------------------------------------------------------
-int OPNAW::GetFMWait(void)
+int32_t OPNAW::GetFMWait(void)
 {
 	return fmwait;
 }
 
-int OPNAW::GetSSGWait(void)
+int32_t OPNAW::GetSSGWait(void)
 {
 	return ssgwait;
 }
 
-int OPNAW::GetRhythmWait(void)
+int32_t OPNAW::GetRhythmWait(void)
 {
 	return rhythmwait;
 }
 
-int OPNAW::GetADPCMWait(void)
+int32_t OPNAW::GetADPCMWait(void)
 {
 	return adpcmwait;
 }
@@ -176,7 +189,7 @@ int OPNAW::GetADPCMWait(void)
 //-----------------------------------------------------------------------------
 //	レジスタアレイにデータを設定
 //-----------------------------------------------------------------------------
-void OPNAW::SetReg(uint addr, uint data)
+void OPNAW::SetReg(uint32_t addr, uint32_t data)
 {
 	if(addr < 0x10) {					// SSG
 		if(ssgwaitcount) {
@@ -203,9 +216,9 @@ void OPNAW::SetReg(uint addr, uint data)
 //-----------------------------------------------------------------------------
 //	SetReg() wait 時の PCM を計算
 //-----------------------------------------------------------------------------
-void OPNAW::CalcWaitPCM(int waitcount)
+void OPNAW::CalcWaitPCM(int32_t waitcount)
 {
-	int		outsamples;
+	int32_t		outsamples;
 	
 	count2 += waitcount % 1000;
 	waitcount /= 1000;
@@ -232,14 +245,27 @@ void OPNAW::CalcWaitPCM(int waitcount)
 }
 
 
+// ---------------------------------------------------------------------------
+//	sinc関数
+//-----------------------------------------------------------------------------
+double OPNAW::Sinc(double x)
+{
+	if(x != 0.0) {
+		return sin(M_PI * x) / (M_PI * x);
+	} else {
+		return 1.0;
+	}
+}
+
+
 //-----------------------------------------------------------------------------
 //	合成（一次補間なしVer.)
 //-----------------------------------------------------------------------------
-void OPNAW::_Mix(Sample* buffer, int nsamples)
+void OPNAW::_Mix(Sample* buffer, int32_t nsamples)
 {
-	int		bufsamples;
-	int		outsamples;
-	int		i;
+	int32_t		bufsamples;
+	int32_t		outsamples;
+	int32_t		i;
 	
 	if(read_pos != write_pos) {			// buffer から出力
 		if(read_pos < write_pos) {
@@ -278,19 +304,30 @@ void OPNAW::_Mix(Sample* buffer, int nsamples)
 
 
 //-----------------------------------------------------------------------------
+//	最小非負剰余
+//-----------------------------------------------------------------------------
+double OPNAW::Fmod2(double x, double y)
+{
+	return x - std::floor((double)x / y) * y;
+}
+
+
+//-----------------------------------------------------------------------------
 //	合成
 //-----------------------------------------------------------------------------
-void OPNAW::Mix(Sample* buffer, int nsamples)
+void OPNAW::Mix(Sample* buffer, int32_t nsamples)
 {
 
 #ifdef INTERPOLATION_IN_THIS_UNIT
-	int	nmixdata2;
 	
-	if(interpolation2) {
+	if(interpolation2 && rate2 != SOUND_55K_2) {
+#if 0	
+		int32_t	nmixdata2;
+		
 		while(nsamples > 0) {
-			int nmixdata = (int)(delta + ((_int64)nsamples) * (SOUND_55K_2 * 16384 / rate2)) / 16384;
+			int32_t nmixdata = (int32_t)(delta + ((int64_t)nsamples) * (SOUND_55K_2 * 16384 / rate2)) / 16384;
 			if(nmixdata > (IP_PCM_BUFFER_SIZE - 1)) {
-				int snsamples = (IP_PCM_BUFFER_SIZE - 2) * rate2 / SOUND_55K_2;
+				int32_t snsamples = (IP_PCM_BUFFER_SIZE - 2) * rate2 / SOUND_55K_2;
 				nmixdata = (delta + (snsamples) * (SOUND_55K_2 * 16384 / rate2)) / 16384;
 			}
 			memset(&ip_buffer[2], 0, sizeof(Sample) * 2 * nmixdata);
@@ -308,6 +345,45 @@ void OPNAW::Mix(Sample* buffer, int nsamples)
 			ip_buffer[0] = ip_buffer[nmixdata * 2    ];
 			ip_buffer[1] = ip_buffer[nmixdata * 2 + 1];
 		}
+#endif
+		
+		for (int32_t i = 0; i < nsamples; i++) {
+			int32_t irest = (int32_t)rest;
+			if (write_pos_ip - (irest + NUMOFINTERPOLATION) < 0) {
+				
+				int32_t nrefill = (int32_t)(rest + (nsamples - i - 1) * ((double)SOUND_55K_2 / rate2)) + NUMOFINTERPOLATION - write_pos_ip;
+				if(write_pos_ip + nrefill - IP_PCM_BUFFER_SIZE > irest) {
+					nrefill = irest + IP_PCM_BUFFER_SIZE - write_pos_ip;
+				}
+				
+				//　補充
+				int32_t nrefill1 = (std::min)(IP_PCM_BUFFER_SIZE - (write_pos_ip % IP_PCM_BUFFER_SIZE), nrefill);
+				int32_t nrefill2 = nrefill - nrefill1;
+				
+				memset(&ip_buffer[(write_pos_ip % IP_PCM_BUFFER_SIZE) * 2], 0, sizeof(Sample) * 2 * nrefill1);
+				_Mix(&ip_buffer[(write_pos_ip % IP_PCM_BUFFER_SIZE) * 2], nrefill1);
+				
+				memset(&ip_buffer[0 * 2], 0, sizeof(Sample) * 2 * nrefill2);
+				_Mix(&ip_buffer[0], nrefill2);
+				
+				write_pos_ip += nrefill;
+			}
+			
+			double tempL = 0.0;
+			double tempR = 0.0;
+			for (int j = irest; j < irest + NUMOFINTERPOLATION; j++) {
+				double temps;
+				temps = Sinc((double)j - rest - NUMOFINTERPOLATION / 2 + 1);
+				tempL += temps * ip_buffer[(j % IP_PCM_BUFFER_SIZE) * 2];
+				tempR += temps * ip_buffer[(j % IP_PCM_BUFFER_SIZE) * 2 + 1];
+			}
+			
+			*buffer++ += Limit((int32_t)tempL, 32767, -32768);
+			*buffer++ += Limit((int32_t)tempR, 32767, -32768);
+			
+			rest += (double)SOUND_55K_2 / rate2;
+		}
+	
 	} else {
 		_Mix(buffer, nsamples);
 	}
@@ -325,6 +401,9 @@ void OPNAW::ClearBuffer(void)
 	read_pos = write_pos = 0;
 	memset(pre_buffer, 0, sizeof(pre_buffer));
 	memset(ip_buffer, 0, sizeof(ip_buffer));
+	
+	rest = 0.0;
+	write_pos_ip = NUMOFINTERPOLATION;
 }
 
 

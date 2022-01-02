@@ -30,7 +30,7 @@ add_subdirectory(src)
 
 file(GLOB SOURCES sdlplay.cpp)
 
-include_directories(src src/fmgen src/pmdwin)
+include_directories(src src/ymfm src/pmdwin)
 
 add_executable(pmdplay EXCLUDE_FROM_ALL ${SOURCES})
 
