@@ -5,34 +5,61 @@
 //=============================================================================
 
 #include "pmdwincore.h"
-#if defined _WIN32
-#ifdef USE_DLL
-#ifdef BUILDING_PROJECT
-#define API_ATTRIBUTE __declspec(dllexport)
-#else
-#define API_ATTRIBUTE __declspec(dllimport)
-#endif
-#else
-#define API_ATTRIBUTE
-#endif
-#else
-#define API_ATTRIBUTE
-#endif
-
-PMDWIN* pmdwin;
-PMDWIN* pmdwin2;
-
-//=============================================================================
-//	DLL Export Functions
-//=============================================================================
 
 #if defined _WIN32
+  #ifdef USE_DLL
+    #ifdef BUILDING_PROJECT
+      #define API_ATTRIBUTE_EXPORT __declspec(dllexport)
+      #define API_ATTRIBUTE __declspec(dllexport)
+    #else
+      #define API_ATTRIBUTE_IMPORT __declspec(dllimport)
+      #define API_ATTRIBUTE __declspec(dllimport)
+    #endif
+  #else
+    #define API_ATTRIBUTE
+  #endif
+#else
+  #ifdef USE_DLL
+    #if __GNUC__ >= 4
+      #define API_ATTRIBUTE_IMPORT __attribute__ ((visibility ("default")))
+      #define API_ATTRIBUTE_EXPORT __attribute__ ((visibility ("default")))
+      #define API_ATTRIBUTE __attribute__ ((visibility ("default")))
+    #else
+      #define API_ATTRIBUTE_IMPORT
+      #define API_ATTRIBUTE_EXPORT
+      #define API_ATTRIBUTE
+    #endif
+  #else
+    #define API_ATTRIBUTE
+  #endif
+#endif
+
+PMDWIN* pmdwin = NULL;
+PMDWIN* pmdwin2 = NULL;
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifdef _WIN32
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//
+//		Ｗｉｎｄｏｗｓ　ＤＬＬ　ＥＸＰＯＲＴ　ＦＵＮＣＴＩＯＮＳ
+//
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+//=============================================================================
+//	DllMain
+//=============================================================================
 BOOL WINAPI DllMain(HINSTANCE hModule, 
-                       DWORD  ul_reason_for_call, 
-                       LPVOID lpReserved
+						DWORD  ul_reason_for_call, 
+						LPVOID lpReserved
 					 )
 {
-    switch (ul_reason_for_call)
+	switch (ul_reason_for_call)
 	{
 		case DLL_PROCESS_ATTACH:
 			DisableThreadLibraryCalls(hModule);
@@ -49,14 +76,10 @@ BOOL WINAPI DllMain(HINSTANCE hModule,
 			delete pmdwin;
 			delete pmdwin2;
 			break;
-    }
-    return TRUE;
+	}
+	return TRUE;
 }
-#endif
 
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 
@@ -77,35 +100,6 @@ API_ATTRIBUTE int WINAPI getinterfaceversion(void)
 	return	InterfaceVersion;
 }
 
-
-//=============================================================================
-//	COM 風インターフェイス(PMDWIN インスタンスの取得)
-//=============================================================================
-#if defined _WIN32
-API_ATTRIBUTE HRESULT WINAPI pmd_CoCreateInstance(
-  REFCLSID rclsid,     //Class identifier (CLSID) of the object
-  LPUNKNOWN pUnkOuter, //Pointer to whether object is or isn't part 
-                       // of an aggregate
-  DWORD dwClsContext,  //Context for running executable code
-  REFIID riid,         //Reference to the identifier of the interface
-  LPVOID * ppv         //Address of output variable that receives 
-                       // the interface pointer requested in riid
-)
-{
-	IUnknown* pUnknown;
-	
-	if(rclsid != CLSID_PMDWIN) {
-		return REGDB_E_CLASSNOTREG;		// CLSID が違う
-	} else if(riid != IID_IPCMMUSICDRIVER && riid != IID_IFMPMD && riid != IID_IPMDWIN) {
-		return REGDB_E_CLASSNOTREG;		// IID が違う
-	} else {
-		pUnknown = (IUnknown*)new(PMDWIN);
-		*ppv = (void **)pUnknown;
-		pUnknown->AddRef();
-		return S_OK;
-	}
-}
-#endif
 
 //=============================================================================
 //	初期化
@@ -215,7 +209,7 @@ API_ATTRIBUTE int WINAPI music_load(TCHAR *filename)
 //=============================================================================
 //	曲の読み込みその２（メモリから）
 //=============================================================================
-API_ATTRIBUTE int WINAPI music_load2(uchar *musdata, int size)
+API_ATTRIBUTE int WINAPI music_load2(uint8_t *musdata, int size)
 {
 	return pmdwin->music_load2(musdata, size);
 }
@@ -305,7 +299,7 @@ API_ATTRIBUTE void WINAPI setppzinterpolation(bool ip)
 //=============================================================================
 //	メモの取得
 //=============================================================================
-API_ATTRIBUTE char * WINAPI getmemo(char *dest, uchar *musdata, int size, int al)
+API_ATTRIBUTE char * WINAPI getmemo(char *dest, uint8_t *musdata, int size, int al)
 {
 	return pmdwin->getmemo(dest, musdata, size, al);
 }
@@ -314,7 +308,7 @@ API_ATTRIBUTE char * WINAPI getmemo(char *dest, uchar *musdata, int size, int al
 //=============================================================================
 //	メモの取得（２バイト半角→半角文字に変換）
 //=============================================================================
-API_ATTRIBUTE char * WINAPI getmemo2(char *dest, uchar *musdata, int size, int al)
+API_ATTRIBUTE char * WINAPI getmemo2(char *dest, uint8_t *musdata, int size, int al)
 {
 	return pmdwin->getmemo2(dest, musdata, size, al);
 }
@@ -323,7 +317,7 @@ API_ATTRIBUTE char * WINAPI getmemo2(char *dest, uchar *musdata, int size, int a
 //=============================================================================
 //	メモの取得（２バイト半角→半角文字に変換＋ESCシーケンスの除去）
 //=============================================================================
-API_ATTRIBUTE char * WINAPI getmemo3(char *dest, uchar *musdata, int size, int al)
+API_ATTRIBUTE char * WINAPI getmemo3(char *dest, uint8_t *musdata, int size, int al)
 {
 	return pmdwin->getmemo3(dest, musdata, size, al);
 }

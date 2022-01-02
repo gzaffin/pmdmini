@@ -3,22 +3,7 @@
 //			ver 0.04
 //=============================================================================
 
-#if defined _WIN32
-#include	<windows.h>
-#else
-#include	<cstdint>
-typedef std::int64_t _int64;
-#endif
-#include	<stdio.h>
-#include	<string.h>
-#include	<math.h>
-#include	"opnaw.h"
-#include	"ppz8l.h"
-#include	"util.h"
-#include	"misc.h"
-
-#define		M_PI	3.14159265358979323846
-
+#include "opnaw.h"
 
 
 //-----------------------------------------------------------------------------
@@ -33,7 +18,7 @@ namespace FM {
 //-----------------------------------------------------------------------------
 //	コンストラクタ・デストラクタ
 //-----------------------------------------------------------------------------
-OPNAW::OPNAW()
+OPNAW::OPNAW(IFILEIO* pfileio) : FM::OPNA(pfileio)
 {
 	_Init();
 }
@@ -45,9 +30,17 @@ OPNAW::~OPNAW()
 
 
 //-----------------------------------------------------------------------------
+//	File Stream 設定
+//-----------------------------------------------------------------------------
+void OPNAW::setfileio(IFILEIO* pfileio) {
+	OPNA::setfileio(pfileio);
+}
+
+
+//-----------------------------------------------------------------------------
 //	初期化
 //-----------------------------------------------------------------------------
-bool OPNAW::Init(uint c, uint r, bool ipflag, const TCHAR* path)
+bool OPNAW::Init(uint32_t c, uint32_t r, bool ipflag, const TCHAR* path)
 {
 	_Init();
 	rate2 = r;
@@ -95,8 +88,10 @@ void OPNAW::_Init()
 //-----------------------------------------------------------------------------
 //	サンプリングレート変更
 //-----------------------------------------------------------------------------
-bool OPNAW::SetRate(uint c, uint r, bool ipflag)
+bool OPNAW::SetRate(uint32_t c, uint32_t r, bool ipflag)
 {
+	bool result;
+	
 	SetFMWait(fmwait);
 	SetSSGWait(ssgwait);
 	SetRhythmWait(rhythmwait);
@@ -107,42 +102,45 @@ bool OPNAW::SetRate(uint c, uint r, bool ipflag)
 	
 #ifdef INTERPOLATION_IN_THIS_UNIT
 	if(ipflag) {
-		return OPNA::SetRate(c, SOUND_55K_2, false);
+		result = OPNA::SetRate(c, SOUND_55K_2, false);
 	} else {
-		return OPNA::SetRate(c, r, false);
+		result = OPNA::SetRate(c, r, false);
 	}
 #else
-	return OPNA::SetRate(c, r, ipflag);
+	result = OPNA::SetRate(c, r, ipflag);
 #endif
+	
 	fmwaitcount = fmwait * rate / 1000000;
 	ssgwaitcount = ssgwait * rate / 1000000;
 	rhythmwaitcount = rhythmwait * rate / 1000000;
 	adpcmwaitcount = adpcmwait * rate / 1000000;
+	
+	return result;
 }
 
 
 //-----------------------------------------------------------------------------
 //	Wait 設定
 //-----------------------------------------------------------------------------
-void OPNAW::SetFMWait(int nsec)
+void OPNAW::SetFMWait(int32_t nsec)
 {
 	fmwait = nsec;
 	fmwaitcount = nsec * rate / 1000000;
 }
 
-void OPNAW::SetSSGWait(int nsec)
+void OPNAW::SetSSGWait(int32_t nsec)
 {
 	ssgwait = nsec;
 	ssgwaitcount = nsec * rate / 1000000;
 }
 
-void OPNAW::SetRhythmWait(int nsec)
+void OPNAW::SetRhythmWait(int32_t nsec)
 {
 	rhythmwait = nsec;
 	rhythmwaitcount = nsec * rate / 1000000;
 }
 
-void OPNAW::SetADPCMWait(int nsec)
+void OPNAW::SetADPCMWait(int32_t nsec)
 {
 	adpcmwait = nsec;
 	adpcmwaitcount = nsec * rate / 1000000;
@@ -152,22 +150,22 @@ void OPNAW::SetADPCMWait(int nsec)
 //-----------------------------------------------------------------------------
 //	Wait 取得
 //-----------------------------------------------------------------------------
-int OPNAW::GetFMWait(void)
+int32_t OPNAW::GetFMWait(void)
 {
 	return fmwait;
 }
 
-int OPNAW::GetSSGWait(void)
+int32_t OPNAW::GetSSGWait(void)
 {
 	return ssgwait;
 }
 
-int OPNAW::GetRhythmWait(void)
+int32_t OPNAW::GetRhythmWait(void)
 {
 	return rhythmwait;
 }
 
-int OPNAW::GetADPCMWait(void)
+int32_t OPNAW::GetADPCMWait(void)
 {
 	return adpcmwait;
 }
@@ -176,7 +174,7 @@ int OPNAW::GetADPCMWait(void)
 //-----------------------------------------------------------------------------
 //	レジスタアレイにデータを設定
 //-----------------------------------------------------------------------------
-void OPNAW::SetReg(uint addr, uint data)
+void OPNAW::SetReg(uint32_t addr, uint32_t data)
 {
 	if(addr < 0x10) {					// SSG
 		if(ssgwaitcount) {
@@ -203,9 +201,9 @@ void OPNAW::SetReg(uint addr, uint data)
 //-----------------------------------------------------------------------------
 //	SetReg() wait 時の PCM を計算
 //-----------------------------------------------------------------------------
-void OPNAW::CalcWaitPCM(int waitcount)
+void OPNAW::CalcWaitPCM(int32_t waitcount)
 {
-	int		outsamples;
+	int32_t		outsamples;
 	
 	count2 += waitcount % 1000;
 	waitcount /= 1000;
@@ -235,11 +233,11 @@ void OPNAW::CalcWaitPCM(int waitcount)
 //-----------------------------------------------------------------------------
 //	合成（一次補間なしVer.)
 //-----------------------------------------------------------------------------
-void OPNAW::_Mix(Sample* buffer, int nsamples)
+void OPNAW::_Mix(Sample* buffer, int32_t nsamples)
 {
-	int		bufsamples;
-	int		outsamples;
-	int		i;
+	int32_t		bufsamples;
+	int32_t		outsamples;
+	int32_t		i;
 	
 	if(read_pos != write_pos) {			// buffer から出力
 		if(read_pos < write_pos) {
@@ -280,17 +278,17 @@ void OPNAW::_Mix(Sample* buffer, int nsamples)
 //-----------------------------------------------------------------------------
 //	合成
 //-----------------------------------------------------------------------------
-void OPNAW::Mix(Sample* buffer, int nsamples)
+void OPNAW::Mix(Sample* buffer, int32_t nsamples)
 {
 
 #ifdef INTERPOLATION_IN_THIS_UNIT
-	int	nmixdata2;
+	int32_t	nmixdata2;
 	
 	if(interpolation2) {
 		while(nsamples > 0) {
-			int nmixdata = (int)(delta + ((_int64)nsamples) * (SOUND_55K_2 * 16384 / rate2)) / 16384;
+			int32_t nmixdata = (int32_t)(delta + ((int64_t)nsamples) * (SOUND_55K_2 * 16384 / rate2)) / 16384;
 			if(nmixdata > (IP_PCM_BUFFER_SIZE - 1)) {
-				int snsamples = (IP_PCM_BUFFER_SIZE - 2) * rate2 / SOUND_55K_2;
+				int32_t snsamples = (IP_PCM_BUFFER_SIZE - 2) * rate2 / SOUND_55K_2;
 				nmixdata = (delta + (snsamples) * (SOUND_55K_2 * 16384 / rate2)) / 16384;
 			}
 			memset(&ip_buffer[2], 0, sizeof(Sample) * 2 * nmixdata);

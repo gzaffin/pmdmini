@@ -4,7 +4,6 @@
 // ---------------------------------------------------------------------------
 //	$Id: fmtimer.cpp,v 1.1 2000/09/08 13:45:56 cisc Exp $
 
-#include "headers.h"
 #include "fmtimer.h"
 
 using namespace FM;
@@ -30,10 +29,10 @@ Timer::~Timer()
 // ---------------------------------------------------------------------------
 //	タイマー制御
 //
-void Timer::SetTimerControl(uint data)
+void Timer::SetTimerControl(uint32_t data)
 {
-	uint tmp = regtc ^ data;
-	regtc = uint8(data);
+	uint32_t tmp = regtc ^ data;
+	regtc = uint8_t(data);
 	
 	if (data & 0x10)
 		ResetStatus(1);
@@ -51,10 +50,10 @@ void Timer::SetTimerControl(uint data)
 // ---------------------------------------------------------------------------
 //	タイマーA 周期設定
 //
-void Timer::SetTimerA(uint addr, uint data)
+void Timer::SetTimerA(uint32_t addr, uint32_t data)
 {
-	uint tmp;
-	regta[addr & 1] = uint8(data);
+	uint32_t tmp;
+	regta[addr & 1] = (uint8_t)(data);
 	tmp = (regta[0] << 2) + (regta[1] & 3);
 	timera = (1024-tmp) * timer_step;
 //	LOG2("Timer A = %d   %d us\n", tmp, timera >> 16);
@@ -63,7 +62,7 @@ void Timer::SetTimerA(uint addr, uint data)
 // ---------------------------------------------------------------------------
 //	タイマーB 周期設定
 //
-void Timer::SetTimerB(uint data)
+void Timer::SetTimerB(uint32_t data)
 {
 	timerb = (256-data) * timer_step;
 //	LOG2("Timer B = %d   %d us\n", data, timerb >> 12);
@@ -72,7 +71,7 @@ void Timer::SetTimerB(uint data)
 // ---------------------------------------------------------------------------
 //	タイマー時間処理
 //
-bool Timer::Count(int32 us)
+bool Timer::Count(int32_t us)
 {
 	bool event = false;
 	
@@ -110,19 +109,19 @@ bool Timer::Count(int32 us)
 // ---------------------------------------------------------------------------
 //	次にタイマーが発生するまでの時間を求める
 //
-int32 Timer::GetNextEvent()
+int32_t Timer::GetNextEvent()
 {
-	uint32 ta = ((timera_count + 0xffff) >> 16) - 1;
-	uint32 tb = ((timerb_count + 0xfff) >> 12) - 1;
+	uint32_t ta = ((timera_count + 0xffff) >> 16) - 1;
+	uint32_t tb = ((timerb_count + 0xfff) >> 12) - 1;
 	return (ta < tb ? ta : tb) + 1;
 }
 
 // ---------------------------------------------------------------------------
 //	タイマー基準値設定
 //
-void Timer::SetTimerBase(uint clock)
+void Timer::SetTimerBase(uint32_t clock)
 {
-	timer_step = int32(1000000. * 65536 / clock);
+	timer_step = (int32_t)(1000000. * 65536 / clock);
 }
 
 #else
@@ -130,7 +129,7 @@ void Timer::SetTimerBase(uint clock)
 // ---------------------------------------------------------------------------
 //	タイマーA 周期設定
 //
-void Timer::SetTimerA(uint addr, uint data)
+void Timer::SetTimerA(uint32_t addr, uint32_t data)
 {
 	regta[addr & 1] = uint8(data);
 	timera = (1024 - ((regta[0] << 2) + (regta[1] & 3))) << 16;
@@ -139,7 +138,7 @@ void Timer::SetTimerA(uint addr, uint data)
 // ---------------------------------------------------------------------------
 //	タイマーB 周期設定
 //
-void Timer::SetTimerB(uint data)
+void Timer::SetTimerB(uint32_t data)
 {
 	timerb = (256-data) << (16 + 4);
 }
@@ -151,7 +150,7 @@ bool Timer::Count(int32 us)
 {
 	bool event = false;
 	
-	int tick = us * timer_step;
+	int32_t tick = us * timer_step;
 	
 	if (timera_count)
 	{
@@ -199,7 +198,7 @@ int32 Timer::GetNextEvent()
 // ---------------------------------------------------------------------------
 //	タイマー基準値設定
 //
-void Timer::SetTimerBase(uint clock)
+void Timer::SetTimerBase(uint32_t clock)
 {
 	timer_step = clock * 1024 / 15625;
 }

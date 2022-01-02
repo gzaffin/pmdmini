@@ -21,8 +21,8 @@
 //		ほか掲示板等で様々なご助言，ご支援をお寄せいただいた皆様に
 // ---------------------------------------------------------------------------
 
-#include "headers.h"
-#include "misc.h"
+#include "headers_fmgen.h"
+#include "misc_fmgen.h"
 #include "fmgen.h"
 #include "fmgeninl.h"
 
@@ -37,7 +37,7 @@
 //
 namespace FM
 {
-	const uint8 Operator::notetable[128] =
+	const uint8_t Operator::notetable[128] =
 	{
 		  0,  0,  0,  0,  0,  0,  0,  1,  2,  3,  3,  3,  3,  3,  3,  3,
 		  4,  4,  4,  4,  4,  4,  4,  5,  6,  7,  7,  7,  7,  7,  7,  7,
@@ -49,7 +49,7 @@ namespace FM
 		 28, 28, 28, 28, 28, 28, 28, 29, 30, 31, 31, 31, 31, 31, 31, 31,
 	};
 	
-	const int8 Operator::dttable[256] =
+	const int8_t Operator::dttable[256] =
 	{
 		  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 		  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -69,7 +69,7 @@ namespace FM
 		-16,-16,-18,-20,-22,-24,-26,-28,-32,-34,-38,-40,-44,-44,-44,-44,
 	};
 	
-	const int8 Operator::decaytable1[64][8] = 
+	const int8_t Operator::decaytable1[64][8] =
 	{
 		0, 0, 0, 0, 0, 0, 0, 0,		0, 0, 0, 0, 0, 0, 0, 0,
 		1, 1, 1, 1, 1, 1, 1, 1,		1, 1, 1, 1, 1, 1, 1, 1,
@@ -105,12 +105,12 @@ namespace FM
 		16,16,16,16,16,16,16,16,	16,16,16,16,16,16,16,16,
 	};
 	
-	const int Operator::decaytable2[16] = 
+	const int32_t Operator::decaytable2[16] = 
 	{
 		1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2047, 2047, 2047, 2047, 2047
 	};
 	
-	const int8 Operator::attacktable[64][8] = 
+	const int8_t Operator::attacktable[64][8] =
 	{
 		-1,-1,-1,-1,-1,-1,-1,-1,	-1,-1,-1,-1,-1,-1,-1,-1,
 		 4, 4, 4, 4, 4, 4, 4, 4,	 4, 4, 4, 4, 4, 4, 4, 4,
@@ -146,7 +146,7 @@ namespace FM
 		 0, 0, 0, 0, 0, 0, 0, 0,	 0, 0 ,0, 0, 0, 0, 0, 0,
 	};
 	
-	const int Operator::ssgenvtable[8][2][3][2] =
+	const int32_t Operator::ssgenvtable[8][2][3][2] =
 	{
 		1, 1,  1, 1,  1, 1,		// 08
 		0, 1,  1, 1,  1, 1,		// 08 56~
@@ -167,8 +167,8 @@ namespace FM
 	};
 	
 	// fixed equasion-based tables
-	int		pmtable[2][8][FM_LFOENTS];
-	uint	amtable[2][4][FM_LFOENTS];
+	int32_t		pmtable[2][8][FM_LFOENTS];
+	uint32_t	amtable[2][4][FM_LFOENTS];
 	
 	static bool tablemade = false;
 }
@@ -186,7 +186,7 @@ void MakeLFOTable()
 	
 	tablemade = true;
 	
-	int i;
+	int32_t i;
 	
 	static const double pms[2][8] = 
 	{
@@ -199,33 +199,33 @@ void MakeLFOTable()
 	//	1.000963
 	//	lfofref[level * max * wave];
 	//	pre = lfofref[level][pms * wave >> 8];
-	static const uint8 amt[2][4] = 
+	static const uint8_t amt[2][4] = 
 	{
 		{ 31, 6, 4, 3 }, // OPNA
 		{ 31, 2, 1, 0 }, //	OPM
 	};
 	
-	for (int type = 0; type < 2; type++)
+	for (int32_t type = 0; type < 2; type++)
 	{
 		for (i=0; i<8; i++)
 		{
 			double pmb = pms[type][i];
-			for (int j=0; j<FM_LFOENTS; j++)
+			for (int32_t j=0; j<FM_LFOENTS; j++)
 			{
-				double v = pow(2.0, pmb * (2 * j - FM_LFOENTS+1) / (FM_LFOENTS-1));
-				double w = 0.6 * pmb * sin(2 * j * 3.14159265358979323846 / FM_LFOENTS) + 1;
-//				pmtable[type][i][j] = int(0x10000 * (v - 1));
+				double v = pow(2.0, pmb * ((double)(2) * j - (double)(FM_LFOENTS)+1) / ((double)(FM_LFOENTS)-1));
+				double w = 0.6 * pmb * sin((double)(2) * j * 3.14159265358979323846 / (double)(FM_LFOENTS)) + 1;
+//				pmtable[type][i][j] = int32_t(0x10000 * (v - 1));
 //				if (type == 0)
-					pmtable[type][i][j] = int(0x10000 * (w - 1));
+					pmtable[type][i][j] = (int32_t)(0x10000 * (w - 1));
 //				else
-//					pmtable[type][i][j] = int(0x10000 * (v - 1));
+//					pmtable[type][i][j] = (int32_t)(0x10000 * (v - 1));
 				
 //				printf("pmtable[%d][%d][%.2x] = %5d  %7.5f %7.5f\n", type, i, j, pmtable[type][i][j], v, w);
 			}
 		}
 		for (i=0; i<4; i++)
 		{
-			for (int j=0; j<FM_LFOENTS; j++)
+			for (int32_t j=0; j<FM_LFOENTS; j++)
 			{
 				amtable[type][i][j] = (((j * 4) >> amt[type][i]) * 2) << 2;
 			}
@@ -244,7 +244,7 @@ Chip::Chip()
 }
 
 //	クロック・サンプリングレート比に依存するテーブルを作成
-void Chip::SetRatio(uint ratio)
+void Chip::SetRatio(uint32_t ratio)
 {
 	if (ratio_ != ratio)
 	{
@@ -255,18 +255,18 @@ void Chip::SetRatio(uint ratio)
 
 void Chip::MakeTable()
 {
-	int h, l;
+	int32_t h, l;
 	
 	// PG Part
 	static const float dt2lv[4] = { 1.f, 1.414f, 1.581f, 1.732f };
 	for (h=0; h<4; h++)
 	{
 		assert(2 + FM_RATIOBITS - FM_PGBITS >= 0);
-		double rr = dt2lv[h] * double(ratio_) / (1 << (2 + FM_RATIOBITS - FM_PGBITS));
+		double rr = dt2lv[h] * double(ratio_) / (double)(1 << (2 + FM_RATIOBITS - FM_PGBITS));
 		for (l=0; l<16; l++)
 		{
-			int mul = l ? l * 2 : 1;
-			multable_[h][l] = uint(mul * rr);
+			int32_t mul = l ? l * 2 : 1;
+			multable_[h][l] = (uint32_t)(mul * rr);
 		}
 	}
 }
@@ -275,13 +275,13 @@ void Chip::MakeTable()
 // ---------------------------------------------------------------------------
 //	Operator
 //
-bool FM::Operator::tablehasmade = false;
-uint FM::Operator::sinetable[1024];
-int32 FM::Operator::cltable[FM_CLENTS];
+bool	FM::Operator::tablehasmade = false;
+uint32_t	FM::Operator::sinetable[1024];
+int32_t	FM::Operator::cltable[FM_CLENTS];
 
 //	構築
-FM::Operator::Operator()
-: chip_(0)
+FM::Operator::Operator(Chip* chip, OpType type)
+: chip_(chip), type_(type)
 {
 	if (!tablehasmade)
 		MakeTable();
@@ -302,7 +302,7 @@ FM::Operator::Operator()
 	// LFO
 	ms_ = 0;
 	
-//	Reset();
+	Reset();
 }
 
 //	初期化
@@ -330,14 +330,16 @@ void Operator::MakeTable()
 	// 対数テーブルの作成
 	assert(FM_CLENTS >= 256);
 	
-	int* p = cltable;
-	int i;
+	int32_t* p = cltable;
+	int32_t i;
 	for (i=0; i<256; i++)
 	{
-		int v = int(floor(pow(2., 13. - i / 256.)));
+		int32_t v = (int32_t)(floor(pow(2., 13. - i / 256.)));
 		v = (v + 2) & ~3;
-		*p++ = v;
-		*p++ = -v;
+		*p = v;
+		p++;
+		*p = -v;
+		p++;
 	}
 	while (p < cltable + FM_CLENTS)
 	{
@@ -352,11 +354,11 @@ void Operator::MakeTable()
 	double log2 = log(2.);
 	for (i=0; i<FM_OPSINENTS/2; i++)
 	{
-		double r = (i * 2 + 1) * FM_PI / FM_OPSINENTS;
+		double r = ((double)(i) * 2 + 1) * FM_PI / (double)(FM_OPSINENTS);
 		double q = -256 * log(sin(r)) / log2;
-		uint s = (int) (floor(q + 0.5)) + 1;
+		int32_t s = (int32_t) (floor(q + 0.5)) + 1;
 //		printf("%d, %d\n", s, cltable[s * 2] / 8);
-		sinetable[i]                  = s * 2 ;
+		sinetable[i]                    = s * 2 ;
 		sinetable[FM_OPSINENTS / 2 + i] = s * 2 + 1;
 	}
 	
@@ -367,7 +369,7 @@ void Operator::MakeTable()
 
 
 
-inline void FM::Operator::SetDPBN(uint dp, uint bn)
+inline void FM::Operator::SetDPBN(uint32_t dp, uint32_t bn)
 {
 	dp_ = dp, bn_ = bn; param_changed_ = true;
 	PARAMCHANGE(1);
@@ -403,15 +405,17 @@ void Operator::Prepare()
 		case release:
 			SetEGRate(Min(63, rr_ + key_scale_rate_));
 			break;
+		default:
+			break;
 		}
 		
 		// SSG-EG
 		if (ssg_type_ && (eg_phase_ != release))
 		{
-			int m = ar_ >= ((ssg_type_ == 8 || ssg_type_ == 12) ? 56U : 60U);
+			int32_t m = ar_ >= ((ssg_type_ == 8 || ssg_type_ == 12) ? 56U : 60U);
 			
 			assert(0 <= ssg_phase_ && ssg_phase_ <= 2);
-			const int* table = ssgenvtable[ssg_type_ & 7][m][ssg_phase_];
+			const int32_t* table = ssgenvtable[ssg_type_ & 7][m][ssg_phase_];
 			
 			ssg_offset_ = table[0] * 0x200;
 			ssg_vector_ = table[1];
@@ -436,10 +440,10 @@ void Operator::ShiftPhase(EGPhase nextphase)
 			if (ssg_phase_ > 2)
 				ssg_phase_ = 1;
 			
-			int m = ar_ >= ((ssg_type_ == 8 || ssg_type_ == 12) ? 56U : 60U);
+			int32_t m = ar_ >= ((ssg_type_ == 8 || ssg_type_ == 12) ? 56U : 60U);
 			
 			assert(0 <= ssg_phase_ && ssg_phase_ <= 2);
-			const int* table = ssgenvtable[ssg_type_ & 7][m][ssg_phase_];
+			const int32_t* table = ssgenvtable[ssg_type_ & 7][m][ssg_phase_];
 			
 			ssg_offset_ = table[0] * 0x200;
 			ssg_vector_ = table[1];
@@ -494,7 +498,7 @@ void Operator::ShiftPhase(EGPhase nextphase)
 }
 
 //	Block/F-Num
-void Operator::SetFNum(uint f)
+void Operator::SetFNum(uint32_t f)
 {
 	dp_ = (f & 2047) << ((f >> 11) & 7);
 	bn_ = notetable[(f >> 7) & 127];
@@ -512,7 +516,7 @@ void Operator::SetFNum(uint f)
 #define Sine(s)	sinetable[((s) >> (20+FM_PGBITS-FM_OPSINBITS))&(FM_OPSINENTS-1)]
 #define SINE(s) sinetable[(s) & (FM_OPSINENTS-1)]
 
-inline FM::ISample Operator::LogToLin(uint a)
+inline FM::ISample Operator::LogToLin(uint32_t a)
 {
 #if 1 // FM_CLENTS < 0xc00		// 400 for TL, 400 for ENV, 400 for LFO.
 	return (a < FM_CLENTS) ? cltable[a] : 0;
@@ -533,7 +537,7 @@ inline void Operator::EGUpdate()
 	}
 }
 
-inline void Operator::SetEGRate(uint rate)
+inline void Operator::SetEGRate(uint32_t rate)
 {
 	eg_rate_ = rate;
 	eg_count_diff_ = decaytable2[rate / 4] * chip_->GetRatio();
@@ -546,7 +550,7 @@ void FM::Operator::EGCalc()
 	
 	if (eg_phase_ == attack)
 	{
-		int c = attacktable[eg_rate_][eg_curve_count_ & 7];
+		int32_t c = attacktable[eg_rate_][eg_curve_count_ & 7];
 		if (c >= 0)
 		{
 			eg_level_ -= 1 + (eg_level_ >> c);
@@ -581,6 +585,8 @@ void FM::Operator::EGCalc()
 				case release:
 					ShiftPhase(off);
 					break;
+				default:
+					break;
 				}
 			}
 		}
@@ -599,17 +605,17 @@ inline void FM::Operator::EGStep()
 
 //	PG 計算
 //	ret:2^(20+PGBITS) / cycle
-inline uint32 FM::Operator::PGCalc()
+inline uint32_t FM::Operator::PGCalc()
 {
-	uint32 ret = pg_count_;
+	uint32_t ret = pg_count_;
 	pg_count_ += pg_diff_;
 	dbgpgout_ = ret;
 	return ret;
 }
 
-inline uint32 FM::Operator::PGCalcL()
+inline uint32_t FM::Operator::PGCalcL()
 {
-	uint32 ret = pg_count_;
+	uint32_t ret = pg_count_;
 	pg_count_ += pg_diff_ + ((pg_diff_lfo_ * chip_->GetPMV()) >> 5);// & -(1 << (2+IS2EC_SHIFT)));
 	dbgpgout_ = ret;
 	return ret /* + pmv * pg_diff_;*/;
@@ -622,7 +628,7 @@ inline FM::ISample FM::Operator::Calc(ISample in)
 	EGStep();
 	out2_ = out_;
 	
-	int pgin = PGCalc() >> (20+FM_PGBITS-FM_OPSINBITS);
+	int32_t pgin = PGCalc() >> (20+FM_PGBITS-FM_OPSINBITS);
 	pgin += in >> (20+FM_PGBITS-FM_OPSINBITS-(2+IS2EC_SHIFT));
 	out_ = LogToLin(eg_out_ + SINE(pgin));
 	
@@ -634,7 +640,7 @@ inline FM::ISample FM::Operator::CalcL(ISample in)
 {
 	EGStep();
 	
-	int pgin = PGCalcL() >> (20+FM_PGBITS-FM_OPSINBITS);
+	int32_t pgin = PGCalcL() >> (20+FM_PGBITS-FM_OPSINBITS);
 	pgin += in >> (20+FM_PGBITS-FM_OPSINBITS-(2+IS2EC_SHIFT));
 	out_ = LogToLin(eg_out_ + SINE(pgin) + ams_[chip_->GetAML()]);
 	
@@ -642,11 +648,11 @@ inline FM::ISample FM::Operator::CalcL(ISample in)
 	return out_;
 }
 
-inline FM::ISample FM::Operator::CalcN(uint noise)
+inline FM::ISample FM::Operator::CalcN(uint32_t noise)
 {
 	EGStep();
 	
-	int lv = Max(0, 0x3ff - (tl_out_ + eg_level_)) << 1;
+	int32_t lv = Max(0, 0x3ff - (tl_out_ + eg_level_)) << 1;
 	
 	// noise & 1 ? lv : -lv と等価
 	noise = (noise & 1) - 1;
@@ -658,14 +664,14 @@ inline FM::ISample FM::Operator::CalcN(uint noise)
 
 //	OP (FB) 計算
 //	Self Feedback の変調最大 = 4π
-inline FM::ISample FM::Operator::CalcFB(uint fb)
+inline FM::ISample FM::Operator::CalcFB(uint32_t fb)
 {
 	EGStep();
 	
 	ISample in = out_ + out2_;
 	out2_ = out_;
 	
-	int pgin = PGCalc() >> (20+FM_PGBITS-FM_OPSINBITS);
+	int32_t pgin = PGCalc() >> (20+FM_PGBITS-FM_OPSINBITS);
 	if (fb < 31)
 	{
 		pgin += ((in << (1 + IS2EC_SHIFT)) >> fb) >> (20+FM_PGBITS-FM_OPSINBITS);
@@ -676,14 +682,14 @@ inline FM::ISample FM::Operator::CalcFB(uint fb)
 	return out2_;
 }
 
-inline FM::ISample FM::Operator::CalcFBL(uint fb)
+inline FM::ISample FM::Operator::CalcFBL(uint32_t fb)
 {
 	EGStep();
 	
 	ISample in = out_ + out2_;
 	out2_ = out_;
 	
-	int pgin = PGCalcL() >> (20+FM_PGBITS-FM_OPSINBITS);
+	int32_t pgin = PGCalcL() >> (20+FM_PGBITS-FM_OPSINBITS);
 	if (fb < 31)
 	{
 		pgin += ((in << (1 + IS2EC_SHIFT)) >> fb) >> (20+FM_PGBITS-FM_OPSINBITS);
@@ -700,14 +706,19 @@ inline FM::ISample FM::Operator::CalcFBL(uint fb)
 // ---------------------------------------------------------------------------
 //	4-op Channel
 //
-const uint8 Channel4::fbtable[8] = { 31, 7, 6, 5, 4, 3, 2, 1 };
-int Channel4::kftable[64];
+const uint8_t Channel4::fbtable[8] = { 31, 7, 6, 5, 4, 3, 2, 1 };
+int32_t Channel4::kftable[64];
 
 bool Channel4::tablehasmade = false;
 
 
-Channel4::Channel4()
+Channel4::Channel4(Chip* chip, OpType type)
 {
+	chip_ = chip;
+	for (int32_t i = 0; i < 4; i++) {
+		op[i] = new Operator(chip, type);
+	}
+	
 	if (!tablehasmade)
 		MakeTable();
 	
@@ -715,86 +726,93 @@ Channel4::Channel4()
 	pms = pmtable[0][0];
 }
 
+Channel4::~Channel4()
+{
+	for (int32_t i = 0; i < 4; i++) {
+		delete op[i];
+	}
+}
+
 void Channel4::MakeTable()
 {
-	// 100/64 cent =  2^(i*100/64*1200)
-	for (int i=0; i<64; i++)
+	// 100/64 cent = 2^(i*100/64*1200)
+	for (int32_t i=0; i<64; i++)
 	{
-		kftable[i] = int(0x10000 * pow(2., i / 768.) );
+		kftable[i] = (int32_t)(0x10000 * pow(2., i / 768.) );
 	}
 }
 
 // リセット
 void Channel4::Reset()
 {
-	op[0].Reset();
-	op[1].Reset();
-	op[2].Reset();
-	op[3].Reset();
+	op[0]->Reset();
+	op[1]->Reset();
+	op[2]->Reset();
+	op[3]->Reset();
 }
 
 //	Calc の用意
-int Channel4::Prepare()
+int32_t Channel4::Prepare()
 {
-	op[0].Prepare();
-	op[1].Prepare();
-	op[2].Prepare();
-	op[3].Prepare();
+	op[0]->Prepare();
+	op[1]->Prepare();
+	op[2]->Prepare();
+	op[3]->Prepare();
 	
-	pms = pmtable[op[0].type_][op[0].ms_ & 7];
-	int key = (op[0].IsOn() | op[1].IsOn() | op[2].IsOn() | op[3].IsOn()) ? 1 : 0;
-	int lfo = op[0].ms_ & (op[0].amon_ | op[1].amon_ | op[2].amon_ | op[3].amon_ ? 0x37 : 7) ? 2 : 0;
+	pms = pmtable[op[0]->type_][op[0]->ms_ & 7];
+	int32_t key = (op[0]->IsOn() | op[1]->IsOn() | op[2]->IsOn() | op[3]->IsOn()) ? 1 : 0;
+	int32_t lfo = op[0]->ms_ & ((op[0]->amon_ | op[1]->amon_ | op[2]->amon_ | op[3]->amon_) ? 0x37 : 7) ? 2 : 0;
 	return key | lfo;
 }
 
 //	F-Number/BLOCK を設定
-void Channel4::SetFNum(uint f)
+void Channel4::SetFNum(uint32_t f)
 {
-	for (int i=0; i<4; i++)
-		op[i].SetFNum(f);
+	for (int32_t i=0; i<4; i++)
+		op[i]->SetFNum(f);
 }
 
 //	KC/KF を設定
-void Channel4::SetKCKF(uint kc, uint kf)
+void Channel4::SetKCKF(uint32_t kc, uint32_t kf)
 {
-	const static uint kctable[16] = 
+	const static uint32_t kctable[16] = 
 	{
 		5197, 5506, 5833, 6180, 6180, 6547, 6937,  7349,
 		7349, 7786, 8249, 8740, 8740, 9259, 9810, 10394,
 	};
 	
-	int oct = 19 - ((kc >> 4) & 7);
+	int32_t oct = 19 - ((kc >> 4) & 7);
 	
 //printf("%p", this);
-	uint kcv = kctable[kc & 0x0f];
+	uint32_t kcv = kctable[kc & 0x0f];
 	kcv = (kcv + 2) / 4 * 4;
 //printf(" %.4x", kcv);
-	uint dp = kcv * kftable[kf & 0x3f];
+	uint32_t dp = kcv * kftable[kf & 0x3f];
 //printf(" %.4x %.4x %.8x", kcv, kftable[kf & 0x3f], dp >> oct);
 	dp >>= 16 + 3;
 	dp <<= 16 + 3;
 	dp >>= oct;
-	uint bn = (kc >> 2) & 31;
-	op[0].SetDPBN(dp, bn);
-	op[1].SetDPBN(dp, bn);
-	op[2].SetDPBN(dp, bn);
-	op[3].SetDPBN(dp, bn);
+	uint32_t bn = (kc >> 2) & 31;
+	op[0]->SetDPBN(dp, bn);
+	op[1]->SetDPBN(dp, bn);
+	op[2]->SetDPBN(dp, bn);
+	op[3]->SetDPBN(dp, bn);
 //printf(" %.8x\n", dp);
 }
 
 //	キー制御
-void Channel4::KeyControl(uint key)
+void Channel4::KeyControl(uint32_t key)
 {
-	if (key & 0x1) op[0].KeyOn(); else op[0].KeyOff();
-	if (key & 0x2) op[1].KeyOn(); else op[1].KeyOff();
-	if (key & 0x4) op[2].KeyOn(); else op[2].KeyOff();
-	if (key & 0x8) op[3].KeyOn(); else op[3].KeyOff();
+	if (key & 0x1) op[0]->KeyOn(); else op[0]->KeyOff();
+	if (key & 0x2) op[1]->KeyOn(); else op[1]->KeyOff();
+	if (key & 0x4) op[2]->KeyOn(); else op[2]->KeyOff();
+	if (key & 0x8) op[3]->KeyOn(); else op[3]->KeyOff();
 }
 
 //	アルゴリズムを設定
-void Channel4::SetAlgorithm(uint algo)
+void Channel4::SetAlgorithm(uint32_t algo)
 {
-	static const uint8 table1[8][6] = 
+	static const uint8_t table1[8][6] = 
 	{
 		{ 0, 1, 1, 2, 2, 3 },	{ 1, 0, 0, 1, 1, 2 },
 		{ 1, 1, 1, 0, 0, 2 },	{ 0, 1, 2, 1, 1, 2 },
@@ -809,63 +827,63 @@ void Channel4::SetAlgorithm(uint algo)
 	in [2] = &buf[table1[algo][4]];
 	out[2] = &buf[table1[algo][5]];
 	
-	op[0].ResetFB();
+	op[0]->ResetFB();
 	algo_ = algo;
 }
 
 //  合成
 ISample Channel4::Calc()
 {
-	int r;
+	int32_t r = 0;
 	switch (algo_)
 	{
 	case 0:
-		op[2].Calc(op[1].Out());
-		op[1].Calc(op[0].Out());
-		r = op[3].Calc(op[2].Out());
-		op[0].CalcFB(fb);
+		op[2]->Calc(op[1]->Out());
+		op[1]->Calc(op[0]->Out());
+		r = op[3]->Calc(op[2]->Out());
+		op[0]->CalcFB(fb);
 		break;
 	case 1:
-		op[2].Calc(op[0].Out() + op[1].Out());
-		op[1].Calc(0);
-		r = op[3].Calc(op[2].Out());
-		op[0].CalcFB(fb);
+		op[2]->Calc(op[0]->Out() + op[1]->Out());
+		op[1]->Calc(0);
+		r = op[3]->Calc(op[2]->Out());
+		op[0]->CalcFB(fb);
 		break;
 	case 2:
-		op[2].Calc(op[1].Out());
-		op[1].Calc(0);
-		r = op[3].Calc(op[0].Out() + op[2].Out());
-		op[0].CalcFB(fb);
+		op[2]->Calc(op[1]->Out());
+		op[1]->Calc(0);
+		r = op[3]->Calc(op[0]->Out() + op[2]->Out());
+		op[0]->CalcFB(fb);
 		break;
 	case 3:
-		op[2].Calc(0);
-		op[1].Calc(op[0].Out());
-		r = op[3].Calc(op[1].Out() + op[2].Out());
-		op[0].CalcFB(fb);
+		op[2]->Calc(0);
+		op[1]->Calc(op[0]->Out());
+		r = op[3]->Calc(op[1]->Out() + op[2]->Out());
+		op[0]->CalcFB(fb);
 		break;
 	case 4:
-		op[2].Calc(0);
-		r = op[1].Calc(op[0].Out());
-		r += op[3].Calc(op[2].Out());
-		op[0].CalcFB(fb);
+		op[2]->Calc(0);
+		r = op[1]->Calc(op[0]->Out());
+		r += op[3]->Calc(op[2]->Out());
+		op[0]->CalcFB(fb);
 		break;
 	case 5:
-		r =  op[2].Calc(op[0].Out());
-		r += op[1].Calc(op[0].Out());
-		r += op[3].Calc(op[0].Out());
-		op[0].CalcFB(fb);
+		r =  op[2]->Calc(op[0]->Out());
+		r += op[1]->Calc(op[0]->Out());
+		r += op[3]->Calc(op[0]->Out());
+		op[0]->CalcFB(fb);
 		break;
 	case 6:
-		r  = op[2].Calc(0);
-		r += op[1].Calc(op[0].Out());
-		r += op[3].Calc(0);
-		op[0].CalcFB(fb);
+		r  = op[2]->Calc(0);
+		r += op[1]->Calc(op[0]->Out());
+		r += op[3]->Calc(0);
+		op[0]->CalcFB(fb);
 		break;
 	case 7:
-		r  = op[2].Calc(0);
-		r += op[1].Calc(0);
-		r += op[3].Calc(0);
-		r += op[0].CalcFB(fb);
+		r  = op[2]->Calc(0);
+		r += op[1]->Calc(0);
+		r += op[3]->Calc(0);
+		r += op[0]->CalcFB(fb);
 		break;
 	}
 	return r;
@@ -876,85 +894,85 @@ ISample Channel4::CalcL()
 {
 	chip_->SetPMV(pms[chip_->GetPML()]);
 	
-	int r;
+	int32_t r = 0;
 	switch (algo_)
 	{
 	case 0:
-		op[2].CalcL(op[1].Out());
-		op[1].CalcL(op[0].Out());
-		r = op[3].CalcL(op[2].Out());
-		op[0].CalcFBL(fb);
+		op[2]->CalcL(op[1]->Out());
+		op[1]->CalcL(op[0]->Out());
+		r = op[3]->CalcL(op[2]->Out());
+		op[0]->CalcFBL(fb);
 		break;
 	case 1:
-		op[2].CalcL(op[0].Out() + op[1].Out());
-		op[1].CalcL(0);
-		r = op[3].CalcL(op[2].Out());
-		op[0].CalcFBL(fb);
+		op[2]->CalcL(op[0]->Out() + op[1]->Out());
+		op[1]->CalcL(0);
+		r = op[3]->CalcL(op[2]->Out());
+		op[0]->CalcFBL(fb);
 		break;
 	case 2:
-		op[2].CalcL(op[1].Out());
-		op[1].CalcL(0);
-		r = op[3].CalcL(op[0].Out() + op[2].Out());
-		op[0].CalcFBL(fb);
+		op[2]->CalcL(op[1]->Out());
+		op[1]->CalcL(0);
+		r = op[3]->CalcL(op[0]->Out() + op[2]->Out());
+		op[0]->CalcFBL(fb);
 		break;
 	case 3:
-		op[2].CalcL(0);
-		op[1].CalcL(op[0].Out());
-		r = op[3].CalcL(op[1].Out() + op[2].Out());
-		op[0].CalcFBL(fb);
+		op[2]->CalcL(0);
+		op[1]->CalcL(op[0]->Out());
+		r = op[3]->CalcL(op[1]->Out() + op[2]->Out());
+		op[0]->CalcFBL(fb);
 		break;
 	case 4:
-		op[2].CalcL(0);
-		r = op[1].CalcL(op[0].Out());
-		r += op[3].CalcL(op[2].Out());
-		op[0].CalcFBL(fb);
+		op[2]->CalcL(0);
+		r = op[1]->CalcL(op[0]->Out());
+		r += op[3]->CalcL(op[2]->Out());
+		op[0]->CalcFBL(fb);
 		break;
 	case 5:
-		r =  op[2].CalcL(op[0].Out());
-		r += op[1].CalcL(op[0].Out());
-		r += op[3].CalcL(op[0].Out());
-		op[0].CalcFBL(fb);
+		r =  op[2]->CalcL(op[0]->Out());
+		r += op[1]->CalcL(op[0]->Out());
+		r += op[3]->CalcL(op[0]->Out());
+		op[0]->CalcFBL(fb);
 		break;
 	case 6:
-		r  = op[2].CalcL(0);
-		r += op[1].CalcL(op[0].Out());
-		r += op[3].CalcL(0);
-		op[0].CalcFBL(fb);
+		r  = op[2]->CalcL(0);
+		r += op[1]->CalcL(op[0]->Out());
+		r += op[3]->CalcL(0);
+		op[0]->CalcFBL(fb);
 		break;
 	case 7:
-		r  = op[2].CalcL(0);
-		r += op[1].CalcL(0);
-		r += op[3].CalcL(0);
-		r += op[0].CalcFBL(fb);
+		r  = op[2]->CalcL(0);
+		r += op[1]->CalcL(0);
+		r += op[3]->CalcL(0);
+		r += op[0]->CalcFBL(fb);
 		break;
 	}
 	return r;
 }
 
 //  合成
-ISample Channel4::CalcN(uint noise)
+ISample Channel4::CalcN(uint32_t noise)
 {
 	buf[1] = buf[2] = buf[3] = 0;
 	
-	buf[0] = op[0].out_; op[0].CalcFB(fb);
-	*out[0] += op[1].Calc(*in[0]);
-	*out[1] += op[2].Calc(*in[1]);
-	int o = op[3].out_;
-	op[3].CalcN(noise);
+	buf[0] = op[0]->out_; op[0]->CalcFB(fb);
+	*out[0] += op[1]->Calc(*in[0]);
+	*out[1] += op[2]->Calc(*in[1]);
+	int32_t o = op[3]->out_;
+	op[3]->CalcN(noise);
 	return *out[2] + o;
 }
 
 //  合成
-ISample Channel4::CalcLN(uint noise)
+ISample Channel4::CalcLN(uint32_t noise)
 {
 	chip_->SetPMV(pms[chip_->GetPML()]);
 	buf[1] = buf[2] = buf[3] = 0;
 	
-	buf[0] = op[0].out_; op[0].CalcFBL(fb);
-	*out[0] += op[1].CalcL(*in[0]);
-	*out[1] += op[2].CalcL(*in[1]);
-	int o = op[3].out_;
-	op[3].CalcN(noise);
+	buf[0] = op[0]->out_; op[0]->CalcFBL(fb);
+	*out[0] += op[1]->CalcL(*in[0]);
+	*out[1] += op[2]->CalcL(*in[1]);
+	int32_t o = op[3]->out_;
+	op[3]->CalcN(noise);
 	return *out[2] + o;
 }
 

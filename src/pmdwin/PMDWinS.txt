@@ -1,5 +1,5 @@
 ==============================================================================
-                     PMD for Windows 「PMDWin」 Ver.0.39
+                     PMD for Windows 「PMDWin」 Ver.0.41
                         Copyright & Programmed by C60
 ==============================================================================
 
@@ -8,7 +8,7 @@
 ▼対応バージョン
 
     下記バージョンでコンパイルを確認しています。
-    Microsoft Visual Studio Community 2019 Version 16.3.4
+    Microsoft Visual Studio Community 2019 Version 16.11.2
     Microsoft Visual C++ 6.0 Professional + SP6
     公開版のバイナリはVC6でコンパイルしております。
 
@@ -19,12 +19,10 @@
     作者の環境では、以下のディレクトリ構成となっております。
     
     VS2019
-     E:\Prog\VC++\DLL\FMPMD_new\PMDWin          VS2019PMDWin 本体
-     E:\Prog\VC++\DLL\FMPMD_new\fmgen           FM 音源エンジン本体
+     E:\Prog\VC++\DLL\FMPMD_new\PMDWin
     
     VC6
-     E:\Prog\VC++\DLL\FMPMD_new_VC6\PMDWin      VS2019PMDWin 本体
-     E:\Prog\VC++\DLL\FMPMD_new_VC6\fmgen       FM 音源エンジン本体
+     E:\Prog\VC++\DLL\FMPMD_new_VC6\PMDWin
     
     なお、opna.cpp で以下の定義を有効にすると若干軽くなると思います。
 
@@ -35,14 +33,14 @@
 ▼コンパイル環境
 
     自作ＡＴ互換機（Asus H97-PR0, Core i7-4790, Audinst HUD-mx1, etc)
-            ＋ Windows10(64bit) 1909
+            ＋ Windows10 Pro(64bit) 20H2
 
 
 ------------------------------------------------------------------------------
 ▼組み込みソフトについて
 
     PMDWin.dll には、cisc 氏作の FM 音源エンジン(fmgen 008)を
-    一部改変して組み込んでいます。
+    一部改良して組み込んでいます。
     
         FM Sound Generator with OPN/OPM interface
         Copyright (C) by cisc 1998, 2003.
@@ -123,8 +121,8 @@ ver.0.01        1999/08/02
     暫定版の公開
 
 ver.0.02        1999/08/04
-    音源エンジンを M88 Ver2.10 にした。
-    55KHz で合成するとリズムが鳴らないバグを fix。
+    音源エンジンを M88 Ver2.10 にした
+    55KHz で合成するとリズムが鳴らないバグを fix
 
 ver.0.03        1999/08/08
     #LFOSpeed Extend の時に LFO がかからない bug fix(>TAN-Y 氏)
@@ -163,7 +161,7 @@ ver.0.05        1999/08/29
     音量 LFO の bug fix
     w- の bug fix
     ppc, p86 ファイルバッファの動的生成
-    m88 2.11 のユニットに差し替え
+    M88 2.11 のユニットに差し替え
 
 ver.0.06        1999/09/19
     PPZ8 パートのポルタメントの bug fix
@@ -175,7 +173,7 @@ ver.0.06        1999/09/19
     ADPCM ループの bug fix
     PCM 検索部分の内部的変更
     PPZ8 ユニットの軽量化
-    m88 2.12(+α) のユニットに差し替え
+    M88 2.12(+α) のユニットに差し替え
     DLL の仕様書を書いた
 
 ver.0.07        1999/10/03
@@ -218,7 +216,7 @@ ver.0.11        1999/12/18
     ハードウェア LFO が #0 で切れなかった bug fix(> cisc 氏)
 
 ver.0.12        2000/01/10
-    m88 2.14 のユニットに差し替え(リズムの wave の余分なチャンクに対応)
+    M88 2.14 のユニットに差し替え(リズムの wave の余分なチャンクに対応)
     pmdwininit(NULL) の時に落ちる不具合の修正
     PPZ8 のプチノイズ対策？
 
@@ -238,7 +236,7 @@ ver.0.14        2000/03/19
     FMパートで音色切り替え時の雑音でエンバグしていたので修正
     fgetmemo 系を付けた
     music_load2() を付けた
-    m88 2.16x のユニットに差し替え
+    M88 2.16x のユニットに差し替え
 
 ver 0.15        2000/06/11
     getloopcount() を追加
@@ -369,13 +367,20 @@ ver 0.39        2020/08/16
     ADPCMレジスタ書き込み時のwaitがかかっていなかった不具合を修正
     ADPCMの再生アドレスを書き込んでいる際に音が異常になる不具合を修正
 
+ver 0.40        2021/07/31
+    FileIOインターフェイスを実装
+
+ver 0.41        2021/12/05
+    ソースの細かい修正
+    コンパイラを Visual C++ 6.0 に戻した
+
 
 
 ------------------------------------------------------------------------------
 ▼連絡先
 
     E-mail                  HQD00151@nifty.com
-    Homepage                http://http://c60.la.coocan.jp/
+    Homepage                http://c60.la.coocan.jp/
     Twitter                 c60fmp
 
 

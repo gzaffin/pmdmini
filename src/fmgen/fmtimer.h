@@ -7,7 +7,7 @@
 #ifndef FM_TIMER_H
 #define FM_TIMER_H
 
-#include "types.h"
+#include "portability_fmgen.h"
 
 // ---------------------------------------------------------------------------
 
@@ -20,28 +20,28 @@ namespace FM
 		virtual ~Timer();
 		
 		void	Reset();
-		bool	Count(int32 us);
-		int32	GetNextEvent();
+		bool	Count(int32_t us);
+		int32_t	GetNextEvent();
 		
 	protected:
-		virtual void SetStatus(uint bit) = 0;
-		virtual void ResetStatus(uint bit) = 0;
+		virtual void SetStatus(uint32_t bit) = 0;
+		virtual void ResetStatus(uint32_t bit) = 0;
 		
-		void	SetTimerBase(uint clock);
-		void	SetTimerA(uint addr, uint data);
-		void	SetTimerB(uint data);
-		void	SetTimerControl(uint data);
+		void	SetTimerBase(uint32_t clock);
+		void	SetTimerA(uint32_t addr, uint32_t data);
+		void	SetTimerB(uint32_t data);
+		void	SetTimerControl(uint32_t data);
 		
-		uint8	status;
-		uint8	regtc;
+		uint8_t	status;
+		uint8_t	regtc;
 		
 	private:
 		virtual void TimerA() {}
-		uint8	regta[2];
+		uint8_t	regta[2];
 		
-		int32	timera, timera_count;
-		int32	timerb, timerb_count;
-		int32	timer_step;
+		int32_t	timera, timera_count;
+		int32_t	timerb, timerb_count;
+		int32_t	timer_step;
 	};
 
 // ---------------------------------------------------------------------------

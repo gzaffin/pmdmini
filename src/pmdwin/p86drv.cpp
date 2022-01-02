@@ -4,19 +4,19 @@
 //			Windows Converted by C60
 //=============================================================================
 
-#if !defined _WIN32
-#include	<cstdint>
-#endif
-#include	<stdio.h>
-#include	<math.h>
-#include	"p86drv.h"
-#include	"util.h"
+#include <cstdlib>
+#include <cmath>
+#include "p86drv.h"
+
 
 //-----------------------------------------------------------------------------
 //	コンストラクタ・デストラクタ
 //-----------------------------------------------------------------------------
-P86DRV::P86DRV()
+P86DRV::P86DRV(IFILEIO* pfileio)
 {
+	this->pfileio = pfileio;
+	pfileio->AddRef();
+	
 	p86_addr = NULL;
 	_Init();
 }
@@ -31,9 +31,24 @@ P86DRV::~P86DRV()
 
 
 //-----------------------------------------------------------------------------
+//	File Stream 設定
+//-----------------------------------------------------------------------------
+void P86DRV::setfileio(IFILEIO* pfileio) {
+	if (this->pfileio != NULL) {
+		this->pfileio->Release();
+	}
+	
+	this->pfileio = pfileio;
+	if (this->pfileio != NULL) {
+		this->pfileio->AddRef();
+	}
+}
+
+
+//-----------------------------------------------------------------------------
 //	初期化
 //-----------------------------------------------------------------------------
-bool P86DRV::Init(uint r, bool ip)
+bool P86DRV::Init(uint32_t r, bool ip)
 {
 	_Init();
 	SetRate(r, ip);
@@ -87,18 +102,14 @@ void P86DRV::_Init(void)
 //-----------------------------------------------------------------------------
 //	再生周波数、一次補完設定設定
 //-----------------------------------------------------------------------------
-bool P86DRV::SetRate(uint r, bool ip)
+bool P86DRV::SetRate(uint32_t r, bool ip)
 {
-	uint	_ontei;
+	uint32_t	_ontei;
 	
 	rate = r;
 	interpolation = ip;
-
-#if defined _WIN32	
-	_ontei = (uint)((unsigned _int64)ontei * srcrate / rate);
-#else
-	_ontei = (uint)((std::uint64_t)ontei * srcrate / rate);
-#endif
+	
+	_ontei = (uint32_t)((uint64_t)ontei * srcrate / rate);
 	addsize2 = (_ontei & 0xffff) >> 4;
 	addsize1 = _ontei >> 16;
 	
@@ -109,7 +120,7 @@ bool P86DRV::SetRate(uint r, bool ip)
 //-----------------------------------------------------------------------------
 //	音量調整用
 //-----------------------------------------------------------------------------
-void P86DRV::SetVolume(int volume)
+void P86DRV::SetVolume(int32_t volume)
 {
 	MakeVolumeTable(volume);
 }
@@ -118,20 +129,20 @@ void P86DRV::SetVolume(int volume)
 //-----------------------------------------------------------------------------
 //	音量テーブル作成
 //-----------------------------------------------------------------------------
-void P86DRV::MakeVolumeTable(int volume)
+void P86DRV::MakeVolumeTable(int32_t volume)
 {
-	int		i, j;
-	int		AVolume_temp;
+	int32_t		i, j;
+	int32_t		AVolume_temp;
 	double	temp;
 	
-	AVolume_temp = (int)(0x1000 * pow(10.0, volume / 40.0));
+	AVolume_temp = (int32_t)(0x1000 * pow(10.0, volume / 40.0));
 	if(AVolume != AVolume_temp) {
 		AVolume = AVolume_temp;
 		for(i = 0; i < 16; i++) {
 //@			temp = pow(2.0, (i + 15) / 2.0) * AVolume / 0x18000;
 			temp = i * AVolume / 256;
 			for(j = 0; j < 256; j++) {
-				VolumeTable[i][j] = (Sample)((char)j * temp);
+				VolumeTable[i][j] = (Sample)((int8_t)j * temp);
 			}
 		}
 	}
@@ -139,12 +150,30 @@ void P86DRV::MakeVolumeTable(int volume)
 
 
 //-----------------------------------------------------------------------------
+//	ヘッダ読み込み
+//-----------------------------------------------------------------------------
+void P86DRV::ReadHeader(IFILEIO* file, P86HEADER &p86header)
+{
+	uint8_t buf[1552];
+	file->Read(buf, sizeof(buf));
+	
+	memcpy(p86header.header, &buf[0x00], 12);
+	p86header.Version = buf[0x0c];
+	memcpy(p86header.All_Size, &buf[0x0d], 3);
+	
+	for(int32_t i = 0; i < MAX_P86; i++) {
+		memcpy(&p86header.pcmnum[i].start[0], &buf[0x10 + i * 6], 3);
+		memcpy(&p86header.pcmnum[i].size[0],  &buf[0x13 + i * 6], 3);
+	}
+}
+
+
+//-----------------------------------------------------------------------------
 //	P86 読み込み
 //-----------------------------------------------------------------------------
-int P86DRV::Load(TCHAR *filename)
+int32_t P86DRV::Load(TCHAR *filename)
 {
-	FileIO		file;
-	int			i, size;
+	int32_t			i, size;
 	P86HEADER	_p86header;
 	P86HEADER2	p86header2;
 	
@@ -156,7 +185,7 @@ int P86DRV::Load(TCHAR *filename)
 		return _ERR_OPEN_P86_FILE;
 	}
 	
-	if(file.Open(filename, FileIO::readonly) == false) {
+	if(pfileio->Open(filename, FileIO::flags_readonly) == false) {
 		if(p86_addr != NULL) {
 			free(p86_addr);		// 開放
 			p86_addr = NULL;
@@ -166,8 +195,9 @@ int P86DRV::Load(TCHAR *filename)
 		return _ERR_OPEN_P86_FILE;						//	ファイルが開けない
 	}
 	
-	size = (int)filepath.GetFileSize(filename);		// ファイルサイズ
-	file.Read(&_p86header, sizeof(_p86header));
+	size = (int32_t)pfileio->GetFileSize(filename);		// ファイルサイズ
+	//@ pfileio->Read(&_p86header, sizeof(_p86header));
+	ReadHeader(pfileio, _p86header);
 	
 	// P86HEADER → P86HEADER2 へ変換
 	memset(&p86header2, 0, sizeof(p86header2));
@@ -185,7 +215,7 @@ int P86DRV::Load(TCHAR *filename)
 	
 	if(memcmp(&p86header, &p86header2, sizeof(p86header)) == 0) {
 		filepath.Strcpy(p86_file, filename);
-		file.Close();
+		pfileio->Close();
 		return _WARNING_P86_ALREADY_LOAD;		// 同じファイル
 	}
 	
@@ -196,19 +226,19 @@ int P86DRV::Load(TCHAR *filename)
 	
 	memcpy(&p86header, &p86header2, sizeof(p86header));
 	
-	size -= sizeof(_p86header);
+	size -= P86HEADERSIZE;
 	
-	if((p86_addr = (uchar *)malloc(size)) == NULL) {
-		file.Close();
+	if((p86_addr = (uint8_t *)malloc(size)) == NULL) {
+		pfileio->Close();
 		return _ERR_OUT_OF_MEMORY;			// メモリが確保できない
 	}
 	
-	file.Read(p86_addr, size);
+	pfileio->Read(p86_addr, size);
 	
 	//	ファイル名登録
 	filepath.Strcpy(p86_file, filename);
 	
-	file.Close();
+	pfileio->Close();
 	return _P86DRV_OK;
 }
 
@@ -216,7 +246,7 @@ int P86DRV::Load(TCHAR *filename)
 //-----------------------------------------------------------------------------
 //	PCM 番号設定
 //-----------------------------------------------------------------------------
-bool P86DRV::SetNeiro(int num)
+bool P86DRV::SetNeiro(int32_t num)
 {
 	if(p86_addr == NULL) {
 		_start_ofs = NULL;
@@ -233,7 +263,7 @@ bool P86DRV::SetNeiro(int num)
 //-----------------------------------------------------------------------------
 //	PAN 設定
 //-----------------------------------------------------------------------------
-bool P86DRV::SetPan(int flag, int data)
+bool P86DRV::SetPan(int32_t flag, int32_t data)
 {
 	pcm86_pan_flag = flag;
 	pcm86_pan_dat = data;
@@ -244,7 +274,7 @@ bool P86DRV::SetPan(int flag, int data)
 //-----------------------------------------------------------------------------
 //	音量設定
 //-----------------------------------------------------------------------------
-bool P86DRV::SetVol(int _vol)
+bool P86DRV::SetVol(int32_t _vol)
 {
 	vol = _vol;
 	return true;
@@ -264,7 +294,7 @@ bool P86DRV::SetVol(int _vol)
 //			7 : 44.1kHz
 //		_ontei : 設定音程
 //-----------------------------------------------------------------------------
-bool P86DRV::SetOntei(int _srcrate, uint _ontei)
+bool P86DRV::SetOntei(int32_t _srcrate, uint32_t _ontei)
 {
 	if(_srcrate < 0 || _srcrate > 7) return false;
 	if(_ontei > 0x1fffff) return false;
@@ -272,11 +302,7 @@ bool P86DRV::SetOntei(int _srcrate, uint _ontei)
 	ontei = _ontei;
 	srcrate = ratetable[_srcrate];
 	
-#if defined _WIN32	
-	_ontei = (uint)((unsigned _int64)_ontei * srcrate / rate);
-#else
-	_ontei = (uint)((std::uint64_t)_ontei * srcrate / rate);
-#endif
+	_ontei = (uint32_t)((uint64_t)_ontei * srcrate / rate);
 	
 	addsize2 = (_ontei & 0xffff) >> 4;
 	addsize1 = _ontei >> 16;
@@ -287,9 +313,9 @@ bool P86DRV::SetOntei(int _srcrate, uint _ontei)
 //-----------------------------------------------------------------------------
 //	リピート設定
 //-----------------------------------------------------------------------------
-bool P86DRV::SetLoop(int loop_start, int loop_end, int release_start, bool adpcm)
+bool P86DRV::SetLoop(int32_t loop_start, int32_t loop_end, int32_t release_start, bool adpcm)
 {
-	int		ax, dx, _dx;
+	int32_t		ax, dx, _dx;
 	
 	repeat_flag = true;
 	release_flag1 = false;
@@ -343,7 +369,7 @@ bool P86DRV::SetLoop(int loop_start, int loop_end, int release_start, bool adpcm
 	
 	// ３個目 = リリース開始位置
 	ax = release_start;
-	if((ushort)ax != 0x8000) {				// 8000Hなら設定しない
+	if((uint16_t)ax != 0x8000) {				// 8000Hなら設定しない
 		// release開始位置 = start位置に設定
 		release_ofs = _start_ofs;
 		
@@ -426,7 +452,7 @@ bool P86DRV::Keyoff(void)
 //-----------------------------------------------------------------------------
 //	合成
 //-----------------------------------------------------------------------------
-void P86DRV::Mix(Sample* dest, int nsamples)
+void P86DRV::Mix(Sample* dest, int32_t nsamples)
 {
 	if(play86_flag == false) return;
 	if(size <= 1) {		// 一次補間対策
@@ -465,9 +491,9 @@ void P86DRV::Mix(Sample* dest, int nsamples)
 //-----------------------------------------------------------------------------
 //	真ん中（一次補間あり）
 //-----------------------------------------------------------------------------
-void P86DRV::double_trans_i(Sample* dest, int nsamples)
+void P86DRV::double_trans_i(Sample* dest, int32_t nsamples)
 {
-	int		i;
+	int32_t		i;
 	Sample	data;
 	
 	for(i = 0; i < nsamples; i++) {
@@ -487,9 +513,9 @@ void P86DRV::double_trans_i(Sample* dest, int nsamples)
 //-----------------------------------------------------------------------------
 //	真ん中（逆相、一次補間あり）
 //-----------------------------------------------------------------------------
-void P86DRV::double_trans_g_i(Sample* dest, int nsamples)
+void P86DRV::double_trans_g_i(Sample* dest, int32_t nsamples)
 {
-	int		i;
+	int32_t		i;
 	Sample	data;
 	
 	for(i = 0; i < nsamples; i++) {
@@ -509,9 +535,9 @@ void P86DRV::double_trans_g_i(Sample* dest, int nsamples)
 //-----------------------------------------------------------------------------
 //	左寄り（一次補間あり）
 //-----------------------------------------------------------------------------
-void P86DRV::left_trans_i(Sample* dest, int nsamples)
+void P86DRV::left_trans_i(Sample* dest, int32_t nsamples)
 {
-	int		i;
+	int32_t		i;
 	Sample	data;
 	
 	for(i = 0; i < nsamples; i++) {
@@ -532,9 +558,9 @@ void P86DRV::left_trans_i(Sample* dest, int nsamples)
 //-----------------------------------------------------------------------------
 //	左寄り（逆相、一次補間あり）
 //-----------------------------------------------------------------------------
-void P86DRV::left_trans_g_i(Sample* dest, int nsamples)
+void P86DRV::left_trans_g_i(Sample* dest, int32_t nsamples)
 {
-	int		i;
+	int32_t		i;
 	Sample	data;
 	
 	for(i = 0; i < nsamples; i++) {
@@ -555,9 +581,9 @@ void P86DRV::left_trans_g_i(Sample* dest, int nsamples)
 //-----------------------------------------------------------------------------
 //	右寄り（一次補間あり）
 //-----------------------------------------------------------------------------
-void P86DRV::right_trans_i(Sample* dest, int nsamples)
+void P86DRV::right_trans_i(Sample* dest, int32_t nsamples)
 {
-	int		i;
+	int32_t		i;
 	Sample	data, data2;
 	
 	for(i = 0; i < nsamples; i++) {
@@ -578,9 +604,9 @@ void P86DRV::right_trans_i(Sample* dest, int nsamples)
 //-----------------------------------------------------------------------------
 //	右寄り（逆相、一次補間あり）
 //-----------------------------------------------------------------------------
-void P86DRV::right_trans_g_i(Sample* dest, int nsamples)
+void P86DRV::right_trans_g_i(Sample* dest, int32_t nsamples)
 {
-	int		i;
+	int32_t		i;
 	Sample	data, data2;
 	
 	for(i = 0; i < nsamples; i++) {
@@ -601,9 +627,9 @@ void P86DRV::right_trans_g_i(Sample* dest, int nsamples)
 //-----------------------------------------------------------------------------
 //	真ん中（一次補間なし）
 //-----------------------------------------------------------------------------
-void P86DRV::double_trans(Sample* dest, int nsamples)
+void P86DRV::double_trans(Sample* dest, int32_t nsamples)
 {
-	int		i;
+	int32_t		i;
 	Sample	data;
 	
 	for(i = 0; i < nsamples; i++) {
@@ -622,9 +648,9 @@ void P86DRV::double_trans(Sample* dest, int nsamples)
 //-----------------------------------------------------------------------------
 //	真ん中（逆相、一次補間なし）
 //-----------------------------------------------------------------------------
-void P86DRV::double_trans_g(Sample* dest, int nsamples)
+void P86DRV::double_trans_g(Sample* dest, int32_t nsamples)
 {
-	int		i;
+	int32_t		i;
 	Sample	data;
 	
 	for(i = 0; i < nsamples; i++) {
@@ -643,9 +669,9 @@ void P86DRV::double_trans_g(Sample* dest, int nsamples)
 //-----------------------------------------------------------------------------
 //	左寄り（一次補間なし）
 //-----------------------------------------------------------------------------
-void P86DRV::left_trans(Sample* dest, int nsamples)
+void P86DRV::left_trans(Sample* dest, int32_t nsamples)
 {
-	int		i;
+	int32_t		i;
 	Sample	data;
 	
 	for(i = 0; i < nsamples; i++) {
@@ -665,9 +691,9 @@ void P86DRV::left_trans(Sample* dest, int nsamples)
 //-----------------------------------------------------------------------------
 //	左寄り（逆相、一次補間なし）
 //-----------------------------------------------------------------------------
-void P86DRV::left_trans_g(Sample* dest, int nsamples)
+void P86DRV::left_trans_g(Sample* dest, int32_t nsamples)
 {
-	int		i;
+	int32_t		i;
 	Sample	data;
 	
 	for(i = 0; i < nsamples; i++) {
@@ -687,9 +713,9 @@ void P86DRV::left_trans_g(Sample* dest, int nsamples)
 //-----------------------------------------------------------------------------
 //	右寄り（一次補間なし）
 //-----------------------------------------------------------------------------
-void P86DRV::right_trans(Sample* dest, int nsamples)
+void P86DRV::right_trans(Sample* dest, int32_t nsamples)
 {
-	int		i;
+	int32_t		i;
 	Sample	data, data2;
 	
 	for(i = 0; i < nsamples; i++) {
@@ -709,9 +735,9 @@ void P86DRV::right_trans(Sample* dest, int nsamples)
 //-----------------------------------------------------------------------------
 //	右寄り（逆相、一次補間なし）
 //-----------------------------------------------------------------------------
-void P86DRV::right_trans_g(Sample* dest, int nsamples)
+void P86DRV::right_trans_g(Sample* dest, int32_t nsamples)
 {
-	int		i;
+	int32_t		i;
 	Sample	data, data2;
 	
 	for(i = 0; i < nsamples; i++) {

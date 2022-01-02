@@ -8,7 +8,9 @@
 #ifndef TABLE_H
 #define TABLE_H
 
-typedef unsigned int uint;
+
+#include "portability_fmpmdcore.h"
+
 
 typedef struct efftbltag
 {
@@ -21,7 +23,7 @@ extern const int part_table[][3];
 extern const int fnum_data[];
 extern const int psg_tune_data[];
 extern const int pcm_tune_data[];
-extern const uint p86_tune_data[];
+extern const uint32_t p86_tune_data[];
 extern const int ppz_tune_data[];
 extern const int carrier_table[];
 extern const int rhydat[][3];

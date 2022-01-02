@@ -4,8 +4,8 @@
 // ---------------------------------------------------------------------------
 //	$Id: psg.cpp,v 1.10 2002/05/15 21:38:01 cisc Exp $
 
-#include "headers.h"
-#include "misc.h"
+#include "headers_fmgen.h"
+#include "misc_fmgen.h"
 #include "psg.h"
 
 // ---------------------------------------------------------------------------
@@ -130,23 +130,24 @@ void PSG::SetChannelMask(int c)
 void PSG::MakeEnvelopTable()
 {
 	// 0 lo  1 up 2 down 3 hi
-	static uint8 table1[16*2] =
+	static uint8_t table1[16*2] =
 	{
 		2,0, 2,0, 2,0, 2,0, 1,0, 1,0, 1,0, 1,0,
 		2,2, 2,0, 2,1, 2,3, 1,1, 1,3, 1,2, 1,0,
 	};
-	static uint8 table2[4] = {  0,  0, 31, 31 };
-	static uint8 table3[4] = {  0,  1, (uint8)-1,  0 };
+	static uint8_t table2[4] = {  0,  0, 31, 31 };
+	static uint8_t table3[4] = {  0,  1, (uint8_t)-1,  0 };
 	
-	uint* ptr = enveloptable[0];
+	uint32_t* ptr = enveloptable[0];
 	
 	for (int i=0; i<16*2; i++)
 	{
-		uint8 v = table2[table1[i]];
+		uint8_t v = table2[table1[i]];
 		
 		for (int j=0; j<32; j++)
 		{
-			*ptr++ = EmitTable[v & 0x1f];
+			*ptr = EmitTable[v & 0x1f];
+			ptr++;
 			v += table3[table1[i]];
 		}
 	}
@@ -157,7 +158,7 @@ void PSG::MakeEnvelopTable()
 //	regnum		レジスタの番号 (0 - 15)
 //	data		セットする値
 //
-void PSG::SetReg(uint regnum, uint8 data)
+void PSG::SetReg(uint32_t regnum, uint8_t data)
 {
 	if (regnum < 0x10)
 	{
@@ -218,7 +219,7 @@ void PSG::SetReg(uint regnum, uint8 data)
 // ---------------------------------------------------------------------------
 //
 //
-inline void PSG::StoreSample(Sample& dest, int32 data)
+inline void PSG::StoreSample(Sample& dest, int32_t data)
 {
 	if (sizeof(Sample) == 2)
 		dest = (Sample) Limit(dest + data, 0x7fff, -0x8000);
@@ -233,8 +234,8 @@ inline void PSG::StoreSample(Sample& dest, int32 data)
 //
 void PSG::Mix(Sample* dest, int nsamples)
 {
-	uint8 chenable[3], nenable[3];
-	uint8 r7 = ~reg[7];
+	uint8_t chenable[3], nenable[3];
+	uint8_t r7 = ~reg[7];
 	
 	if ((r7 & 0x3f) | ((reg[8] | reg[9] | reg[10]) & 0x1f))
 	{
@@ -246,10 +247,10 @@ void PSG::Mix(Sample* dest, int nsamples)
 		nenable[2]  = (r7 >> 5) & 1;
 		
 		int noise, sample;
-		uint env;
-		uint* p1 = ((mask & 1) && (reg[ 8] & 0x10)) ? &env : &olevel[0];
-		uint* p2 = ((mask & 2) && (reg[ 9] & 0x10)) ? &env : &olevel[1];
-		uint* p3 = ((mask & 4) && (reg[10] & 0x10)) ? &env : &olevel[2];
+		uint32_t env;
+		uint32_t* p1 = ((mask & 1) && (reg[ 8] & 0x10)) ? &env : &olevel[0];
+		uint32_t* p2 = ((mask & 2) && (reg[ 9] & 0x10)) ? &env : &olevel[1];
+		uint32_t* p3 = ((mask & 4) && (reg[10] & 0x10)) ? &env : &olevel[2];
 		
 		#define SCOUNT(ch)	(scount[ch] >> (toneshift+oversampling))
 		
@@ -374,4 +375,4 @@ void PSG::Mix(Sample* dest, int nsamples)
 // ---------------------------------------------------------------------------
 //	テーブル
 //
-uint	PSG::noisetable[noisetablesize] = { 0, };
+uint32_t	PSG::noisetable[noisetablesize] = { 0, };
