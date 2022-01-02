@@ -80,6 +80,12 @@ typedef struct p86headertag		// header(original)
 	} pcmnum[MAX_P86] __attribute__((packed));
 } P86HEADER;
 
+const size_t P86HEADERSIZE =
+	  sizeof(char) * 12
+	+ sizeof(uint8_t)
+	+ sizeof(char) * 3
+	+ sizeof(uint8_t) * (3 + 3) * MAX_P86;
+
 
 typedef struct p86headertag2	// header(for PMDWin, int32_t alignment)
 {

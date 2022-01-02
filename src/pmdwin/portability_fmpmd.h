@@ -35,6 +35,8 @@
 
 #else
 
+	#include <linux/limits.h>
+
 	//	呼出規約の無効化
 
 	#define	__stdcall
