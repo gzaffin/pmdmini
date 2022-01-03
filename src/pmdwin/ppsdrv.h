@@ -55,15 +55,15 @@ typedef struct ppsheadertag
 
 #else
 
-typedef struct ppsheadertag
+typedef struct __attribute__((packed)) ppsheadertag
 {
-	struct {
-		WORD	address __attribute__((packed));				// 先頭アドレス
-		WORD	leng __attribute__((packed));					// データ量
-		BYTE	toneofs __attribute__((packed));				// 音階
-		BYTE	volumeofs __attribute__((packed));				// 音量
-	} pcmnum[MAX_PPS] __attribute__((packed));
-} PPSHEADER __attribute__((packed));
+	struct __attribute__((packed)) {
+		WORD	address;				// 先頭アドレス
+		WORD	leng;					// データ量
+		BYTE	toneofs;				// 音階
+		BYTE	volumeofs;				// 音量
+	} pcmnum[MAX_PPS];
+} PPSHEADER;
 
 #endif
 

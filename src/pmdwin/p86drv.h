@@ -65,15 +65,15 @@ typedef struct p86headertag2	// header(for PMDWin, int alignment)
 
 #else
 
-typedef struct p86headertag		// header(original)
+typedef struct __attribute__((packed)) p86headertag		// header(original)
 {
-	char	header[12] __attribute__((packed));			// "PCM86 DATA",0,0
-	uchar	Version __attribute__((packed));
-	char	All_Size[3] __attribute__((packed));
-	struct {
-		uchar	start[3] __attribute__((packed));
-		uchar	size[3] __attribute__((packed));
-	} pcmnum[MAX_P86] __attribute__((packed));
+	char	header[12];			// "PCM86 DATA",0,0
+	uchar	Version;
+	char	All_Size[3];
+	struct __attribute__((packed)) {
+		uchar	start[3];
+		uchar	size[3];
+	} pcmnum[MAX_P86];
 } P86HEADER;
 
 
