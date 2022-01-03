@@ -51,15 +51,15 @@ typedef struct ppsheadertag
 
 #else
 
-typedef struct ppsheadertag
+typedef struct __attribute__((packed)) ppsheadertag
 {
-	struct {
-		uint16_t	address __attribute__((packed));				// 先頭アドレス
-		uint16_t	leng __attribute__((packed));					// データ量
-		uint8_t	toneofs __attribute__((packed));				// 音階
-		uint8_t	volumeofs __attribute__((packed));				// 音量
-	} pcmnum[MAX_PPS] __attribute__((packed));
-} PPSHEADER __attribute__((packed));
+	struct __attribute__((packed)) {
+		uint16_t	address;				// 先頭アドレス
+		uint16_t	leng;					// データ量
+		uint8_t	toneofs;				// 音階
+		uint8_t	volumeofs;				// 音量
+	} pcmnum[MAX_PPS];
+} PPSHEADER;
 
 #endif
 

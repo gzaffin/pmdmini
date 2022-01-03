@@ -11,9 +11,9 @@
 	#include <tchar.h>
 	
 #else
+	#include <sys/types.h>
 	#include <unistd.h>
 	#include <fcntl.h>
-	#include <linux/stat.h>
 	#include <sys/stat.h>
 #endif
 

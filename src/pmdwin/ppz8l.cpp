@@ -243,9 +243,6 @@ void PPZ8::ReadHeader(IFILEIO* file, PVIHEADER &pviheader)
 	
 	for(int32_t i = 0; i < 128; i++) {
 		pviheader.pcmnum[i].startaddress =
-				(buf[0x20 + i * 18]) | (buf[0x21 + i * 18] << 8) | (buf[0x22 + i * 18] << 16) | (buf[0x23 + i * 18] << 24);
-		
-		pviheader.pcmnum[i].startaddress =
 				(buf[0x10 + i * 4]) | (buf[0x11 + i * 4] << 8);
 		
 		pviheader.pcmnum[i].endaddress =
