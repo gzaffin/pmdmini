@@ -170,7 +170,7 @@ int pmd_play ( char *argv[] , char *pcmdir )
 			{
 				if ( (45 /* minus sign */ != argv[3][0]) && (45 /* minus sign */ != argv[3][1]) )
 				{
-					char *p;
+					char *p = nullptr;
 
 #ifdef _MSC_VER
 					p = strrchr( argv[3], ':' );
@@ -182,7 +182,7 @@ int pmd_play ( char *argv[] , char *pcmdir )
 						p = ('.' == argv[3][0]) ? argv[3] : nullptr;
 					}
 
-					if ( nullptr != p )
+					if ( nullptr == p )
 					{
 						if ( PMDWIN_OK == ppc_load( argv[3] ) )
 						{

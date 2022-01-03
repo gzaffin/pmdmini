@@ -89,32 +89,32 @@ typedef struct pviheadertag
 
 #else
 
-typedef struct pziheadertag
+typedef struct __attribute__((packed)) pziheadertag
 {
-	char	header[4] __attribute__((packed));				// 'PZI1'
-	char	dummy1[0x0b-4] __attribute__((packed));			// 予備１
-	uint8_t	pzinum __attribute__((packed));					// PZIデータの定義数
-	char	dummy2[0x20-0x0b-1] __attribute__((packed));	// 予備２
-	struct	{
-		uint32_t	startaddress __attribute__((packed));		// 先頭アドレス
-		uint32_t	size __attribute__((packed));				// データ量
-		uint32_t	loop_start __attribute__((packed));			// ループ開始ポインタ
-		uint32_t	loop_end __attribute__((packed));			// ループ終了ポインタ
-		uint16_t	rate __attribute__((packed));				// 再生周波数
-	} pcmnum[128] __attribute__((packed));
-} PZIHEADER __attribute__((packed));
+	char	header[4];				// 'PZI1'
+	char	dummy1[0x0b-4];			// 予備１
+	uint8_t	pzinum;					// PZIデータの定義数
+	char	dummy2[0x20-0x0b-1];	// 予備２
+	struct __attribute__((packed))	{
+		uint32_t	startaddress;		// 先頭アドレス
+		uint32_t	size;				// データ量
+		uint32_t	loop_start;			// ループ開始ポインタ
+		uint32_t	loop_end;			// ループ終了ポインタ
+		uint16_t	rate;				// 再生周波数
+	} pcmnum[128];
+} PZIHEADER;
 
-typedef struct pviheadertag
+typedef struct __attribute__((packed)) pviheadertag
 {
-	char	header[4] __attribute__((packed));				// 'PVI2'
-	char	dummy1[0x0b-4] __attribute__((packed));			// 予備１
-	uint8_t	pvinum __attribute__((packed));					// PVIデータの定義数
-	char	dummy2[0x10-0x0b-1] __attribute__((packed));	// 予備２
-	struct	{
-		uint16_t	startaddress __attribute__((packed));		// 先頭アドレス
-		uint16_t	endaddress __attribute__((packed));			// データ量
-	} pcmnum[128] __attribute__((packed));
-} PVIHEADER __attribute__((packed));
+	char	header[4];				// 'PVI2'
+	char	dummy1[0x0b-4];			// 予備１
+	uint8_t	pvinum;					// PVIデータの定義数
+	char	dummy2[0x10-0x0b-1];	// 予備２
+	struct __attribute__((packed))	{
+		uint16_t	startaddress;		// 先頭アドレス
+		uint16_t	endaddress;			// データ量
+	} pcmnum[128];
+} PVIHEADER;
 
 #endif
 

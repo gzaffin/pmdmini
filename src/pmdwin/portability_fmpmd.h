@@ -1,6 +1,21 @@
 #ifndef PORTABILITY_FMPMD_H
 #define PORTABILITY_FMPMD_H
 
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
+#include <cstring>
+#include <cassert>
+#include <climits>
+#include <cwchar>
+
+#ifdef __APPLE__
+	#ifndef PATH_MAX
+		#ifdef _POSIX_PATH_MAX
+			#define PATH_MAX (_POSIX_PATH_MAX)
+		#endif
+	#endif
+#endif
 
 
 
@@ -34,8 +49,6 @@
 	#endif
 
 #else
-
-	#include <linux/limits.h>
 
 	//	呼出規約の無効化
 
