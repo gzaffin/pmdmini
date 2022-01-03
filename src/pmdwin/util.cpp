@@ -4,7 +4,6 @@
 //=============================================================================
 
 #include <ctype.h>
-#include <malloc.h>
 #include <string.h>
 #include "portability_fmpmdcore.h"
 #include "util.h"
