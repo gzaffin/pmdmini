@@ -68,8 +68,22 @@ jobs:
         cd build
         msbuild pmdmini.sln -t:rebuild -property:Configuration=Release
 
-    - name: Check
+    - name: Check [Linux]
+      if: matrix.os == 'ubuntu-latest'
       run: |
         cd build
         echo "Checking if pmdplay works: ./pmdplay ../PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav"
         ./pmdplay ../PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav
+    - name: Check [Darwin]
+      if: matrix.os == 'macos-latest'
+      run: |
+        cd build
+        echo "Checking if pmdplay works: ./pmdplay ../PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav"
+        ./pmdplay ../PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav
+    - name: Check  [Windows]
+      if: matrix.os == 'windows-latest'
+      run: |
+        cd build
+        echo "Checking if pmdplay works: Release\pmdplay.exe ..\PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav"
+        Release\pmdplay.exe ..\PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav
+
