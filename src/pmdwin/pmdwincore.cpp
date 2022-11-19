@@ -7104,17 +7104,17 @@ int32_t PMDWIN::ppc_load2(TCHAR *filename)
 	if(*filename == filepath.EmptyChar) {
 		return ERR_OPEN_PPC_FILE;
 	}
-	
-	if(pfileio->Open(filename, FileIO::flags_readonly) == false) {
+
+	if(pfileio->Open((const TCHAR*)filename, (uint32_t)FileIO::flags_readonly) == false) {
 		return ERR_OPEN_PPC_FILE;
 	}
-	
+
 	size = (int32_t)pfileio->GetFileSize(filename);		// ファイルサイズ
-	
+
 	if((pcmbuf = (uint8_t *)malloc(size)) == NULL) {
 		return ERR_OUT_OF_MEMORY;					// メモリが確保できない
 	}
-	
+
 	pfileio->Read(pcmbuf, size);
 	pfileio->Close();
 	result = ppc_load3(pcmbuf, size);
@@ -7204,8 +7204,7 @@ int32_t PMDWIN::ppc_load3(uint8_t *pcmdata, int32_t size)
 	//------------------------------------------------------------------------
 	
 	memcpy(tempbuf2, PPCHeader, sizeof(PPCHeader)-1);
-	memcpy(&tempbuf2[sizeof(PPCHeader)-1], &pcmends.pcmends, 
-								sizeof(tempbuf2)-(sizeof(PPCHeader)-1));
+	memcpy(&tempbuf2[sizeof(PPCHeader)-1], &pcmends.pcmends, (sizeof(pcmends) <= (sizeof(tempbuf2)-(sizeof(PPCHeader)-1))) ? sizeof(pcmends) : sizeof(tempbuf2)-(sizeof(PPCHeader)-1));
 	pcmstore(0, 0x25, tempbuf2);
 
 	//------------------------------------------------------------------------

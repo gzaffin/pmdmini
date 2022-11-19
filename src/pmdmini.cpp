@@ -1,3 +1,4 @@
+#include <iostream>
 #include <cstring>
 #include <cstdio>
 
@@ -30,7 +31,7 @@ static int pmd_split_dir( const char *file , char *dir )
 
 	if ( p )
 	{
-		len = (int)( p - file );
+		len = (int)( p + 1 - file );
 		std::strncpy ( dir , file , len );
 	}
 	dir[ len ] = 0;
@@ -83,12 +84,12 @@ int pmd_is_pmd( const char *file )
 	FILE *fp;
 
 	fp = std::fopen(file,"rb");
-	
+
 	if (!fp)
 		return 0;
-	
+
 	size = (int)std::fread(header,1,3,fp);
-	
+
 	std::fclose(fp);
 
 	if (size != 3)
@@ -134,7 +135,7 @@ int pmd_play ( char *argv[] , char *pcmdir )
 	{
 		path[0] = dir;
 		path[1] = pcmdir;
-		path[2] = current_dir;
+		path[2] = (0 != std::strcmp( current_dir, dir )) ? current_dir : nullptr;
 		path[3] = nullptr;
 	}
 	else
@@ -144,6 +145,10 @@ int pmd_play ( char *argv[] , char *pcmdir )
 		path[2] = nullptr;
 		path[3] = nullptr;
 	}
+	if (nullptr != path[0]) { std::cout << "path[0] " << path[0] << '\n'; }
+	if (nullptr != path[1]) { std::cout << "path[1] " << path[1] << '\n'; }
+	if (nullptr != path[2]) { std::cout << "path[2] " << path[2] << '\n'; }
+	if (nullptr != path[3]) { std::cout << "path[3] " << path[3] << '\n'; }
 
 	setpcmdir( path );
 
@@ -174,32 +179,47 @@ int pmd_play ( char *argv[] , char *pcmdir )
 
 #ifdef _MSC_VER
 					p = strrchr( argv[3], ':' );
-#else
-					p = ('/' == argv[3][0] ) ? argv[3] : nullptr;
-#endif
 					if ( nullptr == p )
 					{
-						p = ('.' == argv[3][0]) ? argv[3] : nullptr;
+						p = strrchr( argv[3], '\\' );
 					}
+#else
+					p = strrchr( argv[3], '/' );
+#endif
 
-					if ( nullptr == p )
+					if ( nullptr != p )
 					{
-						if ( PMDWIN_OK == ppc_load( argv[3] ) )
+						pps_file_ptr = (TCHAR *)argv[3];
+						std::cout << "pps_file_ptr " << pps_file_ptr << '\n';
+						if ( PMDWIN_OK == ppc_load( pps_file_ptr ) )
 						{
-							pps_file_ptr = argv[3];
+							std::cout << "PMDWIN_OK == ppc_load( " << pps_file_ptr << " )\n";
+						}
+						else
+						{
+							std::cout << "PMDWIN_OK != ppc_load( " << pps_file_ptr << " )\n";
 						}
 					}
 					else
 					{
-						pps_file[0] = 0;
-						int len = std::strlen( dir );
-						p = std::strcpy( pps_file, dir);
-						p = std::strcpy( &pps_file[len], &current_dir[1] );
-						p = std::strcpy( &pps_file[len + 1], argv[3] );
-
-						if ( PMDWIN_OK == ppc_load( pps_file ) )
+						if (0 != std::strcmp( current_dir, path[0] ))
 						{
-							pps_file_ptr = pps_file;
+							p = std::strcat( pps_file_ptr, path[0] );
+						}
+						else
+						{
+							p = std::strcat( pps_file_ptr, current_dir );
+						}
+						p = std::strcat( pps_file_ptr, argv[3] );
+						std::cout << "pps_file_ptr " << pps_file_ptr << '\n';
+
+						if ( PMDWIN_OK == ppc_load( pps_file_ptr ) )
+						{
+							std::cout << "PMDWIN_OK == ppc_load( " << pps_file_ptr << " )\n";
+						}
+						else
+						{
+							std::cout << "PMDWIN_OK != ppc_load( " << pps_file_ptr << " )\n";
 						}
 					}
 				}
@@ -250,7 +270,7 @@ void pmd_get_current_notes ( int *notes , int len )
 	for ( i = 0; i < len ; i++ )
 	{
 		int data = pmdwork->MusPart[i]->onkai;
-		
+
 		if (data == 0xff)
 			notes[i] = -1;
 		else
@@ -261,7 +281,7 @@ void pmd_get_current_notes ( int *notes , int len )
 int pmd_length_sec ( void )
 {
 	return pmd_length / 1000;
-} 
+}
 
 int pmd_loop_sec ( void )
 {

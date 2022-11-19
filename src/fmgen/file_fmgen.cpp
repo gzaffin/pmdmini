@@ -632,7 +632,7 @@ bool WINAPI FileIO::SetEndOfFile()
 
 
 #else
-
+#include <iostream>
 // ---------------------------------------------------------------------------
 //	構築
 // ---------------------------------------------------------------------------
@@ -795,38 +795,38 @@ TCHAR* FilePath::AddDelimiter(TCHAR* str)
 
 void FilePath::Splitpath(const TCHAR *path, TCHAR *drive, TCHAR *dir, TCHAR *fname, TCHAR *ext)
 {
-	if(path == NULL) {
-		if(drive != NULL) {
+	if(path == nullptr) {
+		if(drive != nullptr) {
 			*drive = EmptyChar;
 		}
 		
-		if(dir != NULL) {
+		if(dir != nullptr) {
 			*dir = EmptyChar;
 		}
 		
-		if(fname != NULL) {
+		if(fname != nullptr) {
 			*fname = EmptyChar;
 		}
 		
-		if(ext != NULL) {
+		if(ext != nullptr) {
 			*ext = EmptyChar;
 		}
 		return;
 	}
 	if(*path == EmptyChar) {
-		if(drive != NULL) {
+		if(drive != nullptr) {
 			*drive = EmptyChar;
 		}
 		
-		if(dir != NULL) {
+		if(dir != nullptr) {
 			*dir = EmptyChar;
 		}
 		
-		if(fname != NULL) {
+		if(fname != nullptr) {
 			*fname = EmptyChar;
 		}
 		
-		if(ext != NULL) {
+		if(ext != nullptr) {
 			*ext = EmptyChar;
 		}
 		return;
@@ -835,33 +835,33 @@ void FilePath::Splitpath(const TCHAR *path, TCHAR *drive, TCHAR *dir, TCHAR *fna
 	const TCHAR* p1 = Strrchr(path, '/');
 	const TCHAR* p2 = Strrchr(path, '.');
 	
-	if(p1 != NULL && p2 != NULL && p1 > p2) {
+	if(p1 != nullptr && p2 != nullptr && p1 > p2) {
 		p2 = const_cast<TCHAR*>(path) + Strlen(path);
 	}
 	
-	if(p1 == NULL) {
+	if(p1 == nullptr) {
 		p1 = const_cast<TCHAR*>(path);
 	}
 	
-	if(p2 == NULL) {
+	if(p2 == nullptr) {
 		p2 = const_cast<TCHAR*>(path) + Strlen(path);
 	}
 	
-	if(drive != NULL) {
+	if(drive != nullptr) {
 		*drive = EmptyChar;
 	}
 	
-	if(dir != NULL) {
+	if(dir != nullptr) {
 		Strncpy(dir, path, p1 - path);
 		dir[p1 - path] = EmptyChar;
 	}
 	
-	if(fname != NULL) {
+	if(fname != nullptr) {
 		Strncpy(fname, p1 + 1, p2 - p1 - 1);
 		fname[p2 - p1 - 1] = EmptyChar;
 	}
 	
-	if(ext != NULL) {
+	if(ext != nullptr) {
 		Strcpy(ext, p2);
 	}
 }
@@ -874,8 +874,8 @@ void FilePath::Makepath(TCHAR *path, const TCHAR *drive, const TCHAR *dir, const
 {
 	// driveは無視
 	
-	if(dir == NULL) {
-		if (path != NULL) { *path = EmptyChar; }
+	if(dir == nullptr) {
+		if (path != nullptr) { *path = EmptyChar; }
 	} else {
 		if (0 != std::strncmp(path, dir, std::strlen(dir))) { std::strcpy(path, dir); }
 		if(std::strlen(path) >= 1) {
@@ -884,11 +884,11 @@ void FilePath::Makepath(TCHAR *path, const TCHAR *drive, const TCHAR *dir, const
 			}
 		}
 	}
-	if(fname != NULL) {
+	if(fname != nullptr) {
 		strcat(path, fname);
 	}
 	
-	if(ext != NULL) {
+	if(ext != nullptr) {
 		strcat(path, ext);
 	}
 }
@@ -925,25 +925,25 @@ void FilePath::Extractpath(TCHAR *dest, const TCHAR *src, uint32_t flg)
 	if(flg & extractpath_drive) {
 		pdrive = drive;
 	} else {
-		pdrive = NULL;
+		pdrive = nullptr;
 	}
 	
 	if(flg & extractpath_dir) {
 		pdir = dir;
 	} else {
-		pdir = NULL;
+		pdir = nullptr;
 	}
 	
 	if(flg & extractpath_filename) {
 		pfilename = filename;
 	} else {
-		pfilename = NULL;
+		pfilename = nullptr;
 	}
 	
 	if(flg & extractpath_ext) {
 		pext = ext;
 	} else {
-		pext = NULL;
+		pext = nullptr;
 	}
 	
 	Splitpath(src, pdrive, pdir, pfilename, pext);
@@ -1015,7 +1015,7 @@ FileIO::FileIO()
 	error = error_success;
 	path = new TCHAR[_MAX_PATH];
 	
-	fp = NULL;
+	fp = nullptr;
 }
 
 FileIO::~FileIO()
@@ -1051,13 +1051,13 @@ int64_t WINAPI FileIO::GetFileSize(const TCHAR* filename)
 bool WINAPI FileIO::Open(const TCHAR* filename, uint32_t flg)
 {
 	FilePath	filepath;
-	
+
 	Close();
-	
+
 	filepath.Strncpy(path, filename, _MAX_PATH);
-	
-	char	mode[4];
-	
+
+	char	mode[4] = { 'r', 'b', '\0', '\0' };
+
 	if(flg & flags_readonly)
 	{
 		std::strcpy(mode, "rb");
@@ -1066,16 +1066,16 @@ bool WINAPI FileIO::Open(const TCHAR* filename, uint32_t flg)
 	{
 		std::strcpy(mode, "wb");
 	}
-	
+	if (nullptr != filename) { std::cout << "fopen( " << filename << ", " << mode << ");\n"; }
 	fp = fopen(filename, mode);
-	
-	flags = (flg & flags_readonly) | (fp == NULL ? 0 : flags_open);
+
+	flags = (flg & flags_readonly) | (fp == nullptr ? 0 : flags_open);
 	if (!(flags & flags_open))
 	{
 		error = error_unknown;		// とりあえずのエラー設定
 	}
 	SetLogicalOrigin(0);
-	
+
 	return !!(flags & flags_open);
 }
 
@@ -1090,7 +1090,7 @@ bool WINAPI FileIO::CreateNew(const TCHAR* filename)
 	
 	filepath.Strncpy(path, filename, _MAX_PATH);
 	
-	if((fp = fopen(filename,"rb")) != NULL)
+	if((fp = fopen(filename,"rb")) != nullptr)
 	{
 		fclose( fp);
 		flags = 0;
@@ -1099,7 +1099,7 @@ bool WINAPI FileIO::CreateNew(const TCHAR* filename)
 	{
 		fp = fopen(filename, "w+b");
 		
-		flags = (fp == NULL ? 0 : flags_open);
+		flags = (fp == nullptr ? 0 : flags_open);
 	}
 	SetLogicalOrigin(0);
 	
@@ -1132,7 +1132,7 @@ bool WINAPI FileIO::Reopen(uint32_t flg)
 	
 	fp = fopen(path, mode);
 	
-	flags = (flg & flags_readonly) | (fp == NULL ? 0 : flags_open);
+	flags = (flg & flags_readonly) | (fp == nullptr ? 0 : flags_open);
 	SetLogicalOrigin(0);
 	
 	return !!(flags & flags_open);
@@ -1147,7 +1147,7 @@ void WINAPI FileIO::Close()
 	if (GetFlags() & flags_open)
 	{
 		fclose(fp);
-		fp = NULL;
+		fp = nullptr;
 		flags = 0;
 	}
 }
