@@ -7,7 +7,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
     - name: CheckOut
@@ -25,16 +25,68 @@ jobs:
         brew update
         # cmake is preinstalled, trying to install it again will error out
         brew install sdl2
+    - name: Install Dependencies [Windows]
+      if: matrix.os == 'windows-latest'
+      run: |
+        pushd ..
+        git clone https://github.com/Microsoft/vcpkg.git
+        cd vcpkg
+        .\bootstrap-vcpkg.bat
+        .\vcpkg.exe install sdl2:x64-windows vcpkg-cmake-config:x64-windows vcpkg-cmake:x64-windows
+        popd
 
-    - name: Configure
+    - name: Configure [Linux]
+      if: matrix.os == 'ubuntu-latest'
       run: |
         mkdir build && cd build
         cmake -D CMAKE_BUILD_TYPE=Release ..
-    - name: Build
+    - name: Configure [Darwin]
+      if: matrix.os == 'macos-latest'
       run: |
-        make -C build -j2 pmdplay
-    - name: Check
+        mkdir build && cd build
+        cmake -D CMAKE_BUILD_TYPE=Release ..
+    - name: Configure [Windows]
+      if: matrix.os == 'windows-latest'
+      run: |
+        mkdir build && cd build
+        cmake -D CMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake ..
+
+    - name: Build [Linux]
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        cd build
+        cmake --build . --config Release --target pmdplay
+    - name: Build [Darwin]
+      if: matrix.os == 'macos-latest'
+      run: |
+        cd build
+        cmake --build . --config Release --target pmdplay
+    - name: Add msbuild to PATH [Windows]
+      if: matrix.os == 'windows-latest'
+      uses: microsoft/setup-msbuild@v1.1
+    - name: Build [Windows]
+      if: matrix.os == 'windows-latest'
+      run: |
+        cd build
+        msbuild pmdmini.sln -t:rebuild -property:Configuration=Release
+
+
+    - name: Check [Linux]
+      if: matrix.os == 'ubuntu-latest'
       run: |
         cd build
         echo "Checking if pmdplay works: ./pmdplay ../PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav"
         ./pmdplay ../PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav
+    - name: Check [Darwin]
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        cd build
+        echo "Checking if pmdplay works: ./pmdplay ../PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav"
+        ./pmdplay ../PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav
+    - name: Check  [Windows]
+      if: matrix.os == 'windows-latest'
+      run: |
+        cd build
+        echo "Checking if pmdplay works: Release\pmdplay.exe ..\PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav"
+        Release\pmdplay.exe ..\PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav
+

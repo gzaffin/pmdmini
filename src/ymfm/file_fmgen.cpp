@@ -632,7 +632,7 @@ bool WINAPI FileIO::SetEndOfFile()
 
 
 #else
-
+#include <iostream>
 // ---------------------------------------------------------------------------
 //	構築
 // ---------------------------------------------------------------------------
@@ -1051,13 +1051,13 @@ int64_t WINAPI FileIO::GetFileSize(const TCHAR* filename)
 bool WINAPI FileIO::Open(const TCHAR* filename, uint32_t flg)
 {
 	FilePath	filepath;
-	
+
 	Close();
-	
+
 	filepath.Strncpy(path, filename, _MAX_PATH);
-	
-	char	mode[4];
-	
+
+	char	mode[4] = { 'r', 'b', '\0', '\0' };
+
 	if(flg & flags_readonly)
 	{
 		std::strcpy(mode, "rb");
@@ -1066,16 +1066,16 @@ bool WINAPI FileIO::Open(const TCHAR* filename, uint32_t flg)
 	{
 		std::strcpy(mode, "wb");
 	}
-	
+	if (nullptr != filename) { std::cout << "fopen( " << filename << ", " << mode << ");\n"; }
 	fp = fopen(filename, mode);
-	
-	flags = (flg & flags_readonly) | (fp == NULL ? 0 : flags_open);
+
+	flags = (flg & flags_readonly) | (fp == nullptr ? 0 : flags_open);
 	if (!(flags & flags_open))
 	{
 		error = error_unknown;		// とりあえずのエラー設定
 	}
 	SetLogicalOrigin(0);
-	
+
 	return !!(flags & flags_open);
 }
 
