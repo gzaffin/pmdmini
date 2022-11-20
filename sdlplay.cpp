@@ -2,6 +2,7 @@
 #include <cstring> /* for memset(), memcpy() */
 #include <cstdint>
 #include <climits> /* for INT_MAX */
+#include <csignal>
 #ifdef _MSC_VER
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -257,6 +258,12 @@ static void audio_loop_file(const char *outwav, const int len)
 
 }
 
+volatile std::sig_atomic_t signal_raised = 0;
+
+void set_signal_raised(int signal) {
+    signal_raised = 1;
+}
+
 //
 // player_loop
 //
@@ -270,6 +277,7 @@ static void player_loop( const int len )
 
     old_sec = total = sec = sec_sample = 0;
 
+    std::signal(SIGINT, set_signal_raised);
     do
     {
 
@@ -313,7 +321,14 @@ static void player_loop( const int len )
             SDL_Delay(1);
         }
 
+        if (1 == signal_raised)
+        {
+            signal_raised = 0;
+            sec = len + 1;
+        }
+
     } while (sec < (len + PHASE_OUT_TIME_SECONDS));
+    std::signal(SIGINT, SIG_DFL);
 
 }
 
