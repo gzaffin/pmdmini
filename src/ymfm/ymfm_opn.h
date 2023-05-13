@@ -549,8 +549,6 @@ public:
 	// set volume
 	void setfmvolume(int32_t vol);
 	void setpsgvolume(int32_t vol);
-	void setadpcmvolume(int32_t vol);
-	void setrhythmvolume(int32_t vol);
 
 protected:
 	// internal helpers
@@ -564,8 +562,6 @@ protected:
 	uint8_t m_irq_enable;               // IRQ enable register
 	uint8_t m_flag_control;             // flag control register
 	fm_engine::output_data m_last_fm;   // last FM output
-	fm_engine::output_data m_last_rhythm; // last rhythm output
-	fm_engine::output_data m_last_adpcm;  // last adpcm output
 	fm_engine m_fm;                     // core FM engine
 	ssg_engine m_ssg;                   // SSG engine
 	ssg_resampler<output_data, 2, true> m_ssg_resampler; // SSG resampler helper
@@ -574,8 +570,6 @@ protected:
 
 	int32_t	fmvolume;
 	int32_t psgvolume;
-	int32_t	adpcmvolume;
-	int32_t	rhythmvolume;
 };
 
 
