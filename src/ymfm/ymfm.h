@@ -513,9 +513,6 @@ public:
 	// timing and synchronizaton
 	//
 	
-	// constructor
-	ymfm_interface() : m_engine(nullptr) {};
-	
 	// the chip implementation calls this when a write happens to the mode
 	// register, which could affect timers and interrupts; our responsibility
 	// is to ensure the system is up to date before calling the engine's

@@ -75,7 +75,7 @@ public:
 	static constexpr uint32_t ALL_CHANNELS = (1 << CHANNELS) - 1;
 
 	// constructor
-	adpcm_a_registers() : m_regdata{} { }
+	adpcm_a_registers() { }
 
 	// reset to initial state
 	void reset();
@@ -254,7 +254,7 @@ public:
 	static constexpr uint32_t REGISTERS = 0x11;
 
 	// constructor
-	adpcm_b_registers() : m_regdata{} { }
+	adpcm_b_registers() { }
 
 	// reset to initial state
 	void reset();

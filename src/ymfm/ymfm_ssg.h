@@ -105,7 +105,7 @@ public:
 	static constexpr uint32_t ALL_CHANNELS = (1 << CHANNELS) - 1;
 
 	// constructor
-	ssg_registers() : m_regdata{} { }
+	ssg_registers() { }
 
 	// reset to initial state
 	void reset();

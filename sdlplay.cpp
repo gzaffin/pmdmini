@@ -359,7 +359,8 @@ static void player_loop( const int len )
 
 int main ( int argc, char *argv[] )
 {
-    printf( "PMDPLAY on SDL Version 2011-10-21\n" );
+    printf( "PMDPLAY on Simple Directmedia Layer 2.x (SDL2)\n" );
+    printf( "PMDPLAY dated %s\n", __DATE__ );
 
     if ( argc < 2 )
     {
