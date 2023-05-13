@@ -984,9 +984,7 @@ ym2608::ym2608(ymfm_interface &intf) :
 	m_adpcm_a(intf, 0),
 	m_adpcm_b(intf),
 	fmvolume(65536),
-	psgvolume(65536),
-	adpcmvolume(65536),
-	rhythmvolume(65536)
+	psgvolume(65536)
 {
 	m_last_fm.clear();
 	update_prescale(m_fm.clock_prescale());
@@ -1328,6 +1326,7 @@ void ym2608::generate(output_data *output, uint32_t numsamples)
 
 	// resample the SSG as configured
 	m_ssg_resampler.resample(output - numsamples, numsamples);
+	(output - numsamples)->data[2] = (output - numsamples)->data[2] * psgvolume / 65536;
 }
 
 
@@ -1413,13 +1412,11 @@ void ym2608::clock_fm_and_adpcm()
 	m_fm.output(m_last_fm.clear(), 1, 32767, fmmask);
 
 	// mix in the ADPCM and clamp
-	m_adpcm_a.output(m_last_rhythm.clear(), 0x3f);
-	m_adpcm_b.output(m_last_adpcm.clear(), 1);
+	m_adpcm_a.output(m_last_fm, 0x3f);
+	m_adpcm_b.output(m_last_fm, 1);
 
 	for (int i = 0; i < 2; i++) {
 		m_last_fm.data[i] = m_last_fm.data[i] * fmvolume / (65536 / 2);
-		m_last_fm.data[i] += m_last_rhythm.data[i] * rhythmvolume / 65536;
-		m_last_fm.data[i] += m_last_adpcm.data[i] * adpcmvolume / 65536;
 	}
 
 	m_last_fm.clamp16();
@@ -1435,18 +1432,6 @@ void ym2608::setfmvolume(int32_t vol)
 void ym2608::setpsgvolume(int32_t vol)
 {
 	psgvolume = vol;
-}
-
-
-void ym2608::setadpcmvolume(int32_t vol)
-{
-	adpcmvolume = vol;
-}
-
-
-void ym2608::setrhythmvolume(int32_t vol)
-{
-	rhythmvolume = vol;
 }
 
 
