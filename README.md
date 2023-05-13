@@ -52,7 +52,7 @@ C:\pmdmini>mkdir build
 C:\pmdmini>cd build
 C:\pmdmini\build>cmake -G "Visual Studio 17 2022" -A x64 -T host=x64 -D CMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake ..
 ```
-Now Microsoft Visual Studio can be start and build&debug pmdmini solution.
+Now Microsoft Visual Studio can be started and pmdmini solution can be built and debugged.
 
 Recap of required vcpkg variable definitions:
 
