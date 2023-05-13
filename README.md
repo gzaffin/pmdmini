@@ -31,7 +31,7 @@ $ cmake -D CMAKE_BUILD_TYPE=Release ..
 $ make pmdplay
 ```
 
-The following steps build `pmdplay.exe` on a Windows o.s. box with MSVC, vcpkg, SDL2 installed with vcpkg. Both MSVC and vcpkg have git, let's suppose git is in path environment for Windows command prompt console or Window PowerShell.
+The following steps build `pmdplay.exe` on a Windows o.s. box with MSVC, vcpkg, SDL2 installed with vcpkg. Both MSVC and vcpkg have git, let's suppose git is in path environment for Windows command prompt console or Windows PowerShell console.
 Choosing Windows command prompt console.
 
 ```windows command-line interface
