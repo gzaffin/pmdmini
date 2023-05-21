@@ -1,5 +1,5 @@
 ==============================================================================
-                     PMD for Windows 「PMDWin」 Ver.0.41
+                     PMD for Windows 「PMDWin」 Ver.0.42
                         Copyright & Programmed by C60
 ==============================================================================
 
@@ -8,7 +8,7 @@
 ▼対応バージョン
 
     下記バージョンでコンパイルを確認しています。
-    Microsoft Visual Studio Community 2019 Version 16.11.2
+    Microsoft Visual Studio Community 2019 Version 16.11.24
     Microsoft Visual C++ 6.0 Professional + SP6
     公開版のバイナリはVC6でコンパイルしております。
 
@@ -33,7 +33,7 @@
 ▼コンパイル環境
 
     自作ＡＴ互換機（Asus H97-PR0, Core i7-4790, Audinst HUD-mx1, etc)
-            ＋ Windows10 Pro(64bit) 20H2
+            ＋ Windows10 Pro(64bit) 22H2
 
 
 ------------------------------------------------------------------------------
@@ -373,6 +373,10 @@ ver 0.40        2021/07/31
 ver 0.41        2021/12/05
     ソースの細かい修正
     コンパイラを Visual C++ 6.0 に戻した
+
+ver 0.42        2022/03/04
+    範囲外メモリアクセスの不具合を修正
+    オブジェクト解放漏れ、ファイルクローズ漏れの不具合を修正
 
 
 

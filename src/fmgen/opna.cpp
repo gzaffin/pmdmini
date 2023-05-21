@@ -1232,6 +1232,8 @@ OPNA::~OPNA()
 	delete[] adpcmbuf;
 	for (int32_t i=0; i<6; i++)
 		delete[] rhythm[i].sample;
+
+	pfileio->Release();
 }
 
 

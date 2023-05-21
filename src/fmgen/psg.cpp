@@ -52,6 +52,9 @@ void PSG::Reset()
 	SetReg(7, 0xff);
 	SetReg(14, 0xff);
 	SetReg(15, 0xff);
+
+	scount[0] = scount[1] = scount[2] = 0;
+	ncount = nperiod = 0;
 }
 
 // ---------------------------------------------------------------------------
