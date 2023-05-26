@@ -1,7 +1,7 @@
 ## pmdmini
 Professional Music Driver (PMD) format player using Simple DirectMedia Layer (SDL) version 2.x .
 
-This is actually a BouKiCHi project (https://github.com/BouKiCHi), but since I cannot find his repostory anymore, I would like to share here.
+This is actually a BouKiCHi project (https://github.com/BouKiCHi), but since I cannot find his repository anymore, I would like to share here.
 It'd begun as pmdxmms - PMD input plugin for XMMS - by AGAWA Koji, leveraging PMD for Windows by [C60](http://c60.la.coocan.jp/), M88 and FM sound engine by cisc, PPZ8 PCM driver by Ukky.
 
 In [C60](http://c60.la.coocan.jp/) home site, a new PMDWin Ver.0.52, updated 2023/03/04, was released, here's a direct link named [DownLoad(VS2019) : PMDWinS052_VS2019.zip](http://c60.la.coocan.jp/download/PMDWinS052_VS2019.zip), this version uses [Aaron Giles's ymfm](https://github.com/aaronsgiles/ymfm) sound engine,
