@@ -568,7 +568,7 @@ protected:
 	adpcm_a_engine m_adpcm_a;           // ADPCM-A engine
 	adpcm_b_engine m_adpcm_b;           // ADPCM-B engine
 
-	int32_t	fmvolume;
+	int32_t fmvolume;
 	int32_t psgvolume;
 };
 
