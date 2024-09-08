@@ -1,9 +1,3 @@
-if(COMMAND cmake_policy)
-	cmake_policy(SET CMP0003 NEW)
-endif(COMMAND cmake_policy)
-
-project(pmdmini)
-
 if(MSVC OR MINGW)
 	cmake_minimum_required(VERSION 3.10)
 endif()
@@ -12,10 +6,17 @@ if(UNIX)
 	cmake_minimum_required(VERSION 3.0.2)
 endif()
 
+if(COMMAND cmake_policy)
+	cmake_policy(SET CMP0003 NEW)
+endif(COMMAND cmake_policy)
+
+project(pmdmini)
+
 if(MSVC)
 	find_package(SDL2 CONFIG REQUIRED)
 	set(CMAKE_CXX_STANDARD 14)
 	set(CMAKE_CXX_STANDARD_REQUIRED YES)
+	add_compile_definitions(NOMINMAX)
 endif()
 
 if(UNIX OR MINGW)
