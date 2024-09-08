@@ -42,6 +42,7 @@
 #include <cstdio>
 #include <cstring>
 #include <algorithm>
+#include <array>
 #include <memory>
 #include <string>
 #include <vector>
@@ -106,17 +107,6 @@ inline int32_t clamp(int32_t value, int32_t minval, int32_t maxval)
 	if (value > maxval)
 		return maxval;
 	return value;
-}
-
-
-//-------------------------------------------------
-//  array_size - return the size of an array
-//-------------------------------------------------
-
-template<typename ArrayType, int ArraySize>
-constexpr uint32_t array_size(ArrayType (&array)[ArraySize])
-{
-	return ArraySize;
 }
 
 
@@ -204,7 +194,7 @@ inline int16_t encode_fp(int32_t value)
 	int exponent = 7 - count_leading_zeros(scanvalue << 17);
 
 	// smallest exponent value allowed is 1
-	exponent = (std::max)(exponent, 1);
+	exponent = std::max(exponent, 1);
 
 	// mantissa
 	int32_t mantissa = value >> (exponent - 1);
@@ -250,7 +240,7 @@ inline int16_t roundtrip_fp(int32_t value)
 	int exponent = 7 - count_leading_zeros(scanvalue << 17);
 
 	// smallest exponent value allowed is 1
-	exponent = (std::max)(exponent, 1);
+	exponent = std::max(exponent, 1);
 
 	// apply the shift back and forth to zero out bits that are lost
 	exponent -= 1;
@@ -350,7 +340,7 @@ public:
 		{
 			// create file
 			char name[20];
-			sprintf(name, "wavlog-%02d.wav", m_index);
+			snprintf(&name[0], sizeof(name), "wavlog-%02d.wav", m_index);
 			FILE *out = fopen(name, "wb");
 
 			// make the wav file header
